@@ -34,6 +34,14 @@ class ServiceLocator {
     _services[T] = service;
   }
 
+  void register<T>(T service) {
+    _services[T] = service;
+  }
+
+  void reset() {
+    _services.clear();
+  }
+
   T get<T>() {
     final service = _services[T];
     if (service == null) {

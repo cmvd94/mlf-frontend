@@ -205,58 +205,63 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   }
 
   Widget _buildSidebar({required bool isDrawer}) {
-    return Container(
-      width: 250,
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B), // Dark navy sidebar
-        border: Border(right: BorderSide(color: Colors.grey.shade800)),
-      ),
-      child: Column(
-        children: [
-          // Branding Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            alignment: Alignment.centerLeft,
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.apartment,
-                    color: Colors.white,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'MLF Internal',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                      ),
+    return Material(
+      color: const Color(0xFF1E293B), // Dark navy sidebar
+      child: Container(
+        width: 250,
+        decoration: BoxDecoration(
+          border: Border(right: BorderSide(color: Colors.grey.shade800)),
+        ),
+        child: Column(
+          children: [
+            // Branding Header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    Text(
-                      'Management Portal',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 11,
-                      ),
+                    child: const Icon(
+                      Icons.apartment,
+                      color: Colors.white,
+                      size: 22,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'MLF Internal',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'Management Portal',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Divider(color: Color(0xFF334155), height: 1),
-          const SizedBox(height: 12),
+            const Divider(color: Color(0xFF334155), height: 1),
+            const SizedBox(height: 12),
 
           // Nav Items
           _buildNavItem(
@@ -342,6 +347,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           const SizedBox(height: 12),
         ],
       ),
+    ),
     );
   }
 
