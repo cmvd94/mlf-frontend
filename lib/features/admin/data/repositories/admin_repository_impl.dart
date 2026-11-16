@@ -49,7 +49,7 @@ class AdminRepositoryImpl implements AdminRepository {
     required String phoneNumber,
     String? password,
     required String role,
-    required String employeeId,
+    String? employeeId,
     String? language,
   }) async {
     final token = await _getToken();
@@ -58,7 +58,7 @@ class AdminRepositoryImpl implements AdminRepository {
       'email': email,
       'phoneNumber': phoneNumber,
       'role': role,
-      'employeeId': employeeId,
+      if (employeeId != null && employeeId.isNotEmpty) 'employeeId': employeeId,
       if (password != null && password.isNotEmpty) 'password': password,
       if (language != null) 'language': language,
     };

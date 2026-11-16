@@ -50,7 +50,7 @@ class MockAdminRepository implements AdminRepository {
     required String phoneNumber,
     String? password,
     required String role,
-    required String employeeId,
+    String? employeeId,
     String? language,
   }) async {
     if (shouldFail) throw Exception('Failed to create user');
@@ -59,7 +59,7 @@ class MockAdminRepository implements AdminRepository {
       name: name,
       email: email,
       phoneNumber: phoneNumber,
-      employeeId: employeeId,
+      employeeId: employeeId ?? 'mlf_${users.length + 1}',
       role: AdminRole.fromString(role),
     ));
   }

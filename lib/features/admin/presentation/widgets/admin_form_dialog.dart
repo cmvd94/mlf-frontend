@@ -95,14 +95,14 @@ class _AdminFormDialogState extends State<AdminFormDialog> {
       success = await widget.controller.updateUser(
         id: widget.userToEdit!.id,
         name: name,
-        employeeId: employeeId,
+        employeeId: employeeId.isNotEmpty ? employeeId : null,
         email: email,
         role: _selectedRole.value,
       );
     } else {
       success = await widget.controller.createUser(
         name: name,
-        employeeId: employeeId,
+        employeeId: employeeId.isNotEmpty ? employeeId : null,
         phoneNumber: phone,
         email: email,
         password: password.isNotEmpty ? password : null,
@@ -182,20 +182,26 @@ class _AdminFormDialogState extends State<AdminFormDialog> {
                   // Employee ID
                   TextFormField(
                     controller: _employeeIdController,
-                    decoration: const InputDecoration(
-                      labelText: 'Employee ID *',
-                      hintText: 'e.g. mlf_01',
-                      helperText: 'Format: mlf_01, mlf_02, etc.',
-                      prefixIcon: Icon(Icons.badge_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: widget.isEditing
+                          ? 'Employee ID *'
+                          : 'Employee ID (Optional - Auto-generated)',
+                      hintText: widget.isEditing ? 'e.g. mlf_01' : 'Leave blank to auto-generate',
+                      helperText: widget.isEditing
+                          ? 'Format: mlf_01, mlf_02, etc.'
+                          : 'Leave blank to auto-generate sequence (e.g. mlf_02)',
+                      prefixIcon: const Icon(Icons.badge_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (val) {
-                      if (val == null || val.trim().isEmpty) {
+                      if (widget.isEditing && (val == null || val.trim().isEmpty)) {
                         return 'Employee ID is required';
                       }
-                      if (!RegExp(r'^mlf_\d+$', caseSensitive: false)
-                          .hasMatch(val.trim())) {
-                        return 'Format must be like mlf_01';
+                      if (val != null && val.trim().isNotEmpty) {
+                        if (!RegExp(r'^mlf_\d+$', caseSensitive: false)
+                            .hasMatch(val.trim())) {
+                          return 'Format must be like mlf_01';
+                        }
                       }
                       return null;
                     },
