@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
-import '../../domain/entities/admin_list_entity.dart';
-import '../../domain/entities/admin_user_entity.dart';
-import '../../domain/usecases/create_admin_user_usecase.dart';
-import '../../domain/usecases/delete_admin_user_usecase.dart';
-import '../../domain/usecases/get_admin_user_details_usecase.dart';
-import '../../domain/usecases/get_admin_users_usecase.dart';
-import '../../domain/usecases/update_admin_is_active_usecase.dart';
-import '../../domain/usecases/update_admin_user_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/admin_list_entity.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/create_admin_user_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/delete_admin_user_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_admin_user_details_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_admin_users_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/update_admin_is_active_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/update_admin_user_usecase.dart';
 
 class AdminController extends ChangeNotifier {
   final GetAdminUsersUseCase getAdminUsersUseCase;

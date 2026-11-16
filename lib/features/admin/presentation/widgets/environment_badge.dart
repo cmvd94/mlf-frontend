@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/config/env_config.dart';
-import '../../../../core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/config/env_config.dart';
+import 'package:mlf_frontend/core/constants/app_colors.dart';
 
 class EnvironmentBadge extends StatelessWidget {
   final bool showSwitchDialogOnTap;
@@ -158,7 +158,10 @@ class EnvironmentBadge extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: ElevatedButton(
-                        style: ElevatedButton.styleKey,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                        ),
                         onPressed: () {
                           if (customUrlController.text.trim().isNotEmpty) {
                             envConfig.setCustomBaseUrl(customUrlController.text);

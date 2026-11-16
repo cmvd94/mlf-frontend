@@ -1,5 +1,5 @@
-import '../domain/entities/admin_role.dart';
-import '../domain/entities/admin_user_entity.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/admin_role.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
 
 class AdminUserModel extends AdminUserEntity {
   const AdminUserModel({

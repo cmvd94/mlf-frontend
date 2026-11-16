@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../../../core/config/env_config.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/di/service_locator.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../auth/domain/repositories/auth_repository.dart';
-import '../../../auth/presentation/pages/login_page.dart';
-import '../controllers/admin_controller.dart';
-import '../widgets/environment_badge.dart';
-import 'admin_management_page.dart';
+import 'package:mlf_frontend/core/config/env_config.dart';
+import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
+import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.dart';
+import 'package:mlf_frontend/features/auth/presentation/pages/login_page.dart';
+import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
+import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
+import 'package:mlf_frontend/features/admin/presentation/pages/admin_management_page.dart';
 
 class MainLayoutPage extends StatefulWidget {
   final UserEntity? currentUser;

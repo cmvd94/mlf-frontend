@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../domain/entities/admin_role.dart';
-import '../../domain/entities/admin_user_entity.dart';
-import '../controllers/admin_controller.dart';
-import '../widgets/admin_detail_dialog.dart';
-import '../widgets/admin_form_dialog.dart';
-import '../widgets/delete_confirm_dialog.dart';
-import '../widgets/environment_badge.dart';
+import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/admin_role.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
+import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
+import 'package:mlf_frontend/features/admin/presentation/widgets/admin_detail_dialog.dart';
+import 'package:mlf_frontend/features/admin/presentation/widgets/admin_form_dialog.dart';
+import 'package:mlf_frontend/features/admin/presentation/widgets/delete_confirm_dialog.dart';
+import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
 
 class AdminManagementPage extends StatefulWidget {
   final AdminController controller;

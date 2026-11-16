@@ -1,7 +1,7 @@
-import '../../../../core/network/api_client.dart';
-import '../../../../core/network/api_endpoints.dart';
-import '../models/admin_list_model.dart';
-import '../models/admin_user_model.dart';
+import 'package:mlf_frontend/core/network/api_client.dart';
+import 'package:mlf_frontend/core/network/api_endpoints.dart';
+import 'package:mlf_frontend/features/admin/data/models/admin_list_model.dart';
+import 'package:mlf_frontend/features/admin/data/models/admin_user_model.dart';
 
 abstract class AdminRemoteDataSource {
   Future<AdminListModel> getAdminUsers({

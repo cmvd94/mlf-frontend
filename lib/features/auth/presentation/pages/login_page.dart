@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
-import '../../../../core/di/service_locator.dart';
-import '../../../../core/utils/responsive_layout.dart';
-import '../../../../core/utils/validators.dart';
-import '../../../admin/presentation/pages/main_layout_page.dart';
-import '../../../admin/presentation/widgets/environment_badge.dart';
-import '../controllers/login_controller.dart';
-import '../widgets/custom_text_field.dart';
-import '../widgets/primary_button.dart';
+import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/constants/app_strings.dart';
+import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/core/utils/responsive_layout.dart';
+import 'package:mlf_frontend/core/utils/validators.dart';
+import 'package:mlf_frontend/features/admin/presentation/pages/main_layout_page.dart';
+import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
+import 'package:mlf_frontend/features/auth/presentation/controllers/login_controller.dart';
+import 'package:mlf_frontend/features/auth/presentation/widgets/custom_text_field.dart';
+import 'package:mlf_frontend/features/auth/presentation/widgets/primary_button.dart';
 
 class LoginPage extends StatefulWidget {
   final LoginController? controller;

@@ -1,4 +1,4 @@
-import '../domain/entities/admin_list_entity.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/admin_list_entity.dart';
 import 'admin_user_model.dart';
 
 class AdminListModel extends AdminListEntity {

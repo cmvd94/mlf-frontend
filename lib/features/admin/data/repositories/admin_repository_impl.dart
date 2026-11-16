@@ -1,8 +1,8 @@
-import '../../auth/data/datasources/auth_local_data_source.dart';
-import '../domain/entities/admin_list_entity.dart';
-import '../domain/entities/admin_user_entity.dart';
-import '../domain/repositories/admin_repository.dart';
-import '../datasources/admin_remote_data_source.dart';
+import 'package:mlf_frontend/features/auth/data/datasources/auth_local_data_source.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/admin_list_entity.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
+import 'package:mlf_frontend/features/admin/domain/repositories/admin_repository.dart';
+import 'package:mlf_frontend/features/admin/data/datasources/admin_remote_data_source.dart';
 
 class AdminRepositoryImpl implements AdminRepository {
   final AdminRemoteDataSource remoteDataSource;

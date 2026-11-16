@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../domain/entities/admin_user_entity.dart';
+import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
 
 class AdminDetailDialog extends StatelessWidget {
   final AdminUserEntity user;
