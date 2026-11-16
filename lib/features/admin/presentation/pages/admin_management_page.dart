@@ -111,49 +111,45 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
           });
         }
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final isDesktop = constraints.maxWidth >= 900;
+        final isDesktop = MediaQuery.of(context).size.width >= 900;
 
-            return Padding(
-              padding: EdgeInsets.all(isDesktop ? 24.0 : 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Page Header
-                  _buildHeader(isDesktop),
-                  const SizedBox(height: 20),
+        return Padding(
+          padding: EdgeInsets.all(isDesktop ? 24.0 : 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Page Header
+              _buildHeader(isDesktop),
+              const SizedBox(height: 20),
 
-                  // Filters & Search Bar
-                  _buildFilterBar(isDesktop),
-                  const SizedBox(height: 16),
+              // Filters & Search Bar
+              _buildFilterBar(isDesktop),
+              const SizedBox(height: 16),
 
-                  // Error Banner
-                  if (ctrl.errorMessage != null) ...[
-                    _buildErrorBanner(ctrl.errorMessage!),
-                    const SizedBox(height: 16),
-                  ],
+              // Error Banner
+              if (ctrl.errorMessage != null) ...[
+                _buildErrorBanner(ctrl.errorMessage!),
+                const SizedBox(height: 16),
+              ],
 
-                  // User Table / Cards Area
-                  Expanded(
-                    child: ctrl.isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : ctrl.adminList.users.isEmpty
-                            ? _buildEmptyState()
-                            : isDesktop
-                                ? _buildDesktopTable(ctrl.adminList.users)
-                                : _buildMobileList(ctrl.adminList.users),
-                  ),
-
-                  // Pagination Footer
-                  if (ctrl.adminList.users.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    _buildPaginationFooter(),
-                  ],
-                ],
+              // User Table / Cards Area
+              Expanded(
+                child: ctrl.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : ctrl.adminList.users.isEmpty
+                        ? _buildEmptyState()
+                        : isDesktop
+                            ? _buildDesktopTable(ctrl.adminList.users)
+                            : _buildMobileList(ctrl.adminList.users),
               ),
-            );
-          },
+
+              // Pagination Footer
+              if (ctrl.adminList.users.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _buildPaginationFooter(),
+              ],
+            ],
+          ),
         );
       },
     );

@@ -82,50 +82,47 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isDesktop = constraints.maxWidth >= 900;
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
 
-        return Scaffold(
-          appBar: isDesktop
-              ? null
-              : AppBar(
-                  title: Row(
-                    children: [
-                      const Text(
-                        'MLF Portal',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(width: 8),
-                      const EnvironmentBadge(),
-                    ],
+    return Scaffold(
+      drawerEnableOpenDragGesture: !isDesktop,
+      appBar: isDesktop
+          ? null
+          : AppBar(
+              title: Row(
+                children: [
+                  const Text(
+                    'MLF Portal',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.textPrimary,
-                  elevation: 1,
-                ),
-          drawer: isDesktop ? null : _buildSidebar(isDrawer: true),
-          body: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (isDesktop) _buildSidebar(isDrawer: false),
-              Expanded(
-                child: Column(
-                  children: [
-                    if (isDesktop) _buildTopBar(),
-                    Expanded(
-                      child: Container(
-                        color: Colors.grey.shade50,
-                        child: _buildTabContent(),
-                      ),
-                    ),
-                  ],
-                ),
+                  const SizedBox(width: 8),
+                  const EnvironmentBadge(),
+                ],
               ),
-            ],
+              backgroundColor: Colors.white,
+              foregroundColor: AppColors.textPrimary,
+              elevation: 1,
+            ),
+      drawer: isDesktop ? null : _buildSidebar(isDrawer: true),
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (isDesktop) _buildSidebar(isDrawer: false),
+          Expanded(
+            child: Column(
+              children: [
+                if (isDesktop) _buildTopBar(),
+                Expanded(
+                  child: Container(
+                    color: Colors.grey.shade50,
+                    child: _buildTabContent(),
+                  ),
+                ),
+              ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
