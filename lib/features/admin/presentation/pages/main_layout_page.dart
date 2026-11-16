@@ -106,6 +106,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                 ),
           drawer: isDesktop ? null : _buildSidebar(isDrawer: true),
           body: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (isDesktop) _buildSidebar(isDrawer: false),
               Expanded(
