@@ -180,12 +180,12 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             children: [
               CircleAvatar(
                 radius: 16,
-                backgroundColor: AppColors.primary.withOpacity(0.1),
+                backgroundColor: AppColors.yellow,
                 child: Text(
                   userName.isNotEmpty ? userName[0].toUpperCase() : 'A',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    color: AppColors.primaryDark,
                     fontSize: 14,
                   ),
                 ),
@@ -231,11 +231,11 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
 
   Widget _buildSidebar({required bool isDrawer}) {
     return Material(
-      color: const Color(0xFF1E293B), // Dark navy sidebar
+      color: AppColors.primaryDark,
       child: Container(
         width: 250,
         decoration: BoxDecoration(
-          border: Border(right: BorderSide(color: Colors.grey.shade800)),
+          border: Border(right: BorderSide(color: AppColors.primary.withOpacity(0.3))),
         ),
         child: Column(
           children: [
@@ -248,12 +248,12 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: AppColors.yellow,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.apartment,
-                      color: Colors.white,
+                      color: AppColors.primaryDark,
                       size: 22,
                     ),
                   ),
@@ -274,8 +274,9 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                         Text(
                           'Management Portal',
                           style: TextStyle(
-                            color: Colors.grey,
+                            color: AppColors.yellow,
                             fontSize: 11,
+                            fontWeight: FontWeight.w500,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -285,7 +286,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                 ],
               ),
             ),
-            const Divider(color: Color(0xFF334155), height: 1),
+            Divider(color: AppColors.primary.withOpacity(0.3), height: 1),
             const SizedBox(height: 12),
 
           // Nav Items
@@ -319,15 +320,16 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
+              color: const Color(0xFF071B47),
               borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.yellow.withOpacity(0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'API BASE URL',
-                  style: TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 AnimatedBuilder(
@@ -335,7 +337,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                   builder: (context, _) => Text(
                     EnvConfig().baseUrl,
                     style: const TextStyle(
-                      color: Colors.tealAccent,
+                      color: AppColors.yellow,
                       fontSize: 11,
                       fontFamily: 'monospace',
                     ),
@@ -349,7 +351,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
 
           // Debug Logs
           ListTile(
-            leading: const Icon(Icons.terminal, color: Colors.tealAccent),
+            leading: const Icon(Icons.terminal, color: AppColors.yellow),
             title: const Text(
               'Debug Logs',
               style: TextStyle(color: Colors.white70, fontSize: 14),
@@ -404,10 +406,10 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       child: ListTile(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         selected: isSelected,
-        selectedTileColor: AppColors.primary.withOpacity(0.18),
+        selectedTileColor: AppColors.primary,
         leading: Icon(
           isSelected ? activeIcon : icon,
-          color: isSelected ? AppColors.primary : Colors.grey.shade400,
+          color: isSelected ? AppColors.yellow : Colors.grey.shade400,
           size: 20,
         ),
         title: Text(
@@ -422,13 +424,13 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             ? Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
+                  color: isSelected ? AppColors.yellow : AppColors.primary,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   badge,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: isSelected ? AppColors.primaryDark : Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -493,7 +495,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                 title: 'Admin Users',
                 subtitle: 'Manage roles & permissions',
                 icon: Icons.admin_panel_settings,
-                color: Colors.indigo,
+                color: AppColors.primary,
                 onTap: () => setState(() => _selectedTabIndex = 1),
               ),
               const SizedBox(width: 16),
@@ -501,7 +503,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                 title: 'Environment',
                 subtitle: EnvConfig().environment.displayName,
                 icon: Icons.hub,
-                color: Colors.teal,
+                color: AppColors.yellowDark,
                 onTap: () => setState(() => _selectedTabIndex = 2),
               ),
             ],

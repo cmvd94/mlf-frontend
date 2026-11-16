@@ -145,16 +145,23 @@ class _LoginPageState extends State<LoginPage> {
               // Logo / Brand Icon
               Center(
                 child: Container(
-                  height: 64,
-                  width: 64,
+                  height: 68,
+                  width: 68,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary,
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.25),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
                   child: const Icon(
                     Icons.lock_person_rounded,
-                    size: 32,
-                    color: AppColors.primary,
+                    size: 34,
+                    color: AppColors.yellow,
                   ),
                 ),
               ),
