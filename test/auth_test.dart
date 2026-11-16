@@ -4,6 +4,7 @@ import 'package:mlf_frontend/features/auth/data/models/user_model.dart';
 import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
 import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mlf_frontend/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mlf_frontend/features/auth/domain/usecases/change_password_usecase.dart';
 import 'package:mlf_frontend/features/auth/presentation/controllers/login_controller.dart';
 
 // Mock AuthRepository for testing
@@ -25,6 +26,17 @@ class MockAuthRepository implements AuthRepository {
       name: 'Test User',
       token: 'jwt_mock_token_12345',
     );
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    if (shouldFail) {
+      throw Exception(failureMessage ?? 'Password change failed');
+    }
   }
 
   @override
@@ -166,6 +178,49 @@ void main() {
       expect(success, false);
       expect(controller.status, LoginStatus.failure);
       expect(controller.errorMessage, contains('Bad credentials'));
+    });
+  });
+
+  group('ChangePasswordUseCase', () {
+    late MockAuthRepository mockRepository;
+    late ChangePasswordUseCase useCase;
+
+    setUp(() {
+      mockRepository = MockAuthRepository();
+      useCase = ChangePasswordUseCase(mockRepository);
+    });
+
+    test('valid change password executes successfully', () async {
+      await expectLater(
+        useCase.execute(
+          currentPassword: 'oldPassword123',
+          newPassword: 'newPassword123',
+          confirmPassword: 'newPassword123',
+        ),
+        completes,
+      );
+    });
+
+    test('throws ArgumentError if new password does not match confirm password', () async {
+      expect(
+        () => useCase.execute(
+          currentPassword: 'oldPassword123',
+          newPassword: 'newPassword123',
+          confirmPassword: 'differentPassword',
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('throws ArgumentError if new password equals current password', () async {
+      expect(
+        () => useCase.execute(
+          currentPassword: 'samePassword123',
+          newPassword: 'samePassword123',
+          confirmPassword: 'samePassword123',
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
     });
   });
 }

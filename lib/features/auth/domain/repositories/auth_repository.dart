@@ -6,6 +6,12 @@ abstract class AuthRepository {
     required String password,
   });
 
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  });
+
   Future<void> saveAuthToken(String token);
   Future<String?> getAuthToken();
   Future<void> logout();

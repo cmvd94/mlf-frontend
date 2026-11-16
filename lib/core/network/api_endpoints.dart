@@ -2,6 +2,7 @@ class ApiEndpoints {
   // Authentication
   static const String login = '/admin/auth/login';
   static const String clientLogin = '/client/auth/login';
+  static const String changePassword = '/admin/auth/change-password';
 
   // Admin CRUD
   static const String createAdmin = '/admin/crud/create-admin-user';

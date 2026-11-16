@@ -7,6 +7,7 @@ import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.d
 import 'package:mlf_frontend/features/auth/presentation/pages/login_page.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
 import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
+import 'package:mlf_frontend/features/admin/presentation/widgets/change_password_dialog.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/admin_management_page.dart';
 
 class MainLayoutPage extends StatefulWidget {
@@ -59,6 +60,23 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           (route) => false,
         );
       }
+    }
+  }
+
+  void _openChangePasswordDialog() async {
+    final changed = await showDialog<bool>(
+      context: context,
+      builder: (_) => const ChangePasswordDialog(),
+    );
+
+    if (changed == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password changed successfully!'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -167,7 +185,13 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                     ),
                 ],
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: 'Change Password',
+                icon: const Icon(Icons.lock_reset, size: 22, color: AppColors.primary),
+                onPressed: _openChangePasswordDialog,
+              ),
+              const SizedBox(width: 8),
               IconButton(
                 tooltip: 'Logout',
                 icon: const Icon(Icons.logout, size: 20, color: Colors.grey),
@@ -291,6 +315,19 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                 ),
               ],
             ),
+          ),
+
+          // Change Password
+          ListTile(
+            leading: const Icon(Icons.lock_reset, color: Colors.grey),
+            title: const Text(
+              'Change Password',
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+            onTap: () {
+              if (isDrawer) Navigator.pop(context);
+              _openChangePasswordDialog();
+            },
           ),
 
           // Logout

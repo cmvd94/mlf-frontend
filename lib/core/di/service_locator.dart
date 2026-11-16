@@ -8,6 +8,7 @@ import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/usecases/login_usecase.dart';
+import '../../features/auth/domain/usecases/change_password_usecase.dart';
 import '../../features/auth/presentation/controllers/login_controller.dart';
 
 // Admin
@@ -71,6 +72,9 @@ class ServiceLocator {
     // 3. Auth Use Cases & Controller
     final loginUseCase = LoginWithPhoneAndPasswordUseCase(authRepository);
     sl._register<LoginWithPhoneAndPasswordUseCase>(loginUseCase);
+
+    final changePasswordUseCase = ChangePasswordUseCase(authRepository);
+    sl._register<ChangePasswordUseCase>(changePasswordUseCase);
 
     final loginController = LoginController(loginUseCase: loginUseCase);
     sl._register<LoginController>(loginController);
