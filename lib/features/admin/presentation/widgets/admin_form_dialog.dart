@@ -33,6 +33,24 @@ class _AdminFormDialogState extends State<AdminFormDialog> {
   late AdminRole _selectedRole;
   bool _obscurePassword = true;
 
+  List<AdminRole> get _availableRoles {
+    final assignable = widget.controller.adminList.assignableRoles;
+    if (assignable.isNotEmpty) {
+      if (widget.isEditing && !assignable.contains(widget.userToEdit!.role)) {
+        return [widget.userToEdit!.role, ...assignable];
+      }
+      return assignable;
+    }
+    return AdminRole.selectableRoles;
+  }
+
+  bool get _isRoleEditable {
+    if (!widget.isEditing) return true;
+    final assignable = widget.controller.adminList.assignableRoles;
+    if (assignable.isEmpty) return true;
+    return assignable.contains(widget.userToEdit!.role);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -44,9 +62,12 @@ class _AdminFormDialogState extends State<AdminFormDialog> {
     _emailController = TextEditingController(text: user?.email ?? '');
     _passwordController = TextEditingController();
 
-    _selectedRole = user?.role ?? AdminRole.assistant;
-    if (_selectedRole == AdminRole.superAdmin) {
-      _selectedRole = AdminRole.generalManager;
+    if (user != null) {
+      _selectedRole = user.role;
+    } else {
+      final available = _availableRoles;
+      _selectedRole =
+          available.isNotEmpty ? available.first : AdminRole.assistant;
     }
   }
 
@@ -230,22 +251,27 @@ class _AdminFormDialogState extends State<AdminFormDialog> {
                   // Role Dropdown
                   DropdownButtonFormField<AdminRole>(
                     value: _selectedRole,
-                    decoration: const InputDecoration(
-                      labelText: 'Role *',
-                      prefixIcon: Icon(Icons.security),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: _isRoleEditable ? 'Role *' : 'Role (locked)',
+                      prefixIcon: const Icon(Icons.security),
+                      border: const OutlineInputBorder(),
+                      helperText: _isRoleEditable
+                          ? null
+                          : 'Your role does not allow changing this role',
                     ),
-                    items: AdminRole.selectableRoles.map((role) {
+                    items: _availableRoles.map((role) {
                       return DropdownMenuItem<AdminRole>(
                         value: role,
                         child: Text(role.label),
                       );
                     }).toList(),
-                    onChanged: (newRole) {
-                      if (newRole != null) {
-                        setState(() => _selectedRole = newRole);
-                      }
-                    },
+                    onChanged: _isRoleEditable
+                        ? (newRole) {
+                            if (newRole != null) {
+                              setState(() => _selectedRole = newRole);
+                            }
+                          }
+                        : null,
                   ),
                   const SizedBox(height: 16),
 

@@ -65,6 +65,15 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
   }
 
   void _openEditDialog(AdminUserEntity user) {
+    if (!user.canEdit) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cannot edit user of equal or higher role.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     showDialog(
       context: context,
       builder: (ctx) => AdminFormDialog(
@@ -82,6 +91,15 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
   }
 
   void _openDeleteDialog(AdminUserEntity user) {
+    if (!user.canDelete) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cannot delete user of equal or higher role.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     showDialog(
       context: context,
       builder: (ctx) => DeleteConfirmDialog(
@@ -481,18 +499,23 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                           Switch(
                             value: user.isActive,
                             activeColor: AppColors.success,
-                            onChanged: (val) {
-                              widget.controller.toggleUserStatus(user.id, val);
-                            },
+                            onChanged: user.canToggleStatus
+                                ? (val) {
+                                    widget.controller
+                                        .toggleUserStatus(user.id, val);
+                                  }
+                                : null,
                           ),
                           Text(
                             user.isActive ? 'Active' : 'Inactive',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              color: user.isActive
-                                  ? AppColors.success
-                                  : Colors.grey,
+                              color: user.canToggleStatus
+                                  ? (user.isActive
+                                      ? AppColors.success
+                                      : Colors.grey)
+                                  : Colors.grey.shade400,
                             ),
                           ),
                         ],
@@ -509,12 +532,20 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                             onPressed: () => _openDetailDialog(user),
                           ),
                           IconButton(
-                            tooltip: 'Edit User',
-                            icon: const Icon(Icons.edit_outlined,
-                                size: 20, color: AppColors.primary),
-                            onPressed: () => _openEditDialog(user),
+                            tooltip: user.canEdit
+                                ? 'Edit User'
+                                : 'Cannot edit user of equal or higher role',
+                            icon: Icon(
+                              Icons.edit_outlined,
+                              size: 20,
+                              color: user.canEdit
+                                  ? AppColors.primary
+                                  : Colors.grey.shade400,
+                            ),
+                            onPressed:
+                                user.canEdit ? () => _openEditDialog(user) : null,
                           ),
-                          if (user.role != AdminRole.superAdmin)
+                          if (user.canDelete)
                             IconButton(
                               tooltip: 'Delete User',
                               icon: const Icon(Icons.delete_outline,
@@ -595,16 +626,22 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                         Switch(
                           value: user.isActive,
                           activeColor: AppColors.success,
-                          onChanged: (val) {
-                            widget.controller.toggleUserStatus(user.id, val);
-                          },
+                          onChanged: user.canToggleStatus
+                              ? (val) {
+                                  widget.controller
+                                      .toggleUserStatus(user.id, val);
+                                }
+                              : null,
                         ),
                         Text(
                           user.isActive ? 'Active' : 'Inactive',
                           style: TextStyle(
                             fontSize: 12,
-                            color:
-                                user.isActive ? AppColors.success : Colors.grey,
+                            color: user.canToggleStatus
+                                ? (user.isActive
+                                    ? AppColors.success
+                                    : Colors.grey)
+                                : Colors.grey.shade400,
                           ),
                         ),
                       ],
@@ -617,12 +654,22 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                           onPressed: () => _openDetailDialog(user),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.edit_outlined,
-                              size: 20, color: AppColors.primary),
-                          onPressed: () => _openEditDialog(user),
+                          tooltip: user.canEdit
+                              ? 'Edit User'
+                              : 'Cannot edit user of equal or higher role',
+                          icon: Icon(
+                            Icons.edit_outlined,
+                            size: 20,
+                            color: user.canEdit
+                                ? AppColors.primary
+                                : Colors.grey.shade400,
+                          ),
+                          onPressed:
+                              user.canEdit ? () => _openEditDialog(user) : null,
                         ),
-                        if (user.role != AdminRole.superAdmin)
+                        if (user.canDelete)
                           IconButton(
+                            tooltip: 'Delete User',
                             icon: const Icon(Icons.delete_outline,
                                 size: 20, color: AppColors.error),
                             onPressed: () => _openDeleteDialog(user),

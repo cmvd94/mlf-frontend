@@ -13,6 +13,9 @@ class AdminUserEntity {
   final String? updatedBy;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final bool canEdit;
+  final bool canDelete;
+  final bool canToggleStatus;
 
   const AdminUserEntity({
     required this.id,
@@ -27,6 +30,9 @@ class AdminUserEntity {
     this.updatedBy,
     this.createdAt,
     this.updatedAt,
+    this.canEdit = true,
+    this.canDelete = false,
+    this.canToggleStatus = true,
   });
 
   AdminUserEntity copyWith({
@@ -42,6 +48,9 @@ class AdminUserEntity {
     String? updatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? canEdit,
+    bool? canDelete,
+    bool? canToggleStatus,
   }) {
     return AdminUserEntity(
       id: id ?? this.id,
@@ -56,6 +65,9 @@ class AdminUserEntity {
       updatedBy: updatedBy ?? this.updatedBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      canEdit: canEdit ?? this.canEdit,
+      canDelete: canDelete ?? this.canDelete,
+      canToggleStatus: canToggleStatus ?? this.canToggleStatus,
     );
   }
 }

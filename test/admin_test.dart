@@ -132,6 +132,9 @@ void main() {
         'employeeId': 'mlf_01',
         'role': 'GODOWN_MANAGER',
         'isActive': true,
+        'canEdit': true,
+        'canDelete': false,
+        'canToggleStatus': false,
       };
 
       final model = AdminUserModel.fromJson(json);
@@ -141,9 +144,12 @@ void main() {
       expect(model.employeeId, 'mlf_01');
       expect(model.role, AdminRole.godownManager);
       expect(model.isActive, true);
+      expect(model.canEdit, true);
+      expect(model.canDelete, false);
+      expect(model.canToggleStatus, false);
     });
 
-    test('AdminListModel deserialization with pagination', () {
+    test('AdminListModel deserialization with pagination and assignableRoles', () {
       final json = {
         'data': {
           'userList': [
@@ -155,8 +161,12 @@ void main() {
               'employeeId': 'E1',
               'role': 'BILLING_USER',
               'isActive': true,
+              'canEdit': true,
+              'canDelete': true,
+              'canToggleStatus': true,
             }
           ],
+          'assignableRoles': ['SUPERVISOR', 'ASSISTANT', 'BILLING_USER'],
           'pagination': {
             'totalItems': 15,
             'currentPage': 1,
@@ -174,6 +184,67 @@ void main() {
       expect(listModel.hasNextPage, true);
       expect(listModel.hasPrevPage, false);
       expect(listModel.users.first.role, AdminRole.billingUser);
+      expect(listModel.users.first.canEdit, true);
+      expect(listModel.users.first.canDelete, true);
+      expect(listModel.users.first.canToggleStatus, true);
+      expect(listModel.assignableRoles, [
+        AdminRole.supervisor,
+        AdminRole.assistant,
+        AdminRole.billingUser,
+      ]);
+    });
+
+    test('Role hierarchy permissions: subordinate vs equal/higher role handling', () {
+      const subordinateUser = AdminUserEntity(
+        id: 'sub_1',
+        name: 'Supervisor User',
+        email: 'supervisor@mlf.com',
+        phoneNumber: '9000000001',
+        employeeId: 'mlf_sub1',
+        role: AdminRole.supervisor,
+        canEdit: true,
+        canDelete: true,
+        canToggleStatus: true,
+      );
+
+      const equalRoleUser = AdminUserEntity(
+        id: 'peer_1',
+        name: 'Peer Godown Manager',
+        email: 'peer@mlf.com',
+        phoneNumber: '9000000002',
+        employeeId: 'mlf_peer1',
+        role: AdminRole.godownManager,
+        canEdit: false,
+        canDelete: false,
+        canToggleStatus: false,
+      );
+
+      const higherRoleUser = AdminUserEntity(
+        id: 'higher_1',
+        name: 'District Manager',
+        email: 'dm@mlf.com',
+        phoneNumber: '9000000003',
+        employeeId: 'mlf_dm1',
+        role: AdminRole.districtManager,
+        canEdit: false,
+        canDelete: false,
+        canToggleStatus: false,
+      );
+
+      // Verify subordinate permissions
+      expect(subordinateUser.canEdit, isTrue);
+      expect(subordinateUser.canDelete, isTrue);
+      expect(subordinateUser.canToggleStatus, isTrue);
+
+      // Verify peer/same level permissions are blocked
+      expect(equalRoleUser.canEdit, isFalse);
+      expect(equalRoleUser.canDelete, isFalse);
+      expect(equalRoleUser.canToggleStatus, isFalse);
+
+      // Verify higher level permissions are blocked
+      expect(higherRoleUser.canEdit, isFalse);
+      expect(higherRoleUser.canDelete, isFalse);
+      expect(higherRoleUser.canToggleStatus, isFalse);
     });
   });
 

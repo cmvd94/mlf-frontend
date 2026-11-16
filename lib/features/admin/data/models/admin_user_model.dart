@@ -15,6 +15,9 @@ class AdminUserModel extends AdminUserEntity {
     super.updatedBy,
     super.createdAt,
     super.updatedAt,
+    super.canEdit = true,
+    super.canDelete = false,
+    super.canToggleStatus = true,
   });
 
   factory AdminUserModel.fromJson(Map<String, dynamic> json) {
@@ -35,6 +38,9 @@ class AdminUserModel extends AdminUserEntity {
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'].toString())
           : null,
+      canEdit: json['canEdit'] ?? true,
+      canDelete: json['canDelete'] ?? false,
+      canToggleStatus: json['canToggleStatus'] ?? true,
     );
   }
 

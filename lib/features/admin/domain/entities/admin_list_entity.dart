@@ -1,7 +1,9 @@
+import 'admin_role.dart';
 import 'admin_user_entity.dart';
 
 class AdminListEntity {
   final List<AdminUserEntity> users;
+  final List<AdminRole> assignableRoles;
   final int totalItems;
   final int currentPage;
   final int totalPages;
@@ -10,6 +12,7 @@ class AdminListEntity {
 
   const AdminListEntity({
     required this.users,
+    this.assignableRoles = const [],
     required this.totalItems,
     required this.currentPage,
     required this.totalPages,
@@ -20,6 +23,7 @@ class AdminListEntity {
   factory AdminListEntity.empty() {
     return const AdminListEntity(
       users: [],
+      assignableRoles: [],
       totalItems: 0,
       currentPage: 1,
       totalPages: 1,
