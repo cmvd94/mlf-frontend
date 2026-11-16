@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_list_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/usecases/create_admin_user_usecase.dart';
@@ -67,6 +68,11 @@ class AdminController extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
+    AppLogger().i(
+      'Fetching admin users (page: $_currentPage, limit: $_limit, role: $_roleFilter, isActive: $_isActiveFilter, search: $_searchQuery)',
+      tag: 'AdminCtrl',
+    );
+
     try {
       _adminList = await getAdminUsersUseCase.execute(
         page: _currentPage,
@@ -75,7 +81,12 @@ class AdminController extends ChangeNotifier {
         isActive: _isActiveFilter,
         search: _searchQuery,
       );
-    } catch (e) {
+      AppLogger().i(
+        'Fetched ${_adminList.users.length} users successfully (total items: ${_adminList.totalItems}, total pages: ${_adminList.totalPages})',
+        tag: 'AdminCtrl',
+      );
+    } catch (e, st) {
+      AppLogger().e('Failed to fetch admin users: $e', tag: 'AdminCtrl', error: e, stackTrace: st);
       _errorMessage = e.toString().replaceAll('Exception: ', '');
     } finally {
       _isLoading = false;

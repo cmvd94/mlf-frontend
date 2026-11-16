@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/constants/app_strings.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/core/logger/app_logger.dart';
+import 'package:mlf_frontend/core/logger/log_viewer_dialog.dart';
 import 'package:mlf_frontend/core/utils/responsive_layout.dart';
 import 'package:mlf_frontend/core/utils/validators.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/main_layout_page.dart';
@@ -45,6 +47,7 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
     if (_controller.status == LoginStatus.failure &&
         _controller.errorMessage != null) {
+      AppLogger().w('Login failure snackbar: ${_controller.errorMessage}', tag: 'AuthUI');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_controller.errorMessage!),
@@ -52,22 +55,24 @@ class _LoginPageState extends State<LoginPage> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-    } else if (_controller.status == LoginStatus.success &&
-        _controller.user != null) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => MainLayoutPage(currentUser: _controller.user),
-        ),
-      );
     }
   }
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      _controller.login(
+      AppLogger().i('Initiating admin login for phone: ${_phoneController.text.trim()}', tag: 'AuthUI');
+      final success = await _controller.login(
         phoneNumber: _phoneController.text.trim(),
         password: _passwordController.text,
       );
+      if (success && mounted && _controller.user != null) {
+        AppLogger().i('Admin login successful for ${_controller.user!.name}. Transitioning to MainLayoutPage...', tag: 'AuthUI');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => MainLayoutPage(currentUser: _controller.user),
+          ),
+        );
+      }
     }
   }
 
@@ -78,11 +83,22 @@ class _LoginPageState extends State<LoginPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Environment switcher in top-right
-            const Positioned(
+            // Top action bar: Environment & Debug Logs
+            Positioned(
               top: 16,
               right: 16,
-              child: EnvironmentBadge(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Application Debug Logs',
+                    icon: const Icon(Icons.terminal, color: AppColors.primary),
+                    onPressed: () => LogViewerDialog.show(context),
+                  ),
+                  const SizedBox(width: 8),
+                  const EnvironmentBadge(),
+                ],
+              ),
             ),
             Center(
               child: SingleChildScrollView(

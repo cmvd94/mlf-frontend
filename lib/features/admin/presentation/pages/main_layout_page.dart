@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/config/env_config.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/core/logger/app_logger.dart';
+import 'package:mlf_frontend/core/logger/log_viewer_dialog.dart';
 import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
 import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mlf_frontend/features/auth/presentation/pages/login_page.dart';
@@ -27,9 +29,14 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   void initState() {
     super.initState();
     _adminController = sl<AdminController>();
+    AppLogger().i(
+      'MainLayoutPage mounted successfully for user: ${widget.currentUser?.name ?? "Admin"} (phone: ${widget.currentUser?.phoneNumber ?? "N/A"})',
+      tag: 'PortalUI',
+    );
   }
 
   Future<void> _logout() async {
+    AppLogger().i('User opened logout confirmation dialog', tag: 'PortalUI');
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -152,6 +159,12 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               ),
               const SizedBox(width: 16),
               const EnvironmentBadge(),
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: 'Application Debug Logs',
+                icon: const Icon(Icons.terminal, color: AppColors.primary, size: 20),
+                onPressed: () => LogViewerDialog.show(context),
+              ),
             ],
           ),
           Row(
@@ -318,6 +331,19 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                 ),
               ],
             ),
+          ),
+
+          // Debug Logs
+          ListTile(
+            leading: const Icon(Icons.terminal, color: Colors.tealAccent),
+            title: const Text(
+              'Debug Logs',
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+            onTap: () {
+              if (isDrawer) Navigator.pop(context);
+              LogViewerDialog.show(context);
+            },
           ),
 
           // Change Password
