@@ -11,6 +11,7 @@ import 'package:mlf_frontend/features/admin/domain/usecases/get_admin_user_detai
 import 'package:mlf_frontend/features/admin/domain/usecases/get_admin_users_usecase.dart';
 import 'package:mlf_frontend/features/admin/domain/usecases/update_admin_is_active_usecase.dart';
 import 'package:mlf_frontend/features/admin/domain/usecases/update_admin_user_usecase.dart';
+import 'package:mlf_frontend/core/theme/app_theme.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/main_layout_page.dart';
 import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
@@ -109,7 +110,7 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    await tester.pumpWidget(const MaterialApp(home: LoginPage()));
+    await tester.pumpWidget(MaterialApp(theme: AppTheme.lightTheme, home: const LoginPage()));
     await tester.pumpAndSettle();
 
     // Enter phone and password
@@ -140,7 +141,7 @@ void main() {
       token: 'mock_jwt_token',
     );
 
-    await tester.pumpWidget(const MaterialApp(home: MainLayoutPage(currentUser: user)));
+    await tester.pumpWidget(MaterialApp(theme: AppTheme.lightTheme, home: MainLayoutPage(currentUser: user)));
     await tester.pump();
     await tester.pumpAndSettle();
 
@@ -163,7 +164,7 @@ void main() {
       token: 'mock_jwt_token',
     );
 
-    await tester.pumpWidget(const MaterialApp(home: MainLayoutPage(currentUser: user)));
+    await tester.pumpWidget(MaterialApp(theme: AppTheme.lightTheme, home: MainLayoutPage(currentUser: user)));
     await tester.pump();
     await tester.pumpAndSettle();
 
