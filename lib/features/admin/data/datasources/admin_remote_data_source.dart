@@ -105,7 +105,7 @@ class AdminRemoteDataSourceImpl implements AdminRemoteDataSource {
     await apiClient.patch(
       ApiEndpoints.updateIsActiveAdmin,
       body: {
-        'userId': userId,
+        'userIds': [userId],
         'isActive': isActive,
       },
       token: token,

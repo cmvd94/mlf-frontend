@@ -98,7 +98,6 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
       builder: (context, _) {
         final ctrl = widget.controller;
 
-        // Display snackbar on message
         if (ctrl.successMessage != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -119,7 +118,7 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
             return Padding(
               padding: EdgeInsets.all(isDesktop ? 24.0 : 16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Page Header
                   _buildHeader(isDesktop),
@@ -135,7 +134,7 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                     const SizedBox(height: 16),
                   ],
 
-                  // User Table / Cards
+                  // User Table / Cards Area
                   Expanded(
                     child: ctrl.isLoading
                         ? const Center(child: CircularProgressIndicator())
@@ -163,7 +162,6 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
   Widget _buildHeader(bool isDesktop) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Column(
@@ -174,7 +172,7 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                   const Text(
                     'Admin Management',
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
@@ -185,7 +183,7 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
               ),
               const SizedBox(height: 4),
               const Text(
-                'Manage administrator accounts, roles, access permissions and credentials',
+                'Manage company admin accounts, credentials, and roles',
                 style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
               ),
             ],
@@ -211,30 +209,34 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
 
   Widget _buildFilterBar(bool isDesktop) {
     final ctrl = widget.controller;
+    final selectedRoleValue = ctrl.roleFilter ?? 'ALL';
+    final selectedStatusValue = ctrl.isActiveFilter == null
+        ? 'ALL'
+        : (ctrl.isActiveFilter! ? 'ACTIVE' : 'INACTIVE');
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Wrap(
-        spacing: 12,
+        spacing: 16,
         runSpacing: 12,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           // Search Box
           SizedBox(
-            width: isDesktop ? 300 : double.infinity,
+            width: isDesktop ? 260 : 200,
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search by name, phone, email...',
-                prefixIcon: const Icon(Icons.search, size: 20),
+                hintText: 'Search user...',
+                prefixIcon: const Icon(Icons.search, size: 18),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
+                        icon: const Icon(Icons.clear, size: 16),
                         onPressed: () {
                           _searchController.clear();
                           ctrl.setSearch('');
@@ -242,7 +244,8 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                       )
                     : null,
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: Colors.grey.shade300),
@@ -252,51 +255,74 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
             ),
           ),
 
-          // Role Filter
-          DropdownButton<String?>(
-            value: ctrl.roleFilter,
-            hint: const Text('All Roles', style: TextStyle(fontSize: 13)),
-            underline: const SizedBox(),
-            items: [
-              const DropdownMenuItem<String?>(
-                value: null,
-                child: Text('All Roles', style: TextStyle(fontSize: 13)),
+          // Role Filter Dropdown
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: selectedRoleValue,
+                isDense: true,
+                style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                items: [
+                  const DropdownMenuItem(
+                    value: 'ALL',
+                    child: Text('All Roles'),
+                  ),
+                  ...AdminRole.values.map((role) {
+                    return DropdownMenuItem(
+                      value: role.value,
+                      child: Text(role.label),
+                    );
+                  }),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    ctrl.setRoleFilter(val == 'ALL' ? null : val);
+                  }
+                },
               ),
-              ...AdminRole.values.map((role) {
-                return DropdownMenuItem<String?>(
-                  value: role.value,
-                  child: Text(role.label, style: const TextStyle(fontSize: 13)),
-                );
-              }),
-            ],
-            onChanged: (val) => ctrl.setRoleFilter(val),
+            ),
           ),
 
-          // Status Filter
-          DropdownButton<bool?>(
-            value: ctrl.isActiveFilter,
-            hint: const Text('All Status', style: TextStyle(fontSize: 13)),
-            underline: const SizedBox(),
-            items: const [
-              DropdownMenuItem<bool?>(
-                value: null,
-                child: Text('All Status', style: TextStyle(fontSize: 13)),
+          // Status Filter Dropdown
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: selectedStatusValue,
+                isDense: true,
+                style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                items: const [
+                  DropdownMenuItem(value: 'ALL', child: Text('All Status')),
+                  DropdownMenuItem(value: 'ACTIVE', child: Text('Active Only')),
+                  DropdownMenuItem(value: 'INACTIVE', child: Text('Inactive Only')),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    if (val == 'ALL') {
+                      ctrl.setIsActiveFilter(null);
+                    } else if (val == 'ACTIVE') {
+                      ctrl.setIsActiveFilter(true);
+                    } else {
+                      ctrl.setIsActiveFilter(false);
+                    }
+                  }
+                },
               ),
-              DropdownMenuItem<bool?>(
-                value: true,
-                child: Text('Active Only', style: TextStyle(fontSize: 13)),
-              ),
-              DropdownMenuItem<bool?>(
-                value: false,
-                child: Text('Inactive Only', style: TextStyle(fontSize: 13)),
-              ),
-            ],
-            onChanged: (val) => ctrl.setIsActiveFilter(val),
+            ),
           ),
 
           // Refresh Button
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: 'Refresh list',
             icon: const Icon(Icons.refresh, color: AppColors.primary),
             onPressed: () => ctrl.fetchUsers(),
           ),
@@ -334,35 +360,37 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.people_outline, size: 64, color: Colors.grey.shade400),
-          const SizedBox(height: 16),
-          const Text(
-            'No Admin Users Found',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.people_outline, size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            const Text(
+              'No Admin Users Found',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Try adjusting search or role filters, or create a new admin.',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+            const SizedBox(height: 8),
+            const Text(
+              'Create a new administrator or adjust filter parameters.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
-            onPressed: _openCreateDialog,
-            icon: const Icon(Icons.add),
-            label: const Text('Add Admin User'),
-          ),
-        ],
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: _openCreateDialog,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Admin User'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -377,116 +405,129 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: SingleChildScrollView(
-          child: DataTable(
-            headingRowColor: MaterialStateProperty.all(Colors.grey.shade50),
-            columns: const [
-              DataColumn(label: Text('Name & Employee ID', style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text('Phone Number', style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text('Email', style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text('Role', style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
-            ],
-            rows: users.map((user) {
-              final roleColor = _getRoleColor(user.role);
+          scrollDirection: Axis.horizontal,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: DataTable(
+              headingRowColor: WidgetStateProperty.all(Colors.grey.shade50),
+              columns: const [
+                DataColumn(
+                    label: Text('Name & ID',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
+                    label: Text('Phone Number',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
+                    label: Text('Email',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
+                    label: Text('Role',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
+                    label: Text('Status',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
+                    label: Text('Actions',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+              ],
+              rows: users.map((user) {
+                final roleColor = _getRoleColor(user.role);
 
-              return DataRow(
-                cells: [
-                  // Name & Employee ID
-                  DataCell(
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          user.name,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                        ),
-                        Text(
-                          user.employeeId,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Phone Number
-                  DataCell(Text(user.phoneNumber)),
-
-                  // Email
-                  DataCell(Text(user.email)),
-
-                  // Role Badge
-                  DataCell(
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: roleColor.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: roleColor.withOpacity(0.3)),
-                      ),
-                      child: Text(
-                        user.role.label,
-                        style: TextStyle(
-                          color: roleColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
+                return DataRow(
+                  cells: [
+                    DataCell(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            user.name,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 14),
+                          ),
+                          Text(
+                            user.employeeId,
+                            style: const TextStyle(
+                                fontSize: 12, color: AppColors.textSecondary),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-
-                  // Status Switch
-                  DataCell(
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Switch(
-                          value: user.isActive,
-                          activeColor: AppColors.success,
-                          onChanged: (val) {
-                            widget.controller.toggleUserStatus(user.id, val);
-                          },
+                    DataCell(Text(user.phoneNumber)),
+                    DataCell(Text(user.email)),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: roleColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: roleColor.withOpacity(0.3)),
                         ),
-                        Text(
-                          user.isActive ? 'Active' : 'Inactive',
+                        child: Text(
+                          user.role.label,
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: user.isActive ? AppColors.success : Colors.grey,
+                            color: roleColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-
-                  // Actions
-                  DataCell(
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          tooltip: 'View Details',
-                          icon: const Icon(Icons.visibility_outlined, size: 20, color: Colors.blueGrey),
-                          onPressed: () => _openDetailDialog(user),
-                        ),
-                        IconButton(
-                          tooltip: 'Edit',
-                          icon: const Icon(Icons.edit_outlined, size: 20, color: AppColors.primary),
-                          onPressed: () => _openEditDialog(user),
-                        ),
-                        if (user.role != AdminRole.superAdmin)
+                    DataCell(
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Switch(
+                            value: user.isActive,
+                            activeColor: AppColors.success,
+                            onChanged: (val) {
+                              widget.controller.toggleUserStatus(user.id, val);
+                            },
+                          ),
+                          Text(
+                            user.isActive ? 'Active' : 'Inactive',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: user.isActive
+                                  ? AppColors.success
+                                  : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    DataCell(
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                           IconButton(
-                            tooltip: 'Delete',
-                            icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
-                            onPressed: () => _openDeleteDialog(user),
+                            tooltip: 'View Details',
+                            icon: const Icon(Icons.visibility_outlined,
+                                size: 20, color: Colors.blueGrey),
+                            onPressed: () => _openDetailDialog(user),
                           ),
-                      ],
+                          IconButton(
+                            tooltip: 'Edit User',
+                            icon: const Icon(Icons.edit_outlined,
+                                size: 20, color: AppColors.primary),
+                            onPressed: () => _openEditDialog(user),
+                          ),
+                          if (user.role != AdminRole.superAdmin)
+                            IconButton(
+                              tooltip: 'Delete User',
+                              icon: const Icon(Icons.delete_outline,
+                                  size: 20, color: AppColors.error),
+                              onPressed: () => _openDeleteDialog(user),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              );
-            }).toList(),
+                  ],
+                );
+              }).toList(),
+            ),
           ),
         ),
       ),
@@ -502,7 +543,8 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
 
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -514,11 +556,13 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                     Expanded(
                       child: Text(
                         user.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: roleColor.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(10),
@@ -535,9 +579,13 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text('ID: ${user.employeeId}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                Text('Phone: ${user.phoneNumber}', style: const TextStyle(fontSize: 13)),
-                Text('Email: ${user.email}', style: const TextStyle(fontSize: 13)),
+                Text('ID: ${user.employeeId}',
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                Text('Phone: ${user.phoneNumber}',
+                    style: const TextStyle(fontSize: 13)),
+                Text('Email: ${user.email}',
+                    style: const TextStyle(fontSize: 13)),
                 const Divider(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -555,7 +603,8 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                           user.isActive ? 'Active' : 'Inactive',
                           style: TextStyle(
                             fontSize: 12,
-                            color: user.isActive ? AppColors.success : Colors.grey,
+                            color:
+                                user.isActive ? AppColors.success : Colors.grey,
                           ),
                         ),
                       ],
@@ -563,16 +612,19 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.visibility_outlined, size: 20),
+                          icon:
+                              const Icon(Icons.visibility_outlined, size: 20),
                           onPressed: () => _openDetailDialog(user),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.edit_outlined, size: 20, color: AppColors.primary),
+                          icon: const Icon(Icons.edit_outlined,
+                              size: 20, color: AppColors.primary),
                           onPressed: () => _openEditDialog(user),
                         ),
                         if (user.role != AdminRole.superAdmin)
                           IconButton(
-                            icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
+                            icon: const Icon(Icons.delete_outline,
+                                size: 20, color: AppColors.error),
                             onPressed: () => _openDeleteDialog(user),
                           ),
                       ],
@@ -596,7 +648,8 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
       children: [
         Text(
           'Total: ${list.totalItems} user(s) | Page ${list.currentPage} of ${list.totalPages}',
-          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          style:
+              const TextStyle(fontSize: 13, color: AppColors.textSecondary),
         ),
         Row(
           children: [
