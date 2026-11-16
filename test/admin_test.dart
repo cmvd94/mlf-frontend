@@ -129,7 +129,7 @@ void main() {
         'name': 'Ramesh Kumar',
         'email': 'ramesh@mlf.com',
         'phoneNumber': '9876543210',
-        'employeeId': 'EMP_001',
+        'employeeId': 'mlf_01',
         'role': 'GODOWN_MANAGER',
         'isActive': true,
       };
@@ -138,7 +138,7 @@ void main() {
 
       expect(model.id, 'admin_123');
       expect(model.name, 'Ramesh Kumar');
-      expect(model.employeeId, 'EMP_001');
+      expect(model.employeeId, 'mlf_01');
       expect(model.role, AdminRole.godownManager);
       expect(model.isActive, true);
     });
@@ -197,7 +197,7 @@ void main() {
           name: 'Existing Admin',
           email: 'admin@mlf.com',
           phoneNumber: '9876543210',
-          employeeId: 'EMP_100',
+          employeeId: 'mlf_01',
           role: AdminRole.generalManager,
           isActive: true,
         ),
@@ -227,7 +227,7 @@ void main() {
         email: 'new@mlf.com',
         phoneNumber: '9123456789',
         role: 'GODOWN_MANAGER',
-        employeeId: 'EMP_101',
+        employeeId: 'mlf_02',
       );
 
       expect(success, true);

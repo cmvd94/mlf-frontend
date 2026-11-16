@@ -163,12 +163,18 @@ class _AdminFormDialogState extends State<AdminFormDialog> {
                     controller: _employeeIdController,
                     decoration: const InputDecoration(
                       labelText: 'Employee ID *',
-                      prefixIcon: Icon(Icons.numbers),
+                      hintText: 'e.g. mlf_01',
+                      helperText: 'Format: mlf_01, mlf_02, etc.',
+                      prefixIcon: Icon(Icons.badge_outlined),
                       border: OutlineInputBorder(),
                     ),
                     validator: (val) {
                       if (val == null || val.trim().isEmpty) {
                         return 'Employee ID is required';
+                      }
+                      if (!RegExp(r'^mlf_\d+$', caseSensitive: false)
+                          .hasMatch(val.trim())) {
+                        return 'Format must be like mlf_01';
                       }
                       return null;
                     },
