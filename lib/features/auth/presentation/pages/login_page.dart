@@ -243,10 +243,14 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 12),
 
               // Remember Me & Forgot Password Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       SizedBox(
                         height: 24,
@@ -299,8 +303,11 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 24),
 
               // Sign Up Footer
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 4,
+                runSpacing: 4,
                 children: [
                   const Text(
                     AppStrings.noAccount,

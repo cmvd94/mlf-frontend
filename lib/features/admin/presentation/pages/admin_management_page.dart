@@ -158,12 +158,16 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
   Widget _buildHeader(bool isDesktop) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 6,
                 children: [
                   const Text(
                     'Admin Management',
@@ -173,7 +177,6 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(width: 12),
                   const EnvironmentBadge(),
                 ],
               ),
@@ -185,6 +188,7 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
             ],
           ),
         ),
+        const SizedBox(width: 12),
         ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
@@ -639,28 +643,40 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
     final list = widget.controller.adminList;
     final ctrl = widget.controller;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 8,
+      runSpacing: 4,
       children: [
         Text(
           'Total: ${list.totalItems} user(s) | Page ${list.currentPage} of ${list.totalPages}',
-          style:
-              const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
               icon: const Icon(Icons.chevron_left),
+              iconSize: 20,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               onPressed: list.hasPrevPage
                   ? () => ctrl.fetchUsers(page: list.currentPage - 1)
                   : null,
             ),
-            Text(
-              '${list.currentPage}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: Text(
+                '${list.currentPage}',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
             ),
             IconButton(
               icon: const Icon(Icons.chevron_right),
+              iconSize: 20,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               onPressed: list.hasNextPage
                   ? () => ctrl.fetchUsers(page: list.currentPage + 1)
                   : null,

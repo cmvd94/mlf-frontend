@@ -96,14 +96,15 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       appBar: isDesktop
           ? null
           : AppBar(
-              title: Row(
+              title: const Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'MLF Portal',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  Text(
+                    'MLF',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
-                  const SizedBox(width: 8),
-                  const EnvironmentBadge(),
+                  SizedBox(width: 8),
+                  EnvironmentBadge(),
                 ],
               ),
               backgroundColor: Colors.white,
@@ -117,6 +118,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           if (isDesktop) _buildSidebar(isDrawer: false),
           Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (isDesktop) _buildTopBar(),
                 Expanded(
@@ -139,7 +141,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
 
     return Container(
       height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
@@ -147,62 +149,74 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Text(
-                _getTabTitle(),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+          Expanded(
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    _getTabTitle(),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              const EnvironmentBadge(),
-              const SizedBox(width: 8),
-              IconButton(
-                tooltip: 'Application Debug Logs',
-                icon: const Icon(Icons.terminal, color: AppColors.primary, size: 20),
-                onPressed: () => LogViewerDialog.show(context),
-              ),
-            ],
+                const SizedBox(width: 12),
+                const EnvironmentBadge(),
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: 'Application Debug Logs',
+                  icon: const Icon(Icons.terminal, color: AppColors.primary, size: 20),
+                  onPressed: () => LogViewerDialog.show(context),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 12),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               CircleAvatar(
-                radius: 18,
+                radius: 16,
                 backgroundColor: AppColors.primary.withOpacity(0.1),
                 child: Text(
                   userName.isNotEmpty ? userName[0].toUpperCase() : 'A',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
+                    fontSize: 14,
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    userName,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                  ),
-                  if (userPhone.isNotEmpty)
-                    Text(
-                      userPhone,
-                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                    ),
-                ],
-              ),
               const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 140),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      userName,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (userPhone.isNotEmpty)
+                      Text(
+                        userPhone,
+                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
               IconButton(
                 tooltip: 'Change Password',
-                icon: const Icon(Icons.lock_reset, size: 22, color: AppColors.primary),
+                icon: const Icon(Icons.lock_reset, size: 20, color: AppColors.primary),
                 onPressed: _openChangePasswordDialog,
               ),
-              const SizedBox(width: 8),
               IconButton(
                 tooltip: 'Logout',
                 icon: const Icon(Icons.logout, size: 20, color: Colors.grey),
