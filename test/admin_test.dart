@@ -179,7 +179,7 @@ void main() {
 
   group('EnvConfig Resolution', () {
     test('Default environments return correct base URLs', () {
-      expect(AppEnvironment.local.defaultBaseUrl, contains('5000'));
+      expect(AppEnvironment.local.defaultBaseUrl, contains('3500'));
       expect(AppEnvironment.dev.defaultBaseUrl, contains('dev-api'));
       expect(AppEnvironment.prod.defaultBaseUrl, contains('api.mlf'));
     });
