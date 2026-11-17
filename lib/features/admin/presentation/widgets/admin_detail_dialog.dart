@@ -114,6 +114,13 @@ class AdminDetailDialog extends StatelessWidget {
               _buildInfoRow('Phone Number', user.phoneNumber),
               _buildInfoRow('Email Address', user.email),
               _buildInfoRow('Account Role', user.role.label),
+              _buildInfoRow(
+                'Access Scope',
+                user.accessScope?.displayString ?? 'Global (All Regions)',
+                trailing: user.accessScope != null && !user.accessScope!.isEmpty
+                    ? const Icon(Icons.location_on_outlined, size: 18, color: AppColors.primary)
+                    : null,
+              ),
               if (user.language != null) _buildInfoRow('Language', user.language!),
               if (user.createdAt != null)
                 _buildInfoRow(

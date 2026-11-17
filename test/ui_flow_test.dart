@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/access_scope_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_list_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_role.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
@@ -95,12 +96,26 @@ class FakeAdminRepository implements AdminRepository {
   Future<AdminUserEntity> getAdminUserById(String id) async => users.firstWhere((u) => u.id == id);
 
   @override
+  Future<Map<String, dynamic>> getStaticData() async => {
+        'adminAccessScope': {
+          'India': {
+            'SouthZone': {
+              'TamilNadu': {
+                'Coimbatore': {'pincodes': []},
+              },
+            },
+          },
+        },
+      };
+
+  @override
   Future<void> createAdminUser({
     required String name,
     required String email,
     required String phoneNumber,
     String? password,
     required String role,
+    AccessScopeEntity? accessScope,
     String? employeeId,
     String? language,
   }) async {}
@@ -114,6 +129,7 @@ class FakeAdminRepository implements AdminRepository {
     String? name,
     String? email,
     String? role,
+    AccessScopeEntity? accessScope,
     String? employeeId,
     String? language,
   }) async {}

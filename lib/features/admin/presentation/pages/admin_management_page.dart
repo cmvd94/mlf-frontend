@@ -24,6 +24,7 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.controller.fetchStaticData();
       widget.controller.fetchUsers();
     });
   }
@@ -442,6 +443,9 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                     label: Text('Role',
                         style: TextStyle(fontWeight: FontWeight.bold))),
                 DataColumn(
+                    label: Text('Scope / Jurisdiction',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
                     label: Text('Status',
                         style: TextStyle(fontWeight: FontWeight.bold))),
                 DataColumn(
@@ -488,6 +492,37 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                             color: roleColor,
                             fontWeight: FontWeight.bold,
                             fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Tooltip(
+                        message: user.accessScope?.displayString ?? 'Global',
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.blueGrey.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                                color: Colors.blueGrey.withOpacity(0.2)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.pin_drop_outlined,
+                                  size: 13, color: AppColors.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                user.accessScope?.shortSummary ?? 'Global',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -617,6 +652,24 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                     style: const TextStyle(fontSize: 13)),
                 Text('Email: ${user.email}',
                     style: const TextStyle(fontSize: 13)),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.pin_drop_outlined,
+                        size: 14, color: AppColors.primary),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        'Scope: ${user.accessScope?.displayString ?? 'Global'}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 const Divider(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

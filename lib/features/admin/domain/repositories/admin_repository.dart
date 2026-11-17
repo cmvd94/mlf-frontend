@@ -1,3 +1,4 @@
+import '../entities/access_scope_entity.dart';
 import '../entities/admin_list_entity.dart';
 import '../entities/admin_user_entity.dart';
 
@@ -12,12 +13,15 @@ abstract class AdminRepository {
 
   Future<AdminUserEntity> getAdminUserById(String id);
 
+  Future<Map<String, dynamic>> getStaticData();
+
   Future<void> createAdminUser({
     required String name,
     required String email,
     required String phoneNumber,
     String? password,
     required String role,
+    AccessScopeEntity? accessScope,
     String? employeeId,
     String? language,
   });
@@ -27,6 +31,7 @@ abstract class AdminRepository {
     String? name,
     String? email,
     String? role,
+    AccessScopeEntity? accessScope,
     String? employeeId,
     String? language,
   });

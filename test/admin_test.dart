@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mlf_frontend/core/config/env_config.dart';
+import 'package:mlf_frontend/features/admin/data/models/access_scope_model.dart';
 import 'package:mlf_frontend/features/admin/data/models/admin_list_model.dart';
 import 'package:mlf_frontend/features/admin/data/models/admin_user_model.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/access_scope_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_list_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_role.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
@@ -44,12 +46,29 @@ class MockAdminRepository implements AdminRepository {
   }
 
   @override
+  Future<Map<String, dynamic>> getStaticData() async {
+    if (shouldFail) throw Exception('Failed to load static data');
+    return {
+      'adminAccessScope': {
+        'India': {
+          'SouthZone': {
+            'TamilNadu': {
+              'Coimbatore': {'pincodes': []},
+            },
+          },
+        },
+      },
+    };
+  }
+
+  @override
   Future<void> createAdminUser({
     required String name,
     required String email,
     required String phoneNumber,
     String? password,
     required String role,
+    AccessScopeEntity? accessScope,
     String? employeeId,
     String? language,
   }) async {
@@ -61,6 +80,7 @@ class MockAdminRepository implements AdminRepository {
       phoneNumber: phoneNumber,
       employeeId: employeeId ?? 'mlf_${users.length + 1}',
       role: AdminRole.fromString(role),
+      accessScope: accessScope,
     ));
   }
 
@@ -70,6 +90,7 @@ class MockAdminRepository implements AdminRepository {
     String? name,
     String? email,
     String? role,
+    AccessScopeEntity? accessScope,
     String? employeeId,
     String? language,
   }) async {
@@ -80,6 +101,7 @@ class MockAdminRepository implements AdminRepository {
         name: name,
         email: email,
         role: role != null ? AdminRole.fromString(role) : null,
+        accessScope: accessScope,
         employeeId: employeeId,
       );
     }
@@ -331,6 +353,69 @@ void main() {
 
       expect(success, true);
       expect(controller.adminList.users.isEmpty, true);
+    });
+
+    test('createUser with accessScope properly attaches scope', () async {
+      const scope = AccessScopeEntity(
+        country: 'India',
+        zone: 'SouthZone',
+        state: 'TamilNadu',
+        district: 'Coimbatore',
+      );
+      final success = await controller.createUser(
+        name: 'Scoped User',
+        email: 'scoped@mlf.com',
+        phoneNumber: '9988776655',
+        role: 'DISTRICT_MANAGER',
+        accessScope: scope,
+      );
+
+      expect(success, true);
+      final created = controller.adminList.users.firstWhere((u) => u.name == 'Scoped User');
+      expect(created.accessScope?.district, 'Coimbatore');
+      expect(created.accessScope?.displayString, 'India > SouthZone > TamilNadu > Coimbatore');
+    });
+
+    test('cascading scope selectors work correctly', () {
+      final countries = controller.getCountries();
+      expect(countries.contains('India'), true);
+
+      final zones = controller.getZones('India');
+      expect(zones.contains('SouthZone'), true);
+
+      final states = controller.getStates('India', 'SouthZone');
+      expect(states.contains('TamilNadu'), true);
+
+      final districts = controller.getDistricts('India', 'SouthZone', 'TamilNadu');
+      expect(districts.contains('Coimbatore'), true);
+    });
+  });
+
+  group('AccessScopeEntity and AccessScopeModel', () {
+    test('serializes and deserializes correctly', () {
+      final json = {
+        'country': 'India',
+        'zone': 'SouthZone',
+        'state': 'TamilNadu',
+        'district': 'Coimbatore',
+      };
+      final model = AccessScopeModel.fromJson(json);
+      expect(model.country, 'India');
+      expect(model.zone, 'SouthZone');
+      expect(model.state, 'TamilNadu');
+      expect(model.district, 'Coimbatore');
+      expect(model.shortSummary, 'Coimbatore (TamilNadu)');
+
+      final outJson = model.toJson();
+      expect(outJson['country'], 'India');
+      expect(outJson['district'], 'Coimbatore');
+    });
+
+    test('handles empty / global access scope correctly', () {
+      const scope = AccessScopeEntity();
+      expect(scope.isGlobal, true);
+      expect(scope.displayString, 'Global (All Regions)');
+      expect(scope.shortSummary, 'Global');
     });
   });
 }

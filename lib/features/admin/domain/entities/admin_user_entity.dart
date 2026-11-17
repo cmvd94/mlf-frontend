@@ -1,3 +1,4 @@
+import 'access_scope_entity.dart';
 import 'admin_role.dart';
 
 class AdminUserEntity {
@@ -9,6 +10,7 @@ class AdminUserEntity {
   final AdminRole role;
   final bool isActive;
   final String? language;
+  final AccessScopeEntity? accessScope;
   final String? createdBy;
   final String? updatedBy;
   final DateTime? createdAt;
@@ -26,6 +28,7 @@ class AdminUserEntity {
     required this.role,
     this.isActive = true,
     this.language,
+    this.accessScope,
     this.createdBy,
     this.updatedBy,
     this.createdAt,
@@ -44,6 +47,7 @@ class AdminUserEntity {
     AdminRole? role,
     bool? isActive,
     String? language,
+    AccessScopeEntity? accessScope,
     String? createdBy,
     String? updatedBy,
     DateTime? createdAt,
@@ -61,6 +65,7 @@ class AdminUserEntity {
       role: role ?? this.role,
       isActive: isActive ?? this.isActive,
       language: language ?? this.language,
+      accessScope: accessScope ?? this.accessScope,
       createdBy: createdBy ?? this.createdBy,
       updatedBy: updatedBy ?? this.updatedBy,
       createdAt: createdAt ?? this.createdAt,

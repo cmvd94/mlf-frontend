@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/access_scope_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_list_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/usecases/create_admin_user_usecase.dart';
 import 'package:mlf_frontend/features/admin/domain/usecases/delete_admin_user_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_admin_static_data_usecase.dart';
 import 'package:mlf_frontend/features/admin/domain/usecases/get_admin_user_details_usecase.dart';
 import 'package:mlf_frontend/features/admin/domain/usecases/get_admin_users_usecase.dart';
 import 'package:mlf_frontend/features/admin/domain/usecases/update_admin_is_active_usecase.dart';
@@ -16,6 +18,34 @@ class AdminController extends ChangeNotifier {
   final UpdateAdminUserUseCase updateAdminUserUseCase;
   final UpdateAdminIsActiveUseCase updateAdminIsActiveUseCase;
   final DeleteAdminUserUseCase deleteAdminUserUseCase;
+  final GetAdminStaticDataUseCase? getAdminStaticDataUseCase;
+
+  static const Map<String, dynamic> defaultAccessScopeTree = {
+    'India': {
+      'SouthZone': {
+        'TamilNadu': {
+          'Coimbatore': {'pincodes': []},
+          'Tiruppur': {'pincodes': []},
+          'Chennai': {'pincodes': []},
+        },
+        'Kerala': {
+          'Thrissur': {'pincodes': []},
+        },
+      },
+      'NorthZone': {
+        'Delhi': {
+          'DelhiNCR': {'pincodes': []},
+        },
+      },
+    },
+    'USA': {
+      'WestZone': {
+        'California': {
+          'SanFrancisco': {'pincodes': []},
+        },
+      },
+    },
+  };
 
   AdminController({
     required this.getAdminUsersUseCase,
@@ -24,10 +54,12 @@ class AdminController extends ChangeNotifier {
     required this.updateAdminUserUseCase,
     required this.updateAdminIsActiveUseCase,
     required this.deleteAdminUserUseCase,
+    this.getAdminStaticDataUseCase,
   });
 
   AdminListEntity _adminList = AdminListEntity.empty();
   AdminUserEntity? _selectedUser;
+  Map<String, dynamic> _accessScopeTree = defaultAccessScopeTree;
   bool _isLoading = false;
   bool _isActionLoading = false;
   String? _errorMessage;
@@ -43,6 +75,7 @@ class AdminController extends ChangeNotifier {
   // Getters
   AdminListEntity get adminList => _adminList;
   AdminUserEntity? get selectedUser => _selectedUser;
+  Map<String, dynamic> get accessScopeTree => _accessScopeTree;
   bool get isLoading => _isLoading;
   bool get isActionLoading => _isActionLoading;
   String? get errorMessage => _errorMessage;
@@ -52,6 +85,59 @@ class AdminController extends ChangeNotifier {
   String? get searchQuery => _searchQuery;
   String? get roleFilter => _roleFilter;
   bool? get isActiveFilter => _isActiveFilter;
+
+  Future<void> fetchStaticData() async {
+    if (getAdminStaticDataUseCase == null) return;
+    try {
+      final data = await getAdminStaticDataUseCase!.execute();
+      if (data['adminAccessScope'] != null && data['adminAccessScope'] is Map) {
+        _accessScopeTree = Map<String, dynamic>.from(data['adminAccessScope'] as Map);
+        notifyListeners();
+      }
+    } catch (e) {
+      AppLogger().w('Could not fetch static data, using defaults: $e', tag: 'AdminCtrl');
+    }
+  }
+
+  List<String> getCountries() {
+    return _accessScopeTree.keys.toList();
+  }
+
+  List<String> getZones(String? country) {
+    if (country == null || !_accessScopeTree.containsKey(country)) return [];
+    final val = _accessScopeTree[country];
+    if (val is Map) {
+      return val.keys.cast<String>().toList();
+    }
+    return [];
+  }
+
+  List<String> getStates(String? country, String? zone) {
+    if (country == null || zone == null) return [];
+    final countryMap = _accessScopeTree[country];
+    if (countryMap is Map && countryMap.containsKey(zone)) {
+      final zoneMap = countryMap[zone];
+      if (zoneMap is Map) {
+        return zoneMap.keys.cast<String>().toList();
+      }
+    }
+    return [];
+  }
+
+  List<String> getDistricts(String? country, String? zone, String? state) {
+    if (country == null || zone == null || state == null) return [];
+    final countryMap = _accessScopeTree[country];
+    if (countryMap is Map && countryMap.containsKey(zone)) {
+      final zoneMap = countryMap[zone];
+      if (zoneMap is Map && zoneMap.containsKey(state)) {
+        final stateMap = zoneMap[state];
+        if (stateMap is Map) {
+          return stateMap.keys.cast<String>().toList();
+        }
+      }
+    }
+    return [];
+  }
 
   void clearMessages() {
     _errorMessage = null;
@@ -118,6 +204,7 @@ class AdminController extends ChangeNotifier {
     required String phoneNumber,
     String? password,
     required String role,
+    AccessScopeEntity? accessScope,
     String? employeeId,
     String? language,
   }) async {
@@ -133,6 +220,7 @@ class AdminController extends ChangeNotifier {
         phoneNumber: phoneNumber,
         password: password,
         role: role,
+        accessScope: accessScope,
         employeeId: employeeId,
         language: language,
       );
@@ -153,6 +241,7 @@ class AdminController extends ChangeNotifier {
     String? name,
     String? email,
     String? role,
+    AccessScopeEntity? accessScope,
     String? employeeId,
     String? language,
   }) async {
@@ -167,6 +256,7 @@ class AdminController extends ChangeNotifier {
         name: name,
         email: email,
         role: role,
+        accessScope: accessScope,
         employeeId: employeeId,
         language: language,
       );

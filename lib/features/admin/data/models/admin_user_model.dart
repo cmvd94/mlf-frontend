@@ -1,3 +1,4 @@
+import 'package:mlf_frontend/features/admin/data/models/access_scope_model.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_role.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
 
@@ -11,6 +12,7 @@ class AdminUserModel extends AdminUserEntity {
     required super.role,
     super.isActive = true,
     super.language,
+    super.accessScope,
     super.createdBy,
     super.updatedBy,
     super.createdAt,
@@ -30,6 +32,9 @@ class AdminUserModel extends AdminUserEntity {
       role: AdminRole.fromString(json['role']?.toString()),
       isActive: json['isActive'] ?? true,
       language: json['language']?.toString(),
+      accessScope: json['accessScope'] != null && json['accessScope'] is Map<String, dynamic>
+          ? AccessScopeModel.fromJson(json['accessScope'] as Map<String, dynamic>)
+          : null,
       createdBy: json['createdBy']?.toString(),
       updatedBy: json['updatedBy']?.toString(),
       createdAt: json['createdAt'] != null
@@ -53,6 +58,10 @@ class AdminUserModel extends AdminUserEntity {
       'role': role.value,
       'isActive': isActive,
       if (language != null) 'language': language,
+      if (accessScope != null)
+        'accessScope': accessScope is AccessScopeModel
+            ? (accessScope as AccessScopeModel).toJson()
+            : AccessScopeModel.fromEntity(accessScope!).toJson(),
     };
   }
 }

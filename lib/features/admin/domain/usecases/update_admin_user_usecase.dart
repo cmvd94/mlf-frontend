@@ -1,3 +1,4 @@
+import '../entities/access_scope_entity.dart';
 import '../repositories/admin_repository.dart';
 
 class UpdateAdminUserUseCase {
@@ -10,6 +11,7 @@ class UpdateAdminUserUseCase {
     String? name,
     String? email,
     String? role,
+    AccessScopeEntity? accessScope,
     String? employeeId,
     String? language,
   }) async {
@@ -20,6 +22,7 @@ class UpdateAdminUserUseCase {
       name: name?.trim(),
       email: email?.trim(),
       role: role?.trim(),
+      accessScope: accessScope,
       employeeId: employeeId?.trim(),
       language: language,
     );

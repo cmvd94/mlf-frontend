@@ -1,3 +1,4 @@
+import 'package:mlf_frontend/features/admin/data/models/access_scope_model.dart';
 import '../../domain/entities/user_entity.dart';
 
 class UserModel extends UserEntity {
@@ -6,6 +7,8 @@ class UserModel extends UserEntity {
     required super.phoneNumber,
     super.name,
     super.email,
+    super.role,
+    super.accessScope,
     required super.token,
   });
 
@@ -20,6 +23,10 @@ class UserModel extends UserEntity {
       phoneNumber: (user['phoneNumber'] ?? user['phone'] ?? '').toString(),
       name: user['name']?.toString(),
       email: user['email']?.toString(),
+      role: user['role']?.toString(),
+      accessScope: user['accessScope'] != null && user['accessScope'] is Map<String, dynamic>
+          ? AccessScopeModel.fromJson(user['accessScope'] as Map<String, dynamic>)
+          : null,
       token: (data['token'] ?? data['accessToken'] ?? json['token'] ?? '').toString(),
     );
   }
@@ -30,6 +37,11 @@ class UserModel extends UserEntity {
       'phoneNumber': phoneNumber,
       'name': name,
       'email': email,
+      'role': role,
+      if (accessScope != null)
+        'accessScope': accessScope is AccessScopeModel
+            ? (accessScope as AccessScopeModel).toJson()
+            : AccessScopeModel.fromEntity(accessScope!).toJson(),
       'token': token,
     };
   }

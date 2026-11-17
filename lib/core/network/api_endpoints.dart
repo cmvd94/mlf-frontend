@@ -5,6 +5,7 @@ class ApiEndpoints {
   static const String changePassword = '/admin/auth/change-password';
 
   // Admin CRUD (matches backend CRUDAdminUserController routes)
+  static const String staticData = '/admin/static-data';
   static const String createAdmin = '/admin/crud/create-admin';
   static const String getAdminList = '/admin/crud/get-user-list';
   static const String updateIsActiveAdmin = '/admin/crud/update-is-active-user';

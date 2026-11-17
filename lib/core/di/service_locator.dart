@@ -17,6 +17,7 @@ import '../../features/admin/data/repositories/admin_repository_impl.dart';
 import '../../features/admin/domain/repositories/admin_repository.dart';
 import '../../features/admin/domain/usecases/create_admin_user_usecase.dart';
 import '../../features/admin/domain/usecases/delete_admin_user_usecase.dart';
+import '../../features/admin/domain/usecases/get_admin_static_data_usecase.dart';
 import '../../features/admin/domain/usecases/get_admin_user_details_usecase.dart';
 import '../../features/admin/domain/usecases/get_admin_users_usecase.dart';
 import '../../features/admin/domain/usecases/update_admin_is_active_usecase.dart';
@@ -116,6 +117,9 @@ class ServiceLocator {
     final deleteAdminUserUseCase = DeleteAdminUserUseCase(adminRepository);
     sl._register<DeleteAdminUserUseCase>(deleteAdminUserUseCase);
 
+    final getAdminStaticDataUseCase = GetAdminStaticDataUseCase(adminRepository);
+    sl._register<GetAdminStaticDataUseCase>(getAdminStaticDataUseCase);
+
     // 6. Admin Controller
     final adminController = AdminController(
       getAdminUsersUseCase: getAdminUsersUseCase,
@@ -124,6 +128,7 @@ class ServiceLocator {
       updateAdminUserUseCase: updateAdminUserUseCase,
       updateAdminIsActiveUseCase: updateAdminIsActiveUseCase,
       deleteAdminUserUseCase: deleteAdminUserUseCase,
+      getAdminStaticDataUseCase: getAdminStaticDataUseCase,
     );
     sl._register<AdminController>(adminController);
   }

@@ -1,3 +1,4 @@
+import '../entities/access_scope_entity.dart';
 import '../repositories/admin_repository.dart';
 
 class CreateAdminUserUseCase {
@@ -11,6 +12,7 @@ class CreateAdminUserUseCase {
     required String phoneNumber,
     String? password,
     required String role,
+    AccessScopeEntity? accessScope,
     String? employeeId,
     String? language,
   }) async {
@@ -26,6 +28,7 @@ class CreateAdminUserUseCase {
       phoneNumber: phoneNumber.trim(),
       password: password,
       role: role.trim(),
+      accessScope: accessScope,
       employeeId: employeeId?.trim(),
       language: language,
     );

@@ -15,6 +15,8 @@ abstract class AdminRemoteDataSource {
 
   Future<AdminUserModel> getAdminUserById(String id, {String? token});
 
+  Future<Map<String, dynamic>> getStaticData({String? token});
+
   Future<void> createAdminUser(Map<String, dynamic> body, {String? token});
 
   Future<void> updateAdminUser(String id, Map<String, dynamic> body, {String? token});
@@ -72,6 +74,16 @@ class AdminRemoteDataSourceImpl implements AdminRemoteDataSource {
         : data;
 
     return AdminUserModel.fromJson(userJson as Map<String, dynamic>);
+  }
+
+  @override
+  Future<Map<String, dynamic>> getStaticData({String? token}) async {
+    final response = await apiClient.get(
+      ApiEndpoints.staticData,
+      token: token,
+    );
+    final data = response is Map<String, dynamic> ? response['data'] ?? response : response;
+    return data is Map<String, dynamic> ? data : {};
   }
 
   @override

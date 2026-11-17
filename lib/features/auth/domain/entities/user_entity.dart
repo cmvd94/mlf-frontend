@@ -1,8 +1,12 @@
+import 'package:mlf_frontend/features/admin/domain/entities/access_scope_entity.dart';
+
 class UserEntity {
   final String id;
   final String phoneNumber;
   final String? name;
   final String? email;
+  final String? role;
+  final AccessScopeEntity? accessScope;
   final String token;
 
   const UserEntity({
@@ -10,6 +14,8 @@ class UserEntity {
     required this.phoneNumber,
     this.name,
     this.email,
+    this.role,
+    this.accessScope,
     required this.token,
   });
 
