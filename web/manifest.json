@@ -1,0 +1,11 @@
+{
+  "name": "MLF Application",
+  "short_name": "MLF",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0175C2",
+  "theme_color": "#0175C2",
+  "description": "MLF - Mobile & Web Application",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}
