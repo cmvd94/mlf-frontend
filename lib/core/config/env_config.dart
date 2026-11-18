@@ -28,9 +28,9 @@ enum AppEnvironment {
           return 'http://localhost:3500';
         }
       case AppEnvironment.dev:
-        return 'https://dev-api.mlf.internal/api/v1';
+        return 'https://mlf-backend-o7b3.onrender.com';
       case AppEnvironment.prod:
-        return 'https://api.mlf.internal/api/v1';
+        return 'https://mlf-backend-o7b3.onrender.com';
     }
   }
 
@@ -79,7 +79,7 @@ class EnvConfig extends ChangeNotifier {
     if (savedEnv != null) {
       _environment = AppEnvironment.fromString(savedEnv);
     } else {
-      const compileTimeEnv = String.fromEnvironment('ENV', defaultValue: 'local');
+      const compileTimeEnv = String.fromEnvironment('ENV', defaultValue: 'dev');
       _environment = AppEnvironment.fromString(compileTimeEnv);
     }
 

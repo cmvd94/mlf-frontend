@@ -56,6 +56,9 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> logout() async {}
+
+  @override
+  Future<void> logoutAll() async {}
 }
 
 class FakeAdminRepository implements AdminRepository {
@@ -167,7 +170,7 @@ void main() {
   });
 
   testWidgets('MainLayoutPage renders Admin Management and responds to user clicks', (tester) async {
-    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.physicalSize = const Size(1440, 1024);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
       tester.view.resetPhysicalSize();
@@ -214,7 +217,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Test switching tabs to Dashboard
-    await tester.tap(find.text('Dashboard'));
+    await tester.tap(find.widgetWithText(ListTile, 'Dashboard'));
     await tester.pumpAndSettle();
 
     // Verify Dashboard is rendered

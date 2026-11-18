@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "default": "mlfabric-dev",
+    "dev": "mlfabric-dev",
+    "prod": "mlfabric"
+  },
+  "targets": {},
+  "etags": {}
+}

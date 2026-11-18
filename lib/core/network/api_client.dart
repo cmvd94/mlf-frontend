@@ -50,17 +50,19 @@ class ApiClient {
     String endpoint, {
     Map<String, dynamic>? queryParams,
     String? token,
+    Duration? timeout,
   }) async {
+    final effectiveTimeout = timeout ?? AppConstants.requestTimeout;
     final url = _buildUri(endpoint, queryParams);
     AppLogger().i('HTTP GET $url', tag: 'ApiClient');
     try {
       final response = await client
           .get(url, headers: _headers(token))
-          .timeout(AppConstants.requestTimeout);
+          .timeout(effectiveTimeout);
       return _handleResponse(response, url.toString());
     } on TimeoutException catch (e, st) {
       AppLogger().e('HTTP GET Timeout: $url', tag: 'ApiClient', error: e, stackTrace: st);
-      throw NetworkException(message: 'Request timed out. Please check your connection.');
+      throw NetworkException(message: 'Request timed out. The server may be waking up, please try again.');
     } on http.ClientException catch (e, st) {
       AppLogger().e('HTTP GET ClientException: $url - ${e.message}', tag: 'ApiClient', error: e, stackTrace: st);
       throw NetworkException(message: 'Network error: ${e.message}');
@@ -79,7 +81,9 @@ class ApiClient {
     String endpoint, {
     Map<String, dynamic>? body,
     String? token,
+    Duration? timeout,
   }) async {
+    final effectiveTimeout = timeout ?? AppConstants.requestTimeout;
     final url = _buildUri(endpoint);
     AppLogger().i('HTTP POST $url (body: ${body != null ? jsonEncode(body) : "none"})', tag: 'ApiClient');
     try {
@@ -89,11 +93,11 @@ class ApiClient {
             headers: _headers(token),
             body: body != null ? jsonEncode(body) : null,
           )
-          .timeout(AppConstants.requestTimeout);
+          .timeout(effectiveTimeout);
       return _handleResponse(response, url.toString());
     } on TimeoutException catch (e, st) {
       AppLogger().e('HTTP POST Timeout: $url', tag: 'ApiClient', error: e, stackTrace: st);
-      throw NetworkException(message: 'Request timed out. Please check your connection.');
+      throw NetworkException(message: 'Request timed out. The server may be waking up, please try again.');
     } on http.ClientException catch (e, st) {
       AppLogger().e('HTTP POST ClientException: $url - ${e.message}', tag: 'ApiClient', error: e, stackTrace: st);
       throw NetworkException(message: 'Network error: ${e.message}');
@@ -112,7 +116,9 @@ class ApiClient {
     String endpoint, {
     Map<String, dynamic>? body,
     String? token,
+    Duration? timeout,
   }) async {
+    final effectiveTimeout = timeout ?? AppConstants.requestTimeout;
     final url = _buildUri(endpoint);
     AppLogger().i('HTTP PATCH $url (body: ${body != null ? jsonEncode(body) : "none"})', tag: 'ApiClient');
     try {
@@ -122,11 +128,11 @@ class ApiClient {
             headers: _headers(token),
             body: body != null ? jsonEncode(body) : null,
           )
-          .timeout(AppConstants.requestTimeout);
+          .timeout(effectiveTimeout);
       return _handleResponse(response, url.toString());
     } on TimeoutException catch (e, st) {
       AppLogger().e('HTTP PATCH Timeout: $url', tag: 'ApiClient', error: e, stackTrace: st);
-      throw NetworkException(message: 'Request timed out. Please check your connection.');
+      throw NetworkException(message: 'Request timed out. The server may be waking up, please try again.');
     } on http.ClientException catch (e, st) {
       AppLogger().e('HTTP PATCH ClientException: $url - ${e.message}', tag: 'ApiClient', error: e, stackTrace: st);
       throw NetworkException(message: 'Network error: ${e.message}');
@@ -145,17 +151,19 @@ class ApiClient {
     String endpoint, {
     Map<String, dynamic>? queryParams,
     String? token,
+    Duration? timeout,
   }) async {
+    final effectiveTimeout = timeout ?? AppConstants.requestTimeout;
     final url = _buildUri(endpoint, queryParams);
     AppLogger().i('HTTP DELETE $url', tag: 'ApiClient');
     try {
       final response = await client
           .delete(url, headers: _headers(token))
-          .timeout(AppConstants.requestTimeout);
+          .timeout(effectiveTimeout);
       return _handleResponse(response, url.toString());
     } on TimeoutException catch (e, st) {
       AppLogger().e('HTTP DELETE Timeout: $url', tag: 'ApiClient', error: e, stackTrace: st);
-      throw NetworkException(message: 'Request timed out. Please check your connection.');
+      throw NetworkException(message: 'Request timed out. The server may be waking up, please try again.');
     } on http.ClientException catch (e, st) {
       AppLogger().e('HTTP DELETE ClientException: $url - ${e.message}', tag: 'ApiClient', error: e, stackTrace: st);
       throw NetworkException(message: 'Network error: ${e.message}');

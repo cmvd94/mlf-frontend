@@ -14,6 +14,10 @@ abstract class AuthRemoteDataSource {
     required String confirmPassword,
     String? token,
   });
+
+  Future<void> logout({String? token});
+
+  Future<void> logoutAll({String? token});
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -55,6 +59,22 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'newPassword': newPassword,
         'confirmPassword': confirmPassword,
       },
+      token: token,
+    );
+  }
+
+  @override
+  Future<void> logout({String? token}) async {
+    await apiClient.patch(
+      ApiEndpoints.logout,
+      token: token,
+    );
+  }
+
+  @override
+  Future<void> logoutAll({String? token}) async {
+    await apiClient.delete(
+      ApiEndpoints.logoutAll,
       token: token,
     );
   }

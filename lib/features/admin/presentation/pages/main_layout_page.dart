@@ -37,30 +37,45 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
 
   Future<void> _logout() async {
     AppLogger().i('User opened logout confirmation dialog', tag: 'PortalUI');
-    final confirmed = await showDialog<bool>(
+    final action = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirm Logout'),
-        content: const Text('Are you sure you want to log out of your session?'),
+        content: const Text(
+          'Do you want to log out from this device or all active sessions across all devices?',
+        ),
         actions: [
           OutlinedButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => Navigator.pop(ctx, null),
             child: const Text('Cancel'),
+          ),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.error,
+              side: const BorderSide(color: AppColors.error),
+            ),
+            onPressed: () => Navigator.pop(ctx, 'all'),
+            child: const Text('Logout All Devices'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
             ),
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => Navigator.pop(ctx, 'current'),
             child: const Text('Logout'),
           ),
         ],
       ),
     );
 
-    if (confirmed == true) {
-      await sl<AuthRepository>().logout();
+    if (action != null) {
+      if (action == 'all') {
+        await sl<AuthRepository>().logoutAll();
+      } else {
+        await sl<AuthRepository>().logout();
+      }
+
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const LoginPage()),

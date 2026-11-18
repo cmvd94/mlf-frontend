@@ -3,6 +3,8 @@ class ApiEndpoints {
   static const String login = '/admin/auth/login';
   static const String clientLogin = '/client/auth/login';
   static const String changePassword = '/admin/auth/change-password';
+  static const String logout = '/admin/auth/logout';
+  static const String logoutAll = '/admin/auth/logout-all';
 
   // Admin CRUD (matches backend CRUDAdminUserController routes)
   static const String staticData = '/admin/static-data';

@@ -1,4 +1,5 @@
 import 'package:mlf_frontend/core/errors/exceptions.dart';
+import 'package:mlf_frontend/core/logger/app_logger.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_data_source.dart';
@@ -77,6 +78,29 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
-    await localDataSource.clearAuth();
+    try {
+      final token = await localDataSource.getToken();
+      if (token != null && token.isNotEmpty) {
+        await remoteDataSource.logout(token: token);
+      }
+    } catch (e) {
+      AppLogger().w('Failed to perform remote logout: $e', tag: 'AuthRepository');
+    } finally {
+      await localDataSource.clearAuth();
+    }
+  }
+
+  @override
+  Future<void> logoutAll() async {
+    try {
+      final token = await localDataSource.getToken();
+      if (token != null && token.isNotEmpty) {
+        await remoteDataSource.logoutAll(token: token);
+      }
+    } catch (e) {
+      AppLogger().w('Failed to perform remote logout-all: $e', tag: 'AuthRepository');
+    } finally {
+      await localDataSource.clearAuth();
+    }
   }
 }

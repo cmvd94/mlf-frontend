@@ -273,8 +273,8 @@ void main() {
   group('EnvConfig Resolution', () {
     test('Default environments return correct base URLs', () {
       expect(AppEnvironment.local.defaultBaseUrl, contains('3500'));
-      expect(AppEnvironment.dev.defaultBaseUrl, contains('dev-api'));
-      expect(AppEnvironment.prod.defaultBaseUrl, contains('api.mlf'));
+      expect(AppEnvironment.dev.defaultBaseUrl, contains('mlf-backend-o7b3.onrender.com'));
+      expect(AppEnvironment.prod.defaultBaseUrl, contains('mlf-backend-o7b3.onrender.com'));
     });
   });
 
