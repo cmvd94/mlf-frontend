@@ -24,6 +24,19 @@ import '../../features/admin/domain/usecases/update_admin_is_active_usecase.dart
 import '../../features/admin/domain/usecases/update_admin_user_usecase.dart';
 import '../../features/admin/presentation/controllers/admin_controller.dart';
 
+// Godown
+import '../../features/admin/data/datasources/godown_remote_data_source.dart';
+import '../../features/admin/data/repositories/godown_repository_impl.dart';
+import '../../features/admin/domain/repositories/godown_repository.dart';
+import '../../features/admin/domain/usecases/create_godown_usecase.dart';
+import '../../features/admin/domain/usecases/delete_godown_usecase.dart';
+import '../../features/admin/domain/usecases/get_eligible_godown_admins_usecase.dart';
+import '../../features/admin/domain/usecases/get_godown_by_id_usecase.dart';
+import '../../features/admin/domain/usecases/get_godowns_usecase.dart';
+import '../../features/admin/domain/usecases/update_godown_is_active_usecase.dart';
+import '../../features/admin/domain/usecases/update_godown_usecase.dart';
+import '../../features/admin/presentation/controllers/godown_controller.dart';
+
 class ServiceLocator {
   static final ServiceLocator instance = ServiceLocator._internal();
   factory ServiceLocator() => instance;
@@ -131,6 +144,50 @@ class ServiceLocator {
       getAdminStaticDataUseCase: getAdminStaticDataUseCase,
     );
     sl._register<AdminController>(adminController);
+
+    // 7. Godown Data Source & Repository
+    final godownRemoteDataSource = GodownRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<GodownRemoteDataSource>(godownRemoteDataSource);
+
+    final godownRepository = GodownRepositoryImpl(
+      remoteDataSource: godownRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<GodownRepository>(godownRepository);
+
+    // 8. Godown Use Cases
+    final getGodownsUseCase = GetGodownsUseCase(godownRepository);
+    sl._register<GetGodownsUseCase>(getGodownsUseCase);
+
+    final getGodownByIdUseCase = GetGodownByIdUseCase(godownRepository);
+    sl._register<GetGodownByIdUseCase>(getGodownByIdUseCase);
+
+    final createGodownUseCase = CreateGodownUseCase(godownRepository);
+    sl._register<CreateGodownUseCase>(createGodownUseCase);
+
+    final updateGodownUseCase = UpdateGodownUseCase(godownRepository);
+    sl._register<UpdateGodownUseCase>(updateGodownUseCase);
+
+    final updateGodownIsActiveUseCase = UpdateGodownIsActiveUseCase(godownRepository);
+    sl._register<UpdateGodownIsActiveUseCase>(updateGodownIsActiveUseCase);
+
+    final deleteGodownUseCase = DeleteGodownUseCase(godownRepository);
+    sl._register<DeleteGodownUseCase>(deleteGodownUseCase);
+
+    final getEligibleGodownAdminsUseCase = GetEligibleGodownAdminsUseCase(godownRepository);
+    sl._register<GetEligibleGodownAdminsUseCase>(getEligibleGodownAdminsUseCase);
+
+    // 9. Godown Controller
+    final godownController = GodownController(
+      getGodownsUseCase: getGodownsUseCase,
+      getGodownByIdUseCase: getGodownByIdUseCase,
+      createGodownUseCase: createGodownUseCase,
+      updateGodownUseCase: updateGodownUseCase,
+      updateGodownIsActiveUseCase: updateGodownIsActiveUseCase,
+      deleteGodownUseCase: deleteGodownUseCase,
+      getEligibleGodownAdminsUseCase: getEligibleGodownAdminsUseCase,
+    );
+    sl._register<GodownController>(godownController);
   }
 }
 

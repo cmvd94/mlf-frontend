@@ -8,9 +8,11 @@ import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
 import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mlf_frontend/features/auth/presentation/pages/login_page.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
+import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
 import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
 import 'package:mlf_frontend/features/admin/presentation/widgets/change_password_dialog.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/admin_management_page.dart';
+import 'package:mlf_frontend/features/admin/presentation/pages/godown_management_page.dart';
 
 class MainLayoutPage extends StatefulWidget {
   final UserEntity? currentUser;
@@ -24,11 +26,13 @@ class MainLayoutPage extends StatefulWidget {
 class _MainLayoutPageState extends State<MainLayoutPage> {
   int _selectedTabIndex = 1; // Default to Admin Management tab as requested
   late final AdminController _adminController;
+  late final GodownController _godownController;
 
   @override
   void initState() {
     super.initState();
     _adminController = sl<AdminController>();
+    _godownController = sl<GodownController>();
     AppLogger().i(
       'MainLayoutPage mounted successfully for user: ${widget.currentUser?.name ?? "Admin"} (phone: ${widget.currentUser?.phoneNumber ?? "N/A"})',
       tag: 'PortalUI',
@@ -322,6 +326,14 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           ),
           _buildNavItem(
             index: 2,
+            icon: Icons.warehouse_outlined,
+            activeIcon: Icons.warehouse,
+            label: 'Godowns',
+            badge: 'CRUD',
+            isDrawer: isDrawer,
+          ),
+          _buildNavItem(
+            index: 3,
             icon: Icons.tune_outlined,
             activeIcon: Icons.tune,
             label: 'Environment & Config',
@@ -469,6 +481,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       case 1:
         return 'Admin Users Management';
       case 2:
+        return 'Godown Management';
+      case 3:
         return 'Environment & Configuration';
       default:
         return 'Portal';
@@ -482,6 +496,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       case 1:
         return AdminManagementPage(controller: _adminController);
       case 2:
+        return GodownManagementPage(controller: _godownController);
+      case 3:
         return _buildEnvironmentTab();
       default:
         return AdminManagementPage(controller: _adminController);
@@ -515,11 +531,19 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               ),
               const SizedBox(width: 16),
               _buildStatCard(
+                title: 'Godowns',
+                subtitle: 'Manage branches & jobworks',
+                icon: Icons.warehouse,
+                color: Colors.indigo,
+                onTap: () => setState(() => _selectedTabIndex = 2),
+              ),
+              const SizedBox(width: 16),
+              _buildStatCard(
                 title: 'Environment',
                 subtitle: EnvConfig().environment.displayName,
                 icon: Icons.hub,
                 color: AppColors.yellowDark,
-                onTap: () => setState(() => _selectedTabIndex = 2),
+                onTap: () => setState(() => _selectedTabIndex = 3),
               ),
             ],
           ),
