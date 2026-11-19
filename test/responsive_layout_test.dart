@@ -15,6 +15,15 @@ import 'package:mlf_frontend/features/admin/domain/usecases/update_admin_user_us
 import 'package:mlf_frontend/core/theme/app_theme.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/main_layout_page.dart';
+import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/create_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/delete_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_eligible_godown_admins_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_godown_by_id_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_godowns_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_is_active_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_usecase.dart';
+import 'godown_test.dart';
 import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
 import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mlf_frontend/features/auth/domain/usecases/change_password_usecase.dart';
@@ -106,6 +115,17 @@ void main() {
       updateAdminUserUseCase: UpdateAdminUserUseCase(adminRepo),
       updateAdminIsActiveUseCase: UpdateAdminIsActiveUseCase(adminRepo),
       deleteAdminUserUseCase: DeleteAdminUserUseCase(adminRepo),
+    ));
+
+    final godownRepo = MockGodownRepository();
+    sl.register<GodownController>(GodownController(
+      getGodownsUseCase: GetGodownsUseCase(godownRepo),
+      getGodownByIdUseCase: GetGodownByIdUseCase(godownRepo),
+      createGodownUseCase: CreateGodownUseCase(godownRepo),
+      updateGodownUseCase: UpdateGodownUseCase(godownRepo),
+      updateGodownIsActiveUseCase: UpdateGodownIsActiveUseCase(godownRepo),
+      deleteGodownUseCase: DeleteGodownUseCase(godownRepo),
+      getEligibleGodownAdminsUseCase: GetEligibleGodownAdminsUseCase(godownRepo),
     ));
   });
 

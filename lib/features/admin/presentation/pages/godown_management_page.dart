@@ -17,12 +17,13 @@ class GodownManagementPage extends StatefulWidget {
 
 class _GodownManagementPageState extends State<GodownManagementPage> {
   final TextEditingController _searchController = TextEditingController();
+  int _selectedSubTab = 0; // 0 = Company Godowns, 1 = Jobwork Godowns
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.controller.fetchGodowns();
+      widget.controller.setTypeFilter(GodownType.companyGodown);
     });
   }
 
@@ -32,10 +33,27 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
     super.dispose();
   }
 
-  void _openCreateDialog() async {
+  void _switchSubTab(int index) {
+    if (_selectedSubTab == index) return;
+    setState(() {
+      _selectedSubTab = index;
+    });
+    final selectedType =
+        index == 0 ? GodownType.companyGodown : GodownType.jobworkGodown;
+    widget.controller.setTypeFilter(selectedType);
+  }
+
+  void _openCreateDialog([GodownType? defaultType]) async {
+    final typeToCreate = defaultType ??
+        (_selectedSubTab == 0
+            ? GodownType.companyGodown
+            : GodownType.jobworkGodown);
     final result = await showDialog<bool>(
       context: context,
-      builder: (ctx) => GodownFormDialog(controller: widget.controller),
+      builder: (ctx) => GodownFormDialog(
+        controller: widget.controller,
+        defaultType: typeToCreate,
+      ),
     );
 
     if (result == true && mounted) {
@@ -144,7 +162,11 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
             children: [
               // Header
               _buildHeader(isDesktop),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+
+              // Sub-Tabs Bar: Company | Jobwork
+              _buildSubTabBar(isDesktop),
+              const SizedBox(height: 16),
 
               // Filter & Search Bar
               _buildFilterBar(isDesktop),
@@ -230,13 +252,106 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
           ),
           icon: const Icon(Icons.add, size: 20),
           label: Text(
-            isDesktop ? 'Create Godown' : 'Add',
+            isDesktop
+                ? (_selectedSubTab == 0
+                    ? 'Create Company Godown'
+                    : 'Create Jobwork Godown')
+                : 'Add',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          onPressed: _openCreateDialog,
+          onPressed: () => _openCreateDialog(
+            _selectedSubTab == 0
+                ? GodownType.companyGodown
+                : GodownType.jobworkGodown,
+          ),
         ),
       ],
     );
+  }
+
+  Widget _buildSubTabBar(bool isDesktop) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      padding: const EdgeInsets.all(6),
+      child: Row(
+        mainAxisSize: isDesktop ? MainAxisSize.min : MainAxisSize.max,
+        children: [
+          _buildSubTabItem(
+            index: 0,
+            title: 'Company Godowns',
+            icon: Icons.warehouse,
+            isSelected: _selectedSubTab == 0,
+            isDesktop: isDesktop,
+          ),
+          const SizedBox(width: 8),
+          _buildSubTabItem(
+            index: 1,
+            title: 'Jobwork Godowns',
+            icon: Icons.precision_manufacturing_outlined,
+            isSelected: _selectedSubTab == 1,
+            isDesktop: isDesktop,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubTabItem({
+    required int index,
+    required String title,
+    required IconData icon,
+    required bool isSelected,
+    required bool isDesktop,
+  }) {
+    final item = InkWell(
+      onTap: () => _switchSubTab(index),
+      borderRadius: BorderRadius.circular(8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(
+          horizontal: isDesktop ? 20 : 12,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected ? Colors.white : AppColors.textSecondary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? Colors.white : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return isDesktop ? item : Expanded(child: item);
   }
 
   Widget _buildFilterBar(bool isDesktop) {
@@ -259,7 +374,9 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search by name or ID...',
+                hintText: _selectedSubTab == 0
+                    ? 'Search company godowns by name or ID...'
+                    : 'Search jobwork godowns by name or ID...',
                 hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
                 prefixIcon: const Icon(Icons.search, size: 18),
                 suffixIcon: _searchController.text.isNotEmpty
@@ -285,46 +402,13 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
             ),
           ),
 
-          // Type Filter Dropdown
-          SizedBox(
-            width: isDesktop ? 190 : 160,
-            height: 40,
-            child: DropdownButtonFormField<GodownType?>(
-              value: widget.controller.typeFilter,
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-              ),
-              hint: const Text('All Godown Types', style: TextStyle(fontSize: 12)),
-              items: [
-                const DropdownMenuItem(
-                  value: null,
-                  child: Text('All Godown Types', style: TextStyle(fontSize: 12)),
-                ),
-                ...GodownType.values.map((t) {
-                  return DropdownMenuItem(
-                    value: t,
-                    child: Text(t.label, style: const TextStyle(fontSize: 12)),
-                  );
-                }),
-              ],
-              onChanged: (val) => widget.controller.setTypeFilter(val),
-            ),
-          ),
-
           // Status Filter Dropdown
           SizedBox(
-            width: isDesktop ? 150 : 130,
+            width: isDesktop ? 160 : 140,
             height: 40,
             child: DropdownButtonFormField<bool?>(
               value: widget.controller.isActiveFilter,
+              isExpanded: true,
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                 border: OutlineInputBorder(
@@ -400,17 +484,20 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
         children: [
           Icon(Icons.warehouse_outlined, size: 64, color: Colors.grey.shade300),
           const SizedBox(height: 16),
-          const Text(
-            'No Godowns Found',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            _selectedSubTab == 0
+                ? 'No Company Godowns Found'
+                : 'No Jobwork Godowns Found',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
           Text(
             widget.controller.searchQuery != null ||
-                    widget.controller.typeFilter != null ||
                     widget.controller.isActiveFilter != null
                 ? 'Try adjusting your filters or search keywords.'
-                : 'Get started by creating your first godown.',
+                : (_selectedSubTab == 0
+                    ? 'Get started by creating your first company godown.'
+                    : 'Get started by creating your first jobwork godown.'),
             style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
           const SizedBox(height: 20),
@@ -420,8 +507,14 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
               foregroundColor: Colors.white,
             ),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('Create Godown'),
-            onPressed: _openCreateDialog,
+            label: Text(_selectedSubTab == 0
+                ? 'Create Company Godown'
+                : 'Create Jobwork Godown'),
+            onPressed: () => _openCreateDialog(
+              _selectedSubTab == 0
+                  ? GodownType.companyGodown
+                  : GodownType.jobworkGodown,
+            ),
           ),
         ],
       ),
@@ -429,6 +522,8 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
   }
 
   Widget _buildDesktopTable(List<GodownEntity> godowns) {
+    final bool isCompanyTab = _selectedSubTab == 0;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -452,14 +547,17 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
                 ),
                 dataRowMinHeight: 64,
                 dataRowMaxHeight: 74,
-                columns: const [
-                  DataColumn(label: Text('GODOWN NAME & ID')),
-                  DataColumn(label: Text('TYPE')),
-                  DataColumn(label: Text('REGIONAL JURISDICTION')),
-                  DataColumn(label: Text('MANAGER')),
-                  DataColumn(label: Text('STAFF SUMMARY')),
-                  DataColumn(label: Text('STATUS')),
-                  DataColumn(label: Text('ACTIONS')),
+                columns: [
+                  const DataColumn(label: Text('GODOWN NAME & ID')),
+                  const DataColumn(label: Text('REGIONAL JURISDICTION')),
+                  if (isCompanyTab) ...[
+                    const DataColumn(label: Text('GODOWN MANAGER')),
+                    const DataColumn(label: Text('STAFF SUMMARY')),
+                  ] else ...[
+                    const DataColumn(label: Text('DESCRIPTION / NOTES')),
+                  ],
+                  const DataColumn(label: Text('STATUS')),
+                  const DataColumn(label: Text('ACTIONS')),
                 ],
                 rows: godowns.map((g) {
                   return DataRow(
@@ -501,26 +599,6 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
                         ),
                       ),
 
-                      // Type Badge
-                      DataCell(
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: g.typeColor.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: g.typeColor.withOpacity(0.25)),
-                          ),
-                          child: Text(
-                            g.type.label,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: g.typeColor,
-                            ),
-                          ),
-                        ),
-                      ),
-
                       // Region
                       DataCell(
                         Column(
@@ -546,70 +624,96 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
                         ),
                       ),
 
-                      // Manager
-                      DataCell(
-                        g.godownManager != null
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  CircleAvatar(
-                                    radius: 12,
-                                    backgroundColor: Colors.indigo.shade100,
-                                    child: Text(
-                                      g.godownManager!.name.isNotEmpty
-                                          ? g.godownManager!.name[0].toUpperCase()
-                                          : 'M',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.indigo.shade800,
+                      // Staff or Description depending on tab
+                      if (isCompanyTab) ...[
+                        // Manager
+                        DataCell(
+                          g.godownManager != null
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 12,
+                                      backgroundColor: Colors.indigo.shade100,
+                                      child: Text(
+                                        g.godownManager!.name.isNotEmpty
+                                            ? g.godownManager!.name[0].toUpperCase()
+                                            : 'M',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.indigo.shade800,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    g.godownManager!.name,
-                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                                  ),
-                                ],
-                              )
-                            : Text(
-                                'Unassigned',
-                                style: TextStyle(fontSize: 12, color: Colors.grey.shade400, fontStyle: FontStyle.italic),
-                              ),
-                      ),
-
-                      // Staff Summary
-                      DataCell(
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: [
-                            if (g.supervisors.isNotEmpty)
-                              _buildCountPill(
-                                '${g.supervisors.length} Sup',
-                                Colors.blue,
-                              ),
-                            if (g.assistants.isNotEmpty)
-                              _buildCountPill(
-                                '${g.assistants.length} Asst',
-                                Colors.amber.shade900,
-                              ),
-                            if (g.billingUser != null)
-                              _buildCountPill(
-                                '1 Billing',
-                                Colors.teal,
-                              ),
-                            if (g.supervisors.isEmpty &&
-                                g.assistants.isEmpty &&
-                                g.billingUser == null)
-                              Text(
-                                'No Staff',
-                                style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
-                              ),
-                          ],
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      g.godownManager!.name,
+                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                )
+                              : Text(
+                                  'Unassigned',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade400, fontStyle: FontStyle.italic),
+                                ),
                         ),
-                      ),
+
+                        // Staff Summary
+                        DataCell(
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              if (g.supervisors.isNotEmpty)
+                                _buildCountPill(
+                                  '${g.supervisors.length} Sup',
+                                  Colors.blue,
+                                ),
+                              if (g.assistants.isNotEmpty)
+                                _buildCountPill(
+                                  '${g.assistants.length} Asst',
+                                  Colors.amber.shade900,
+                                ),
+                              if (g.billingUser != null)
+                                _buildCountPill(
+                                  '1 Billing',
+                                  Colors.teal,
+                                ),
+                              if (g.supervisors.isEmpty &&
+                                  g.assistants.isEmpty &&
+                                  g.billingUser == null)
+                                Text(
+                                  'No Staff',
+                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ] else ...[
+                        // Description / Notes
+                        DataCell(
+                          SizedBox(
+                            width: 250,
+                            child: Text(
+                              (g.description != null && g.description!.isNotEmpty)
+                                  ? g.description!
+                                  : 'No description provided',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: (g.description != null && g.description!.isNotEmpty)
+                                    ? AppColors.textPrimary
+                                    : Colors.grey.shade400,
+                                fontStyle: (g.description != null && g.description!.isNotEmpty)
+                                    ? FontStyle.normal
+                                    : FontStyle.italic,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
 
                       // Status Switch
                       DataCell(
@@ -730,6 +834,50 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
                   '${g.district}, ${g.state} (PIN: ${g.pincode})',
                   style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                 ),
+                if (g.type == GodownType.companyGodown) ...[
+                  if (g.godownManager != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.person_pin, size: 14, color: Colors.indigo),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Manager: ${g.godownManager!.name}',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (g.supervisors.isNotEmpty || g.assistants.isNotEmpty || g.billingUser != null) ...[
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        if (g.supervisors.isNotEmpty)
+                          _buildCountPill('${g.supervisors.length} Sup', Colors.blue),
+                        if (g.assistants.isNotEmpty)
+                          _buildCountPill('${g.assistants.length} Asst', Colors.amber.shade900),
+                        if (g.billingUser != null)
+                          _buildCountPill('1 Billing', Colors.teal),
+                      ],
+                    ),
+                  ],
+                ] else ...[
+                  if (g.description != null && g.description!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      g.description!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

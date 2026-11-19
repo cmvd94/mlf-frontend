@@ -7,11 +7,13 @@ import '../controllers/godown_controller.dart';
 class GodownFormDialog extends StatefulWidget {
   final GodownController controller;
   final GodownEntity? godownToEdit;
+  final GodownType? defaultType;
 
   const GodownFormDialog({
     super.key,
     required this.controller,
     this.godownToEdit,
+    this.defaultType,
   });
 
   bool get isEditing => godownToEdit != null;
@@ -91,7 +93,7 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
     _descriptionController = TextEditingController(text: godown?.description ?? '');
     _pincodeController = TextEditingController(text: godown?.pincode ?? '641001');
 
-    _selectedType = godown?.type ?? GodownType.companyGodown;
+    _selectedType = godown?.type ?? widget.defaultType ?? GodownType.companyGodown;
     _isActive = godown?.isActive ?? true;
 
     if (godown != null) {
@@ -119,7 +121,9 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
       _selectedDistrict = districts.isNotEmpty ? districts.first : 'Coimbatore';
     }
 
-    _loadEligibleAdmins();
+    if (_selectedType != GodownType.jobworkGodown) {
+      _loadEligibleAdmins();
+    }
   }
 
   @override
@@ -132,6 +136,15 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
   }
 
   Future<void> _loadEligibleAdmins() async {
+    if (_selectedType == GodownType.jobworkGodown) {
+      if (mounted) {
+        setState(() {
+          _eligibleAdmins = [];
+          _isLoadingAdmins = false;
+        });
+      }
+      return;
+    }
     setState(() => _isLoadingAdmins = true);
     final admins = await widget.controller.fetchEligibleAdmins(
       country: _selectedCountry,
@@ -180,6 +193,7 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
       return;
     }
 
+    final bool isJobwork = _selectedType == GodownType.jobworkGodown;
     bool success = false;
     if (widget.isEditing) {
       success = await widget.controller.updateGodown(
@@ -191,10 +205,10 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
         type: _selectedType,
         description: _descriptionController.text.trim(),
         isActive: _isActive,
-        godownManagerId: _selectedManagerId,
-        supervisorId: _selectedSupervisorIds,
-        assistantId: _selectedAssistantIds,
-        billingUserId: _selectedBillingUserId,
+        godownManagerId: isJobwork ? null : _selectedManagerId,
+        supervisorId: isJobwork ? null : _selectedSupervisorIds,
+        assistantId: isJobwork ? null : _selectedAssistantIds,
+        billingUserId: isJobwork ? null : _selectedBillingUserId,
       );
     } else {
       success = await widget.controller.createGodown(
@@ -209,10 +223,10 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
         state: _selectedState!,
         district: _selectedDistrict!,
         pincode: _pincodeController.text.trim(),
-        godownManagerId: _selectedManagerId,
-        supervisorId: _selectedSupervisorIds,
-        assistantId: _selectedAssistantIds,
-        billingUserId: _selectedBillingUserId,
+        godownManagerId: isJobwork ? null : _selectedManagerId,
+        supervisorId: isJobwork ? null : _selectedSupervisorIds,
+        assistantId: isJobwork ? null : _selectedAssistantIds,
+        billingUserId: isJobwork ? null : _selectedBillingUserId,
         isActive: _isActive,
       );
     }
@@ -431,7 +445,18 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
                                 }).toList(),
                                 onChanged: (val) {
                                   if (val != null) {
-                                    setState(() => _selectedType = val);
+                                    setState(() {
+                                      _selectedType = val;
+                                      if (val == GodownType.jobworkGodown) {
+                                        _selectedManagerId = null;
+                                        _selectedBillingUserId = null;
+                                        _selectedSupervisorIds.clear();
+                                        _selectedAssistantIds.clear();
+                                      }
+                                    });
+                                    if (val == GodownType.companyGodown) {
+                                      _loadEligibleAdmins();
+                                    }
                                   }
                                 },
                               ),
@@ -613,96 +638,137 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Assigned Admin Section
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Assign Admin & Operational Staff (All Optional)',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
+                        // Assigned Admin Section (Company Godown only)
+                        if (_selectedType == GodownType.jobworkGodown) ...[
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.amber.shade200),
                             ),
-                            if (_isLoadingAdmins)
-                              const SizedBox(
-                                width: 14,
-                                height: 14,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info_outline, size: 22, color: Colors.amber.shade900),
+                                const SizedBox(width: 12),
+                                const Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Jobwork Godown Facility',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2),
+                                      Text(
+                                        'Admin user assigning is not required for jobwork godowns.',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ] else ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Assign Admin & Operational Staff (All Optional)',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Candidates are filtered automatically based on the chosen jurisdiction.',
-                          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // 1. Godown Manager (Single)
-                        DropdownButtonFormField<String?>(
-                          value: _selectedManagerId,
-                          decoration: const InputDecoration(
-                            labelText: 'Godown Manager (Single User)',
-                            hintText: 'Select Godown Manager (Optional)',
-                            prefixIcon: Icon(Icons.person_pin, size: 20),
+                              if (_isLoadingAdmins)
+                                const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                            ],
                           ),
-                          items: managerItems,
-                          onChanged: (val) => setState(() => _selectedManagerId = val),
-                        ),
-                        const SizedBox(height: 14),
-
-                        // 2. Billing User (Single)
-                        DropdownButtonFormField<String?>(
-                          value: _selectedBillingUserId,
-                          decoration: const InputDecoration(
-                            labelText: 'Billing User (Single User)',
-                            hintText: 'Select Billing User (Optional)',
-                            prefixIcon: Icon(Icons.receipt_long, size: 20),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Candidates are filtered automatically based on the chosen jurisdiction.',
+                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                           ),
-                          items: billingItems,
-                          onChanged: (val) => setState(() => _selectedBillingUserId = val),
-                        ),
-                        const SizedBox(height: 16),
+                          const SizedBox(height: 12),
 
-                        // 3. Supervisors (Multi-select)
-                        _buildMultiSelectSection(
-                          title: 'Supervisors (SUPERVISOR [])',
-                          hint: 'Select one or more supervisors for this godown',
-                          color: Colors.blue,
-                          available: availableSupervisors,
-                          selectedIds: _selectedSupervisorIds,
-                          onToggle: (id) {
-                            setState(() {
-                              if (_selectedSupervisorIds.contains(id)) {
-                                _selectedSupervisorIds.remove(id);
-                              } else {
-                                _selectedSupervisorIds.add(id);
-                              }
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
+                          // 1. Godown Manager (Single)
+                          DropdownButtonFormField<String?>(
+                            value: _selectedManagerId,
+                            decoration: const InputDecoration(
+                              labelText: 'Godown Manager (Single User)',
+                              hintText: 'Select Godown Manager (Optional)',
+                              prefixIcon: Icon(Icons.person_pin, size: 20),
+                            ),
+                            items: managerItems,
+                            onChanged: (val) => setState(() => _selectedManagerId = val),
+                          ),
+                          const SizedBox(height: 14),
 
-                        // 4. Assistants (Multi-select)
-                        _buildMultiSelectSection(
-                          title: 'Assistants (ASSISTANT [])',
-                          hint: 'Select one or more assistants for this godown',
-                          color: Colors.orange.shade800,
-                          available: availableAssistants,
-                          selectedIds: _selectedAssistantIds,
-                          onToggle: (id) {
-                            setState(() {
-                              if (_selectedAssistantIds.contains(id)) {
-                                _selectedAssistantIds.remove(id);
-                              } else {
-                                _selectedAssistantIds.add(id);
-                              }
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 20),
+                          // 2. Billing User (Single)
+                          DropdownButtonFormField<String?>(
+                            value: _selectedBillingUserId,
+                            decoration: const InputDecoration(
+                              labelText: 'Billing User (Single User)',
+                              hintText: 'Select Billing User (Optional)',
+                              prefixIcon: Icon(Icons.receipt_long, size: 20),
+                            ),
+                            items: billingItems,
+                            onChanged: (val) => setState(() => _selectedBillingUserId = val),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // 3. Supervisors (Multi-select)
+                          _buildMultiSelectSection(
+                            title: 'Supervisors (SUPERVISOR [])',
+                            hint: 'Select one or more supervisors for this godown',
+                            color: Colors.blue,
+                            available: availableSupervisors,
+                            selectedIds: _selectedSupervisorIds,
+                            onToggle: (id) {
+                              setState(() {
+                                if (_selectedSupervisorIds.contains(id)) {
+                                  _selectedSupervisorIds.remove(id);
+                                } else {
+                                  _selectedSupervisorIds.add(id);
+                                }
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // 4. Assistants (Multi-select)
+                          _buildMultiSelectSection(
+                            title: 'Assistants (ASSISTANT [])',
+                            hint: 'Select one or more assistants for this godown',
+                            color: Colors.orange.shade800,
+                            available: availableAssistants,
+                            selectedIds: _selectedAssistantIds,
+                            onToggle: (id) {
+                              setState(() {
+                                if (_selectedAssistantIds.contains(id)) {
+                                  _selectedAssistantIds.remove(id);
+                                } else {
+                                  _selectedAssistantIds.add(id);
+                                }
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                        ],
 
                         // Status Toggle
                         Container(

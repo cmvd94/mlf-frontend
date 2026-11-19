@@ -155,17 +155,21 @@ class GodownModel extends GodownEntity {
     if (description != null && description.trim().isNotEmpty) {
       map['description'] = description.trim();
     }
-    if (godownManagerId != null && godownManagerId.isNotEmpty) {
-      map['godownManagerId'] = godownManagerId;
-    }
-    if (supervisorId != null && supervisorId.isNotEmpty) {
-      map['supervisorId'] = supervisorId;
-    }
-    if (assistantId != null && assistantId.isNotEmpty) {
-      map['assistantId'] = assistantId;
-    }
-    if (billingUserId != null && billingUserId.isNotEmpty) {
-      map['billingUserId'] = billingUserId;
+
+    // Jobwork godown does not require admin user assigning (all four fields)
+    if (type != GodownType.jobworkGodown) {
+      if (godownManagerId != null && godownManagerId.isNotEmpty) {
+        map['godownManagerId'] = godownManagerId;
+      }
+      if (supervisorId != null && supervisorId.isNotEmpty) {
+        map['supervisorId'] = supervisorId;
+      }
+      if (assistantId != null && assistantId.isNotEmpty) {
+        map['assistantId'] = assistantId;
+      }
+      if (billingUserId != null && billingUserId.isNotEmpty) {
+        map['billingUserId'] = billingUserId;
+      }
     }
 
     return map;
@@ -189,17 +193,25 @@ class GodownModel extends GodownEntity {
     if (description != null) map['description'] = description.trim();
     if (isActive != null) map['isActive'] = isActive;
 
-    if (godownManagerId != null) {
-      map['godownManagerId'] = godownManagerId.isEmpty ? null : godownManagerId;
-    }
-    if (supervisorId != null) {
-      map['supervisorId'] = supervisorId;
-    }
-    if (assistantId != null) {
-      map['assistantId'] = assistantId;
-    }
-    if (billingUserId != null) {
-      map['billingUserId'] = billingUserId.isEmpty ? null : billingUserId;
+    // Jobwork godown does not require admin user assigning (all four fields)
+    if (type == GodownType.jobworkGodown) {
+      map['godownManagerId'] = null;
+      map['supervisorId'] = <String>[];
+      map['assistantId'] = <String>[];
+      map['billingUserId'] = null;
+    } else {
+      if (godownManagerId != null) {
+        map['godownManagerId'] = godownManagerId.isEmpty ? null : godownManagerId;
+      }
+      if (supervisorId != null) {
+        map['supervisorId'] = supervisorId;
+      }
+      if (assistantId != null) {
+        map['assistantId'] = assistantId;
+      }
+      if (billingUserId != null) {
+        map['billingUserId'] = billingUserId.isEmpty ? null : billingUserId;
+      }
     }
 
     return map;

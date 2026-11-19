@@ -388,6 +388,7 @@ void main() {
 
       final districts = controller.getDistricts('India', 'SouthZone', 'TamilNadu');
       expect(districts.contains('Coimbatore'), true);
+      expect(districts.contains('Palladam'), true);
     });
   });
 

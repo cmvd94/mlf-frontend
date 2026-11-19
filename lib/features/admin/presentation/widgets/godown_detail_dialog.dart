@@ -267,63 +267,90 @@ class GodownDetailDialog extends StatelessWidget {
                       const SizedBox(height: 12),
 
                       // Section: Assigned Staff
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Assigned Management & Staff',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
+                      if (godown.type == GodownType.jobworkGodown) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.amber.shade200),
                           ),
-                          Text(
-                            '${godown.totalStaffCount} Assigned',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, size: 20, color: Colors.amber.shade900),
+                              const SizedBox(width: 10),
+                              const Expanded(
+                                child: Text(
+                                  'Jobwork Godown: Admin user assigning is not required for jobwork facilities.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
+                        ),
+                      ] else ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Assigned Management & Staff',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            Text(
+                              '${godown.totalStaffCount} Assigned',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
 
-                      if (godown.godownManager != null)
-                        _buildStaffSection(
-                          'Godown Manager (Single)',
-                          [godown.godownManager!],
-                          color: Colors.indigo,
-                        )
-                      else
-                        _buildInfoRow('Godown Manager', 'Not Assigned'),
+                        if (godown.godownManager != null)
+                          _buildStaffSection(
+                            'Godown Manager (Single)',
+                            [godown.godownManager!],
+                            color: Colors.indigo,
+                          )
+                        else
+                          _buildInfoRow('Godown Manager', 'Not Assigned'),
 
-                      if (godown.billingUser != null)
-                        _buildStaffSection(
-                          'Billing User (Single)',
-                          [godown.billingUser!],
-                          color: Colors.teal,
-                        )
-                      else
-                        _buildInfoRow('Billing User', 'Not Assigned'),
+                        if (godown.billingUser != null)
+                          _buildStaffSection(
+                            'Billing User (Single)',
+                            [godown.billingUser!],
+                            color: Colors.teal,
+                          )
+                        else
+                          _buildInfoRow('Billing User', 'Not Assigned'),
 
-                      if (godown.supervisors.isNotEmpty)
-                        _buildStaffSection(
-                          'Supervisors (${godown.supervisors.length})',
-                          godown.supervisors,
-                          color: Colors.blue,
-                        )
-                      else
-                        _buildInfoRow('Supervisors', 'None'),
+                        if (godown.supervisors.isNotEmpty)
+                          _buildStaffSection(
+                            'Supervisors (${godown.supervisors.length})',
+                            godown.supervisors,
+                            color: Colors.blue,
+                          )
+                        else
+                          _buildInfoRow('Supervisors', 'None'),
 
-                      if (godown.assistants.isNotEmpty)
-                        _buildStaffSection(
-                          'Assistants (${godown.assistants.length})',
-                          godown.assistants,
-                          color: Colors.amber.shade900,
-                        )
-                      else
-                        _buildInfoRow('Assistants', 'None'),
+                        if (godown.assistants.isNotEmpty)
+                          _buildStaffSection(
+                            'Assistants (${godown.assistants.length})',
+                            godown.assistants,
+                            color: Colors.amber.shade900,
+                          )
+                        else
+                          _buildInfoRow('Assistants', 'None'),
+                      ],
 
                       const SizedBox(height: 12),
                       const Divider(height: 1),

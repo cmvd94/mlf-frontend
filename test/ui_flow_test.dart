@@ -17,6 +17,15 @@ import 'package:mlf_frontend/features/admin/presentation/pages/main_layout_page.
 import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
 import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mlf_frontend/features/auth/domain/usecases/change_password_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/create_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/delete_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_eligible_godown_admins_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_godown_by_id_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_godowns_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_is_active_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
+import 'godown_test.dart';
 
 class FakeAuthRepository implements AuthRepository {
   @override
@@ -167,6 +176,18 @@ void main() {
       deleteAdminUserUseCase: deleteAdminUserUseCase,
     );
     sl.register<AdminController>(adminCtrl);
+
+    final godownRepo = MockGodownRepository();
+    final godownCtrl = GodownController(
+      getGodownsUseCase: GetGodownsUseCase(godownRepo),
+      getGodownByIdUseCase: GetGodownByIdUseCase(godownRepo),
+      createGodownUseCase: CreateGodownUseCase(godownRepo),
+      updateGodownUseCase: UpdateGodownUseCase(godownRepo),
+      updateGodownIsActiveUseCase: UpdateGodownIsActiveUseCase(godownRepo),
+      deleteGodownUseCase: DeleteGodownUseCase(godownRepo),
+      getEligibleGodownAdminsUseCase: GetEligibleGodownAdminsUseCase(godownRepo),
+    );
+    sl.register<GodownController>(godownCtrl);
   });
 
   testWidgets('MainLayoutPage renders Admin Management and responds to user clicks', (tester) async {

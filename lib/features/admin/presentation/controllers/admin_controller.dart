@@ -27,6 +27,7 @@ class AdminController extends ChangeNotifier {
           'Coimbatore': {'pincodes': []},
           'Tiruppur': {'pincodes': []},
           'Chennai': {'pincodes': []},
+          'Palladam': {'pincodes': []},
         },
         'Kerala': {
           'Thrissur': {'pincodes': []},
