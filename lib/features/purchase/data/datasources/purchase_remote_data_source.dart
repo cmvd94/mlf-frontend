@@ -3,7 +3,7 @@ import 'package:mlf_frontend/core/network/api_endpoints.dart';
 import '../models/purchase_model.dart';
 
 abstract class PurchaseRemoteDataSource {
-  Future<List<PurchaseModel>> getPurchases({
+  Future<PurchaseListResultModel> getPurchases({
     int page = 1,
     int limit = 20,
     String? search,
@@ -29,7 +29,7 @@ class PurchaseRemoteDataSourceImpl implements PurchaseRemoteDataSource {
   PurchaseRemoteDataSourceImpl({required this.apiClient});
 
   @override
-  Future<List<PurchaseModel>> getPurchases({
+  Future<PurchaseListResultModel> getPurchases({
     int page = 1,
     int limit = 20,
     String? search,
@@ -55,8 +55,8 @@ class PurchaseRemoteDataSourceImpl implements PurchaseRemoteDataSource {
       token: token,
     );
 
-    final list = response['data']?['purchases'] as List? ?? [];
-    return list.map((e) => PurchaseModel.fromJson(e as Map<String, dynamic>)).toList();
+    final data = response['data'] as Map<String, dynamic>? ?? {};
+    return PurchaseListResultModel.fromJson(data);
   }
 
   @override

@@ -208,7 +208,7 @@ class PurchaseModel extends PurchaseEntity {
       id: json['_id']?.toString() ?? '',
       purchaseNumber: json['purchaseNumber']?.toString() ?? '',
       date: json['date'] != null
-          ? DateTime.tryParse(json['date'].toString()) ?? DateTime.now()
+          ? (DateTime.tryParse(json['date'].toString())?.toLocal() ?? DateTime.now())
           : DateTime.now(),
       partyId: partyData is Map ? partyData['_id']?.toString() ?? '' : partyData?.toString() ?? '',
       partyName: partyData is Map ? partyData['name']?.toString() ?? '' : '',
@@ -284,8 +284,11 @@ class PurchaseModel extends PurchaseEntity {
       });
     }
 
+    final String formattedDate =
+        '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
     return {
-      'date': date.toIso8601String(),
+      'date': formattedDate,
       'partyId': partyId,
       'purchaseTypeId': purchaseTypeId,
       if (godownId != null && godownId.isNotEmpty) 'godownId': godownId,
@@ -311,8 +314,12 @@ class PurchaseModel extends PurchaseEntity {
     double? gstPercentage,
     String? notes,
   }) {
+    final String? formattedDate = date != null
+        ? '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}'
+        : null;
+
     return {
-      if (date != null) 'date': date.toIso8601String(),
+      if (formattedDate != null) 'date': formattedDate,
       if (partyId != null && partyId.isNotEmpty) 'partyId': partyId,
       if (purchaseTypeId != null && purchaseTypeId.isNotEmpty)
         'purchaseTypeId': purchaseTypeId,
@@ -321,5 +328,48 @@ class PurchaseModel extends PurchaseEntity {
       if (gstPercentage != null) 'gstPercentage': gstPercentage,
       if (notes != null) 'notes': notes,
     };
+  }
+}
+
+class PurchasePaginationModel extends PurchasePaginationEntity {
+  const PurchasePaginationModel({
+    super.currentPage = 1,
+    super.totalPages = 0,
+    super.totalCount = 0,
+    super.limit = 20,
+    super.hasNextPage = false,
+    super.hasPreviousPage = false,
+  });
+
+  factory PurchasePaginationModel.fromJson(Map<String, dynamic> json) {
+    return PurchasePaginationModel(
+      currentPage: (json['currentPage'] as num?)?.toInt() ?? 1,
+      totalPages: (json['totalPages'] as num?)?.toInt() ?? 0,
+      totalCount: (json['totalCount'] as num?)?.toInt() ?? 0,
+      limit: (json['limit'] as num?)?.toInt() ?? 20,
+      hasNextPage: json['hasNextPage'] == true,
+      hasPreviousPage: json['hasPrevPage'] == true || json['hasPreviousPage'] == true,
+    );
+  }
+}
+
+class PurchaseListResultModel extends PurchaseListResultEntity {
+  const PurchaseListResultModel({
+    required super.purchases,
+    required super.pagination,
+  });
+
+  factory PurchaseListResultModel.fromJson(Map<String, dynamic> json) {
+    final rawPurchases = json['purchases'] as List<dynamic>? ?? [];
+    final purchasesList = rawPurchases
+        .map<PurchaseEntity>((p) => PurchaseModel.fromJson(p as Map<String, dynamic>))
+        .toList();
+
+    final rawPagination = json['pagination'] as Map<String, dynamic>? ?? {};
+
+    return PurchaseListResultModel(
+      purchases: purchasesList,
+      pagination: PurchasePaginationModel.fromJson(rawPagination),
+    );
   }
 }

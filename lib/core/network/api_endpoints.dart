@@ -63,4 +63,8 @@ class ApiEndpoints {
   static String getPurchaseById(String id) => '/admin/purchase/get-a-purchase/$id';
   static String updatePurchase(String id) => '/admin/purchase/update/$id';
   static String deletePurchase(String id) => '/admin/purchase/delete/$id';
+
+  // Stock Summary (Tally Stock View)
+  static const String stockSummary = '/admin/stock-summary';
+  static String groupStockSummary(String groupId) => '/admin/stock-summary/group/$groupId';
 }

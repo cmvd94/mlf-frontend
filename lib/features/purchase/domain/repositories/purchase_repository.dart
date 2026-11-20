@@ -1,7 +1,7 @@
 import '../entities/purchase_entity.dart';
 
 abstract class PurchaseRepository {
-  Future<List<PurchaseEntity>> getPurchases({
+  Future<PurchaseListResultEntity> getPurchases({
     int page = 1,
     int limit = 20,
     String? search,

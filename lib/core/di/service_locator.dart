@@ -49,6 +49,13 @@ import '../../features/purchase/data/repositories/purchase_repository_impl.dart'
 import '../../features/purchase/domain/repositories/purchase_repository.dart';
 import '../../features/purchase/presentation/controllers/purchase_controller.dart';
 
+// Stock Summary (Tally Stock View)
+import '../../features/stock_summary/data/datasources/stock_summary_remote_data_source.dart';
+import '../../features/stock_summary/data/repositories/stock_summary_repository_impl.dart';
+import '../../features/stock_summary/domain/repositories/stock_summary_repository.dart';
+import '../../features/stock_summary/domain/usecases/get_stock_summary_usecase.dart';
+import '../../features/stock_summary/presentation/controllers/stock_summary_controller.dart';
+
 class ServiceLocator {
   static final ServiceLocator instance = ServiceLocator._internal();
   factory ServiceLocator() => instance;
@@ -226,6 +233,22 @@ class ServiceLocator {
 
     final purchaseController = PurchaseController(repository: purchaseRepository);
     sl._register<PurchaseController>(purchaseController);
+
+    // 12. Stock Summary Data Sources, Repositories, Use Cases & Controller
+    final stockSummaryRemoteDataSource = StockSummaryRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<StockSummaryRemoteDataSource>(stockSummaryRemoteDataSource);
+
+    final stockSummaryRepository = StockSummaryRepositoryImpl(
+      remoteDataSource: stockSummaryRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<StockSummaryRepository>(stockSummaryRepository);
+
+    final getStockSummaryUseCase = GetStockSummaryUseCase(stockSummaryRepository);
+    sl._register<GetStockSummaryUseCase>(getStockSummaryUseCase);
+
+    final stockSummaryController = StockSummaryController(getStockSummaryUseCase: getStockSummaryUseCase);
+    sl._register<StockSummaryController>(stockSummaryController);
   }
 }
 

@@ -83,7 +83,8 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
   void initState() {
     super.initState();
     final p = widget.existingPurchase;
-    _selectedDate = p?.date ?? DateTime.now();
+    final initialDate = p?.date.toLocal() ?? DateTime.now();
+    _selectedDate = DateTime(initialDate.year, initialDate.month, initialDate.day);
     _selectedPartyId = p?.partyId;
     _selectedPurchaseTypeId = p?.purchaseTypeId;
     _notesController = TextEditingController(text: p?.notes ?? '');

@@ -18,7 +18,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
   }
 
   @override
-  Future<List<PurchaseEntity>> getPurchases({
+  Future<PurchaseListResultEntity> getPurchases({
     int page = 1,
     int limit = 20,
     String? search,

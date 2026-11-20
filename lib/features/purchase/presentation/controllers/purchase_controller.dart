@@ -23,8 +23,45 @@ class PurchaseController extends ChangeNotifier {
   List<PurchaseEntity> _purchases = [];
   List<PurchaseEntity> get purchases => _purchases;
 
+  PurchasePaginationEntity _pagination = const PurchasePaginationEntity();
+  PurchasePaginationEntity get pagination => _pagination;
+
+  int _currentPage = 1;
+  int get currentPage => _currentPage;
+
+  int _limit = 20;
+  int get limit => _limit;
+
   void setSearchQuery(String query) {
     _searchQuery = query;
+    _currentPage = 1;
+    fetchPurchases();
+  }
+
+  void setPage(int page) {
+    if (page < 1 || (page > _pagination.totalPages && _pagination.totalPages > 0)) {
+      return;
+    }
+    _currentPage = page;
+    fetchPurchases();
+  }
+
+  void nextPage() {
+    if (_pagination.hasNextPage) {
+      setPage(_currentPage + 1);
+    }
+  }
+
+  void previousPage() {
+    if (_pagination.hasPreviousPage) {
+      setPage(_currentPage - 1);
+    }
+  }
+
+  void setLimit(int newLimit) {
+    if (_limit == newLimit) return;
+    _limit = newLimit;
+    _currentPage = 1;
     fetchPurchases();
   }
 
@@ -34,8 +71,18 @@ class PurchaseController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _purchases = await repository.getPurchases(search: _searchQuery);
-      AppLogger().i('Loaded ${_purchases.length} purchases', tag: 'PurchaseCtrl');
+      final result = await repository.getPurchases(
+        page: _currentPage,
+        limit: _limit,
+        search: _searchQuery,
+      );
+      _purchases = result.purchases;
+      _pagination = result.pagination;
+      _currentPage = result.pagination.currentPage;
+      AppLogger().i(
+        'Loaded ${_purchases.length} purchases (Page $_currentPage of ${_pagination.totalPages}, Total: ${_pagination.totalCount})',
+        tag: 'PurchaseCtrl',
+      );
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       AppLogger().e('Failed to load purchases: $e', tag: 'PurchaseCtrl');

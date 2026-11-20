@@ -199,3 +199,31 @@ class PurchaseEntity {
   String get perSymbol => items.isNotEmpty ? items.first.perSymbol : _legacyPerSymbol;
   double get amount => totalAmount != 0.0 ? totalAmount : _legacyAmount;
 }
+
+class PurchasePaginationEntity {
+  final int currentPage;
+  final int totalPages;
+  final int totalCount;
+  final int limit;
+  final bool hasNextPage;
+  final bool hasPreviousPage;
+
+  const PurchasePaginationEntity({
+    this.currentPage = 1,
+    this.totalPages = 0,
+    this.totalCount = 0,
+    this.limit = 20,
+    this.hasNextPage = false,
+    this.hasPreviousPage = false,
+  });
+}
+
+class PurchaseListResultEntity {
+  final List<PurchaseEntity> purchases;
+  final PurchasePaginationEntity pagination;
+
+  const PurchaseListResultEntity({
+    required this.purchases,
+    required this.pagination,
+  });
+}

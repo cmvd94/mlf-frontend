@@ -9,8 +9,9 @@ class PurchaseDetailDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localDate = purchase.date.toLocal();
     final dateStr =
-        '${purchase.date.day.toString().padLeft(2, '0')}/${purchase.date.month.toString().padLeft(2, '0')}/${purchase.date.year}';
+        '${localDate.day.toString().padLeft(2, '0')}/${localDate.month.toString().padLeft(2, '0')}/${localDate.year}';
 
     final items = purchase.items.isNotEmpty
         ? purchase.items

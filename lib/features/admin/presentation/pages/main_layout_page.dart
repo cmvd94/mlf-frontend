@@ -17,6 +17,8 @@ import 'package:mlf_frontend/features/inventory/presentation/controllers/invento
 import 'package:mlf_frontend/features/inventory/presentation/pages/account_inventory_page.dart';
 import 'package:mlf_frontend/features/purchase/presentation/controllers/purchase_controller.dart';
 import 'package:mlf_frontend/features/purchase/presentation/pages/purchase_management_page.dart';
+import 'package:mlf_frontend/features/stock_summary/presentation/controllers/stock_summary_controller.dart';
+import 'package:mlf_frontend/features/stock_summary/presentation/pages/stock_summary_page.dart';
 
 class MainLayoutPage extends StatefulWidget {
   final UserEntity? currentUser;
@@ -34,6 +36,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   late final GodownController _godownController;
   late final InventoryController _inventoryController;
   late final PurchaseController _purchaseController;
+  late final StockSummaryController _stockSummaryController;
 
   @override
   void initState() {
@@ -42,6 +45,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     _godownController = sl<GodownController>();
     _inventoryController = sl<InventoryController>();
     _purchaseController = sl<PurchaseController>();
+    _stockSummaryController = sl<StockSummaryController>();
     AppLogger().i(
       'MainLayoutPage mounted successfully for user: ${widget.currentUser?.name ?? "Admin"} (phone: ${widget.currentUser?.phoneNumber ?? "N/A"})',
       tag: 'PortalUI',
@@ -345,7 +349,6 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       icon: Icons.admin_panel_settings_outlined,
                       activeIcon: Icons.admin_panel_settings,
                       label: 'Admin Users',
-                      badge: 'CRUD',
                       isDrawer: isDrawer,
                     ),
                     _buildNavItem(
@@ -353,7 +356,6 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       icon: Icons.warehouse_outlined,
                       activeIcon: Icons.warehouse,
                       label: 'Godowns',
-                      badge: 'CRUD',
                       isDrawer: isDrawer,
                     ),
                     _buildNavItem(
@@ -361,7 +363,6 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       icon: Icons.account_balance_wallet_outlined,
                       activeIcon: Icons.account_balance_wallet,
                       label: 'Account & Inventory Info',
-                      badge: 'Masters',
                       isDrawer: isDrawer,
                     ),
                     _buildNavItem(
@@ -369,11 +370,17 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       icon: Icons.shopping_cart_outlined,
                       activeIcon: Icons.shopping_cart,
                       label: 'Purchase',
-                      badge: 'Stock',
                       isDrawer: isDrawer,
                     ),
                     _buildNavItem(
                       index: 5,
+                      icon: Icons.assessment_outlined,
+                      activeIcon: Icons.assessment,
+                      label: 'Stock Summary',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 6,
                       icon: Icons.tune_outlined,
                       activeIcon: Icons.tune,
                       label: 'Environment & Config',
@@ -532,6 +539,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       case 4:
         return 'Purchase Entries & Stock Management';
       case 5:
+        return 'Stock Summary';
+      case 6:
         return 'Environment & Configuration';
       default:
         return 'Portal';
@@ -554,6 +563,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           inventoryController: _inventoryController,
         );
       case 5:
+        return StockSummaryPage(controller: _stockSummaryController);
+      case 6:
         return _buildEnvironmentTab();
       default:
         return AdminManagementPage(controller: _adminController);
@@ -615,11 +626,19 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               ),
               const SizedBox(width: 16),
               _buildStatCard(
+                title: 'Stock Summary',
+                subtitle: 'Tally group & batch summary',
+                icon: Icons.assessment,
+                color: Colors.green.shade700,
+                onTap: () => setState(() => _selectedTabIndex = 5),
+              ),
+              const SizedBox(width: 16),
+              _buildStatCard(
                 title: 'Environment',
                 subtitle: EnvConfig().environment.displayName,
                 icon: Icons.hub,
                 color: AppColors.yellowDark,
-                onTap: () => setState(() => _selectedTabIndex = 5),
+                onTap: () => setState(() => _selectedTabIndex = 6),
               ),
             ],
           ),

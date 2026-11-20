@@ -198,8 +198,11 @@ class _PurchaseManagementPageState extends State<PurchaseManagementPage> {
                     ),
                   ),
                 )
-              else
+              else ...[
                 _buildPurchasesTable(ctrl),
+                const SizedBox(height: 12),
+                _buildPaginationFooter(ctrl),
+              ],
             ],
           ),
         );
@@ -224,8 +227,9 @@ class _PurchaseManagementPageState extends State<PurchaseManagementPage> {
             DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
           ],
           rows: ctrl.purchases.map((purchase) {
+            final localDate = purchase.date.toLocal();
             final dateStr =
-                '${purchase.date.day.toString().padLeft(2, '0')}/${purchase.date.month.toString().padLeft(2, '0')}/${purchase.date.year}';
+                '${localDate.day.toString().padLeft(2, '0')}/${localDate.month.toString().padLeft(2, '0')}/${localDate.year}';
 
             final itemsCount = purchase.items.isNotEmpty ? purchase.items.length : 1;
             final firstItemName = purchase.items.isNotEmpty ? purchase.items.first.itemName : purchase.itemName;
@@ -341,6 +345,76 @@ class _PurchaseManagementPageState extends State<PurchaseManagementPage> {
             );
           }).toList(),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPaginationFooter(PurchaseController ctrl) {
+    final pag = ctrl.pagination;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        alignment: WrapAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                pag.totalCount > 0
+                    ? 'Showing page ${pag.currentPage} of ${pag.totalPages} (${pag.totalCount} entries)'
+                    : 'No entries',
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              const SizedBox(width: 16),
+              const Text('Rows per page: ', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              DropdownButton<int>(
+                value: ctrl.limit,
+                isDense: true,
+                underline: const SizedBox.shrink(),
+                items: const [
+                  DropdownMenuItem(value: 10, child: Text('10', style: TextStyle(fontSize: 12))),
+                  DropdownMenuItem(value: 20, child: Text('20', style: TextStyle(fontSize: 12))),
+                  DropdownMenuItem(value: 50, child: Text('50', style: TextStyle(fontSize: 12))),
+                  DropdownMenuItem(value: 100, child: Text('100', style: TextStyle(fontSize: 12))),
+                ],
+                onChanged: (val) {
+                  if (val != null) ctrl.setLimit(val);
+                },
+              ),
+            ],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OutlinedButton.icon(
+                icon: const Icon(Icons.chevron_left, size: 16),
+                label: const Text('Previous'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                ),
+                onPressed: pag.hasPreviousPage ? ctrl.previousPage : null,
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                label: const Text('Next'),
+                icon: const Icon(Icons.chevron_right, size: 16),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                ),
+                onPressed: pag.hasNextPage ? ctrl.nextPage : null,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
