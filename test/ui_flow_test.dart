@@ -246,12 +246,20 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
 
+    // Open popup sidebar drawer via Menu button
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+
     // Test switching tabs to Dashboard
     await tester.tap(find.widgetWithText(ListTile, 'Dashboard'));
     await tester.pumpAndSettle();
 
     // Verify Dashboard is rendered
     expect(find.text('Welcome, Vishnudas!'), findsOneWidget);
+
+    // Open popup sidebar drawer via Menu button again
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
 
     // Test switching back to Admin Users via sidebar
     await tester.tap(find.widgetWithText(ListTile, 'Admin Users'));

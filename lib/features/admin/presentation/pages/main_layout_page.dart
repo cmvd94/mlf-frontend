@@ -28,6 +28,7 @@ class MainLayoutPage extends StatefulWidget {
 }
 
 class _MainLayoutPageState extends State<MainLayoutPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedTabIndex = 1; // Default to Admin Management tab as requested
   late final AdminController _adminController;
   late final GodownController _godownController;
@@ -119,7 +120,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
-      drawerEnableOpenDragGesture: !isDesktop,
+      key: _scaffoldKey,
+      drawerEnableOpenDragGesture: true,
       appBar: isDesktop
           ? null
           : AppBar(
@@ -138,23 +140,15 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               foregroundColor: AppColors.textPrimary,
               elevation: 1,
             ),
-      drawer: isDesktop ? null : _buildSidebar(isDrawer: true),
-      body: Row(
+      drawer: _buildSidebar(isDrawer: true),
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (isDesktop) _buildSidebar(isDrawer: false),
+          if (isDesktop) _buildTopBar(),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (isDesktop) _buildTopBar(),
-                Expanded(
-                  child: Container(
-                    color: Colors.grey.shade50,
-                    child: _buildTabContent(),
-                  ),
-                ),
-              ],
+            child: Container(
+              color: Colors.grey.shade50,
+              child: _buildTabContent(),
             ),
           ),
         ],
@@ -168,7 +162,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
 
     return Container(
       height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
@@ -179,6 +173,18 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           Expanded(
             child: Row(
               children: [
+                IconButton(
+                  tooltip: 'Menu',
+                  icon: const Icon(Icons.menu, color: AppColors.primaryDark),
+                  onPressed: () {
+                    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+                      Navigator.pop(context);
+                    } else {
+                      _scaffoldKey.currentState?.openDrawer();
+                    }
+                  },
+                ),
+                const SizedBox(width: 8),
                 Flexible(
                   child: Text(
                     _getTabTitle(),
@@ -260,7 +266,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     return Material(
       color: AppColors.primaryDark,
       child: Container(
-        width: 250,
+        width: 260,
         decoration: BoxDecoration(
           border: Border(right: BorderSide(color: AppColors.primary.withOpacity(0.3))),
         ),
@@ -268,7 +274,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           children: [
             // Branding Header
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               alignment: Alignment.centerLeft,
               child: Row(
                 children: [
@@ -310,6 +316,12 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       ],
                     ),
                   ),
+                  if (isDrawer)
+                    IconButton(
+                      tooltip: 'Hide Menu',
+                      icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
                 ],
               ),
             ),
@@ -439,7 +451,10 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               'Logout',
               style: TextStyle(color: Colors.redAccent, fontSize: 14),
             ),
-            onTap: _logout,
+            onTap: () {
+              if (isDrawer) Navigator.pop(context);
+              _logout();
+            },
           ),
           const SizedBox(height: 12),
         ],

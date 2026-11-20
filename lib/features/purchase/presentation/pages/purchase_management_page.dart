@@ -219,10 +219,8 @@ class _PurchaseManagementPageState extends State<PurchaseManagementPage> {
             DataColumn(label: Text('Party Name', style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(label: Text('Purchase Type', style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(label: Text('Items', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Tax (GST)', style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(label: Text('Total Actual (Stock)', style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(label: Text('Total Billed Qty', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Total Amount (₹)', style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
           ],
           rows: ctrl.purchases.map((purchase) {
@@ -273,29 +271,6 @@ class _PurchaseManagementPageState extends State<PurchaseManagementPage> {
                 ),
                 DataCell(
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: purchase.isGstBill
-                          ? Colors.purple.shade50
-                          : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      purchase.isGstBill
-                          ? '${purchase.gstPercentage.toStringAsFixed(0)}% GST'
-                          : 'No GST',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: purchase.isGstBill
-                            ? Colors.purple.shade800
-                            : Colors.grey.shade700,
-                      ),
-                    ),
-                  ),
-                ),
-                DataCell(
-                  Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.success.withValues(alpha: 0.12),
@@ -311,12 +286,6 @@ class _PurchaseManagementPageState extends State<PurchaseManagementPage> {
                   ),
                 ),
                 DataCell(Text(purchase.totalBilledQuantity.toStringAsFixed(2))),
-                DataCell(
-                  Text(
-                    '₹${purchase.totalAmount.toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
                 DataCell(
                   Row(
                     mainAxisSize: MainAxisSize.min,
