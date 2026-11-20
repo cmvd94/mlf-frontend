@@ -56,6 +56,12 @@ import '../../features/stock_summary/domain/repositories/stock_summary_repositor
 import '../../features/stock_summary/domain/usecases/get_stock_summary_usecase.dart';
 import '../../features/stock_summary/presentation/controllers/stock_summary_controller.dart';
 
+// Stock Transfer / Inventory Transfer
+import '../../features/stock_transfer/data/datasources/stock_transfer_remote_data_source.dart';
+import '../../features/stock_transfer/data/repositories/stock_transfer_repository_impl.dart';
+import '../../features/stock_transfer/domain/repositories/stock_transfer_repository.dart';
+import '../../features/stock_transfer/presentation/controllers/stock_transfer_controller.dart';
+
 class ServiceLocator {
   static final ServiceLocator instance = ServiceLocator._internal();
   factory ServiceLocator() => instance;
@@ -249,6 +255,19 @@ class ServiceLocator {
 
     final stockSummaryController = StockSummaryController(getStockSummaryUseCase: getStockSummaryUseCase);
     sl._register<StockSummaryController>(stockSummaryController);
+
+    // 13. Stock Transfer Data Sources, Repositories & Controller
+    final stockTransferRemoteDataSource = StockTransferRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<StockTransferRemoteDataSource>(stockTransferRemoteDataSource);
+
+    final stockTransferRepository = StockTransferRepositoryImpl(
+      remoteDataSource: stockTransferRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<StockTransferRepository>(stockTransferRepository);
+
+    final stockTransferController = StockTransferController(repository: stockTransferRepository);
+    sl._register<StockTransferController>(stockTransferController);
   }
 }
 

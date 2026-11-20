@@ -29,6 +29,9 @@ import 'godown_test.dart';
 import 'mocks/mock_inventory_purchase.dart';
 import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
 import 'package:mlf_frontend/features/purchase/presentation/controllers/purchase_controller.dart';
+import 'package:mlf_frontend/features/stock_transfer/presentation/controllers/stock_transfer_controller.dart';
+import 'package:mlf_frontend/features/stock_summary/domain/usecases/get_stock_summary_usecase.dart';
+import 'package:mlf_frontend/features/stock_summary/presentation/controllers/stock_summary_controller.dart';
 
 class FakeAuthRepository implements AuthRepository {
   @override
@@ -197,6 +200,13 @@ void main() {
 
     final purchaseRepo = MockPurchaseRepository();
     sl.register<PurchaseController>(PurchaseController(repository: purchaseRepo));
+
+    final transferRepo = MockStockTransferRepository();
+    sl.register<StockTransferController>(StockTransferController(repository: transferRepo));
+
+    final stockSummaryRepo = MockStockSummaryRepository();
+    final getStockSummaryUseCase = GetStockSummaryUseCase(stockSummaryRepo);
+    sl.register<StockSummaryController>(StockSummaryController(getStockSummaryUseCase: getStockSummaryUseCase));
   });
 
   testWidgets('MainLayoutPage renders Admin Management and responds to user clicks', (tester) async {

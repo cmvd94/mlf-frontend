@@ -8,6 +8,11 @@ import 'package:mlf_frontend/features/inventory/domain/entities/masters_entity.d
 import 'package:mlf_frontend/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:mlf_frontend/features/purchase/domain/entities/purchase_entity.dart';
 import 'package:mlf_frontend/features/purchase/domain/repositories/purchase_repository.dart';
+import 'package:mlf_frontend/features/stock_transfer/domain/entities/stock_transfer_entity.dart';
+import 'package:mlf_frontend/features/stock_transfer/domain/entities/available_stock_entity.dart';
+import 'package:mlf_frontend/features/stock_transfer/domain/repositories/stock_transfer_repository.dart';
+import 'package:mlf_frontend/features/stock_summary/domain/entities/stock_summary_entity.dart';
+import 'package:mlf_frontend/features/stock_summary/domain/repositories/stock_summary_repository.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/godown_entity.dart';
 
 class MockInventoryRepository implements InventoryRepository {
@@ -418,7 +423,7 @@ class MockPurchaseRepository implements PurchaseRepository {
   List<PurchaseEntity> purchases = [];
 
   @override
-  Future<List<PurchaseEntity>> getPurchases({
+  Future<PurchaseListResultEntity> getPurchases({
     int page = 1,
     int limit = 20,
     String? search,
@@ -426,7 +431,17 @@ class MockPurchaseRepository implements PurchaseRepository {
     String? itemId,
     String? purchaseTypeId,
     String? godownId,
-  }) async => purchases;
+  }) async => PurchaseListResultEntity(
+    purchases: purchases,
+    pagination: PurchasePaginationEntity(
+      currentPage: page,
+      totalPages: 1,
+      totalCount: purchases.length,
+      limit: limit,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    ),
+  );
 
   @override
   Future<PurchaseEntity> getPurchaseById(String id) async => purchases.firstWhere((p) => p.id == id);
@@ -603,4 +618,123 @@ class MockPurchaseRepository implements PurchaseRepository {
   Future<void> deletePurchase(String id) async {
     purchases.removeWhere((p) => p.id == id);
   }
+}
+
+class MockStockTransferRepository implements StockTransferRepository {
+  List<StockTransferEntity> transfers = [];
+  List<AvailableStockEntity> availableStocks = [];
+
+  @override
+  Future<StockTransferListResultEntity> getStockTransfers({
+    int page = 1,
+    int limit = 20,
+    String? search,
+    String? godownId,
+    DateTime? fromDate,
+    DateTime? toDate,
+  }) async =>
+      StockTransferListResultEntity(
+        transfers: transfers,
+        pagination: StockTransferPaginationEntity(
+          currentPage: page,
+          totalPages: 1,
+          totalCount: transfers.length,
+          limit: limit,
+        ),
+      );
+
+  @override
+  Future<StockTransferEntity> getStockTransferById(String id) async =>
+      transfers.firstWhere((t) => t.id == id);
+
+  @override
+  Future<List<AvailableStockEntity>> getAvailableStocks({
+    String? godownId,
+    String? itemId,
+    String? search,
+  }) async =>
+      availableStocks;
+
+  @override
+  Future<StockTransferEntity> createStockTransfer({
+    required DateTime date,
+    required List<CreateStockTransferSourceInput> sourceItems,
+    required List<CreateStockTransferDestinationInput> destinationItems,
+    String? narration,
+  }) async {
+    final newTransfer = StockTransferEntity(
+      id: 'st_${DateTime.now().millisecondsSinceEpoch}',
+      transferNumber: 'ST_${(transfers.length + 1).toString().padLeft(4, "0")}',
+      date: date,
+      sourceItems: sourceItems
+          .map((s) => StockTransferSourceItemEntity(
+                godownStockId: s.godownStockId,
+                itemId: 'itm_1',
+                itemName: 'Yarn 20s',
+                godownId: 'gd_1',
+                godownName: 'Main Godown',
+                quantity: s.quantity,
+                rate: s.rate ?? 100.0,
+                amount: s.quantity * (s.rate ?? 100.0),
+              ))
+          .toList(),
+      destinationItems: destinationItems
+          .map((d) => StockTransferDestinationItemEntity(
+                itemId: d.itemId,
+                itemName: 'Fabric',
+                godownId: d.godownId,
+                godownName: 'Branch Godown',
+                batchNo: d.batchNo,
+                quantity: d.quantity,
+                rate: d.rate ?? 100.0,
+                amount: d.quantity * (d.rate ?? 100.0),
+              ))
+          .toList(),
+      totalSourceQuantity: sourceItems.fold(0.0, (sum, s) => sum + s.quantity),
+      totalDestinationQuantity: destinationItems.fold(0.0, (sum, d) => sum + d.quantity),
+      narration: narration ?? '',
+    );
+    transfers.add(newTransfer);
+    return newTransfer;
+  }
+}
+
+class MockStockSummaryRepository implements StockSummaryRepository {
+  StockSummaryEntity summary = const StockSummaryEntity(
+    companyName: 'ML Fabric',
+    period: StockSummaryPeriodEntity(formattedPeriod: 'Current'),
+    godownFilter: StockSummaryFilterEntity(),
+    groups: [],
+    grandTotal: StockSummaryGrandTotalEntity(
+      totalQuantity: 0,
+      averageRate: 0,
+      totalValue: 0,
+      formattedQuantity: '0',
+      formattedRate: '0',
+      formattedValue: '0',
+      groupsCount: 0,
+      itemsCount: 0,
+    ),
+  );
+
+  @override
+  Future<StockSummaryEntity> getStockSummary({
+    String? godownId,
+    String? groupId,
+    String? search,
+    String? fromDate,
+    String? toDate,
+    bool? showZeroStock,
+  }) async =>
+      summary;
+
+  @override
+  Future<StockSummaryEntity> getGroupStockSummary({
+    required String groupId,
+    String? godownId,
+    String? search,
+    String? fromDate,
+    String? toDate,
+  }) async =>
+      summary;
 }

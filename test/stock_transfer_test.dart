@@ -1,0 +1,328 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/core/theme/app_theme.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/godown_entity.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/create_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/delete_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_eligible_godown_admins_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_godown_by_id_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_godowns_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_is_active_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
+import 'package:mlf_frontend/features/inventory/domain/entities/item_entity.dart';
+import 'package:mlf_frontend/features/inventory/domain/entities/uom_entity.dart';
+import 'package:mlf_frontend/features/inventory/domain/entities/per_unit_entity.dart';
+import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
+import 'package:mlf_frontend/features/stock_transfer/data/models/available_stock_model.dart';
+import 'package:mlf_frontend/features/stock_transfer/data/models/stock_transfer_model.dart';
+import 'package:mlf_frontend/features/stock_transfer/domain/entities/available_stock_entity.dart';
+import 'package:mlf_frontend/features/stock_transfer/domain/entities/stock_transfer_entity.dart';
+import 'package:mlf_frontend/features/stock_transfer/presentation/controllers/stock_transfer_controller.dart';
+import 'package:mlf_frontend/features/stock_transfer/presentation/pages/stock_transfer_page.dart';
+import 'package:mlf_frontend/features/stock_transfer/presentation/widgets/stock_transfer_entry_dialog.dart';
+import 'package:mlf_frontend/features/stock_transfer/presentation/widgets/stock_transfer_detail_dialog.dart';
+import 'godown_test.dart';
+import 'mocks/mock_inventory_purchase.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  final sl = ServiceLocator.instance;
+
+  late MockStockTransferRepository transferRepo;
+  late MockInventoryRepository inventoryRepo;
+  late MockGodownRepository godownRepo;
+
+  setUp(() {
+    sl.reset();
+
+    godownRepo = MockGodownRepository();
+    godownRepo.godowns = [
+      const GodownEntity(
+        id: 'gd_01',
+        godownId: 'GDN_01',
+        name: 'Main Storage Godown',
+        country: 'India',
+        zone: 'South',
+        state: 'Tamil Nadu',
+        district: 'Coimbatore',
+        pincode: '641001',
+        type: GodownType.companyGodown,
+        isActive: true,
+      ),
+      const GodownEntity(
+        id: 'gd_02',
+        godownId: 'GDN_02',
+        name: 'Shivamurugan Processing Godown',
+        country: 'India',
+        zone: 'South',
+        state: 'Tamil Nadu',
+        district: 'Tirupur',
+        pincode: '641601',
+        type: GodownType.jobworkGodown,
+        isActive: true,
+      ),
+    ];
+
+    sl.register<GodownController>(GodownController(
+      getGodownsUseCase: GetGodownsUseCase(godownRepo),
+      getGodownByIdUseCase: GetGodownByIdUseCase(godownRepo),
+      createGodownUseCase: CreateGodownUseCase(godownRepo),
+      updateGodownUseCase: UpdateGodownUseCase(godownRepo),
+      updateGodownIsActiveUseCase: UpdateGodownIsActiveUseCase(godownRepo),
+      deleteGodownUseCase: DeleteGodownUseCase(godownRepo),
+      getEligibleGodownAdminsUseCase: GetEligibleGodownAdminsUseCase(godownRepo),
+    ));
+
+    inventoryRepo = MockInventoryRepository();
+    inventoryRepo.uoms = [const UomEntity(id: 'uom_1', name: 'Kilograms', symbol: 'KG')];
+    inventoryRepo.perUnits = [const PerUnitEntity(id: 'per_1', name: 'Per Kg', symbol: 'KG', multiplier: 1.0)];
+    inventoryRepo.items = [
+      const ItemEntity(
+        id: 'itm_1',
+        name: '20s Combed VL',
+        itemCode: 'YRN_20S',
+        defaultUomId: 'uom_1',
+        defaultPerId: 'per_1',
+        standardRate: 250.0,
+      ),
+      const ItemEntity(
+        id: 'itm_2',
+        name: 'Grey Knitted Single Jersey Fabric',
+        itemCode: 'FBR_SJ01',
+        defaultUomId: 'uom_1',
+        defaultPerId: 'per_1',
+        standardRate: 320.0,
+      ),
+    ];
+    sl.register<InventoryController>(InventoryController(repository: inventoryRepo));
+
+    transferRepo = MockStockTransferRepository();
+    transferRepo.availableStocks = [
+      const AvailableStockEntity(
+        godownStockId: 'stk_001',
+        godownId: 'gd_01',
+        godownName: 'Main Storage Godown',
+        itemId: 'itm_1',
+        itemName: '20s Combed VL',
+        batchNo: 'Dc174/7-10-26',
+        currentStock: 500.0,
+        rate: 250.0,
+        amount: 125000.0,
+        uomSymbol: 'KG',
+      ),
+    ];
+
+    sl.register<StockTransferController>(StockTransferController(repository: transferRepo));
+  });
+
+  group('Stock Transfer Entity & Model serialization tests', () {
+    test('AvailableStockModel parses JSON correctly', () {
+      final json = {
+        'godownStockId': 'stk_123',
+        'godownId': 'gd_1',
+        'godownName': 'Main Godown',
+        'itemId': 'itm_1',
+        'itemName': 'Cotton Yarn',
+        'batchNo': 'Batch-A1',
+        'currentStock': 200,
+        'rate': 150.0,
+        'amount': 30000.0,
+        'uomSymbol': 'KG',
+      };
+
+      final model = AvailableStockModel.fromJson(json);
+      expect(model.godownStockId, 'stk_123');
+      expect(model.itemName, 'Cotton Yarn');
+      expect(model.batchNo, 'Batch-A1');
+      expect(model.currentStock, 200.0);
+      expect(model.displayName, contains('Cotton Yarn'));
+      expect(model.displayName, contains('Batch-A1'));
+    });
+
+    test('StockTransferModel parses voucher JSON correctly', () {
+      final json = {
+        '_id': 'st_123',
+        'transferNumber': 'ST_0001',
+        'date': '2026-11-20T10:00:00.000Z',
+        'sourceItems': [
+          {
+            'godownStockId': 'stk_001',
+            'itemId': {'_id': 'itm_1', 'name': '20s Combed VL', 'itemCode': 'YRN_20S'},
+            'godownId': {'_id': 'gd_01', 'name': 'Main Godown'},
+            'batchNo': 'Dc174/7-10-26',
+            'quantity': 100,
+            'rate': 250,
+            'amount': 25000,
+            'uomSymbol': 'KG',
+          }
+        ],
+        'destinationItems': [
+          {
+            'itemId': {'_id': 'itm_2', 'name': 'Grey Knitted Fabric', 'itemCode': 'FBR_01'},
+            'godownId': {'_id': 'gd_02', 'name': 'Shivamurugan'},
+            'batchNo': 'FAB_LOT_99',
+            'quantity': 95,
+            'rate': 280,
+            'amount': 26600,
+            'uomSymbol': 'KG',
+          }
+        ],
+        'totalSourceQuantity': 100,
+        'totalSourceAmount': 25000,
+        'totalDestinationQuantity': 95,
+        'totalDestinationAmount': 26600,
+        'narration': 'Yarn issued to jobwork for knitting',
+        'createdBy': {'name': 'Vishnudas'},
+      };
+
+      final model = StockTransferModel.fromJson(json);
+      expect(model.transferNumber, 'ST_0001');
+      expect(model.sourceItems.length, 1);
+      expect(model.sourceItems.first.batchNo, 'Dc174/7-10-26');
+      expect(model.destinationItems.first.batchNo, 'FAB_LOT_99');
+      expect(model.destinationItems.first.itemName, 'Grey Knitted Fabric');
+      expect(model.totalSourceQuantity, 100.0);
+      expect(model.totalDestinationQuantity, 95.0);
+      expect(model.narration, 'Yarn issued to jobwork for knitting');
+    });
+  });
+
+  group('StockTransferController unit tests', () {
+    test('fetchAvailableStocks populates controller available stocks', () async {
+      final ctrl = sl.get<StockTransferController>();
+      await ctrl.fetchAvailableStocks();
+
+      expect(ctrl.availableStocks.length, 1);
+      expect(ctrl.availableStocks.first.batchNo, 'Dc174/7-10-26');
+      expect(ctrl.availableStocks.first.currentStock, 500.0);
+    });
+
+    test('createStockTransfer creates voucher, deducts source and records transfer', () async {
+      final ctrl = sl.get<StockTransferController>();
+
+      final created = await ctrl.createStockTransfer(
+        date: DateTime.now(),
+        sourceItems: [
+          const CreateStockTransferSourceInput(
+            godownStockId: 'stk_001',
+            quantity: 100.0,
+            rate: 250.0,
+          ),
+        ],
+        destinationItems: [
+          const CreateStockTransferDestinationInput(
+            itemId: 'itm_2',
+            godownId: 'gd_02',
+            batchNo: 'FAB_LOT_101',
+            quantity: 98.0,
+            rate: 270.0,
+          ),
+        ],
+        narration: 'Material issue for knitting process',
+      );
+
+      expect(created, true);
+      expect(ctrl.transfers.length, 1);
+      expect(ctrl.transfers.first.transferNumber, 'ST_0001');
+      expect(ctrl.transfers.first.sourceItems.first.quantity, 100.0);
+      expect(ctrl.transfers.first.destinationItems.first.batchNo, 'FAB_LOT_101');
+      expect(ctrl.transfers.first.destinationItems.first.quantity, 98.0);
+    });
+  });
+
+  group('StockTransfer UI Widget tests', () {
+    testWidgets('StockTransferPage renders header, table and opens Entry dialog', (tester) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const StockTransferPage(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Stock Transfer / Inventory Transfer'), findsOneWidget);
+      expect(find.text('New Stock Transfer'), findsOneWidget);
+
+      // Tap New Stock Transfer button
+      await tester.tap(find.text('New Stock Transfer'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      // Check that StockTransferEntryDialog opened
+      expect(find.text('Inventory Voucher Creation - Stock Journal'), findsOneWidget);
+      expect(find.text('Source (Consumption)'), findsOneWidget);
+      expect(find.text('Destination (Production)'), findsOneWidget);
+      expect(find.text('Save Stock Transfer'), findsOneWidget);
+    });
+
+    testWidgets('StockTransferDetailDialog displays voucher breakdown', (tester) async {
+      final transfer = StockTransferEntity(
+        id: 'st_001',
+        transferNumber: 'ST_0149',
+        date: DateTime(2026, 11, 20),
+        sourceItems: const [
+          StockTransferSourceItemEntity(
+            godownStockId: 'stk_001',
+            itemId: 'itm_1',
+            itemName: '20s Combed VL',
+            godownId: 'gd_01',
+            godownName: 'Main Storage Godown',
+            batchNo: 'Dc174/7-10-26',
+            quantity: 120.0,
+            rate: 250.0,
+            amount: 30000.0,
+            uomSymbol: 'KG',
+          ),
+        ],
+        destinationItems: const [
+          StockTransferDestinationItemEntity(
+            itemId: 'itm_2',
+            itemName: 'Grey Knitted Single Jersey Fabric',
+            godownId: 'gd_02',
+            godownName: 'Shivamurugan Godown',
+            batchNo: 'FBR_BATCH_149',
+            quantity: 115.0,
+            rate: 290.0,
+            amount: 33350.0,
+            uomSymbol: 'KG',
+          ),
+        ],
+        totalSourceQuantity: 120.0,
+        totalSourceAmount: 30000.0,
+        totalDestinationQuantity: 115.0,
+        totalDestinationAmount: 33350.0,
+        narration: 'Yarn converted to fabric under stock journal 149',
+        createdByName: 'Vishnudas',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: Scaffold(
+            body: StockTransferDetailDialog(transfer: transfer),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Stock Journal: ST_0149'), findsOneWidget);
+      expect(find.text('20s Combed VL'), findsOneWidget);
+      expect(find.text('Batch: Dc174/7-10-26'), findsOneWidget);
+      expect(find.text('Grey Knitted Single Jersey Fabric'), findsOneWidget);
+      expect(find.text('New Batch: FBR_BATCH_149'), findsOneWidget);
+      expect(find.text('Yarn converted to fabric under stock journal 149'), findsOneWidget);
+    });
+  });
+}

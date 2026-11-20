@@ -19,6 +19,7 @@ import 'package:mlf_frontend/features/purchase/presentation/controllers/purchase
 import 'package:mlf_frontend/features/purchase/presentation/pages/purchase_management_page.dart';
 import 'package:mlf_frontend/features/stock_summary/presentation/controllers/stock_summary_controller.dart';
 import 'package:mlf_frontend/features/stock_summary/presentation/pages/stock_summary_page.dart';
+import 'package:mlf_frontend/features/stock_transfer/presentation/pages/stock_transfer_page.dart';
 
 class MainLayoutPage extends StatefulWidget {
   final UserEntity? currentUser;
@@ -381,6 +382,13 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                     ),
                     _buildNavItem(
                       index: 6,
+                      icon: Icons.sync_alt_outlined,
+                      activeIcon: Icons.sync_alt,
+                      label: 'Stock Transfer',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 7,
                       icon: Icons.tune_outlined,
                       activeIcon: Icons.tune,
                       label: 'Environment & Config',
@@ -541,6 +549,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       case 5:
         return 'Stock Summary';
       case 6:
+        return 'Stock Transfer / Inventory Transfer';
+      case 7:
         return 'Environment & Configuration';
       default:
         return 'Portal';
@@ -565,6 +575,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       case 5:
         return StockSummaryPage(controller: _stockSummaryController);
       case 6:
+        return const StockTransferPage();
+      case 7:
         return _buildEnvironmentTab();
       default:
         return AdminManagementPage(controller: _adminController);

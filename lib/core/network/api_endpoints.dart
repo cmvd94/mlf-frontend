@@ -67,4 +67,10 @@ class ApiEndpoints {
   // Stock Summary (Tally Stock View)
   static const String stockSummary = '/admin/stock-summary';
   static String groupStockSummary(String groupId) => '/admin/stock-summary/group/$groupId';
+
+  // Stock Transfer / Inventory Transfer
+  static const String createStockTransfer = '/admin/stock-transfer/create';
+  static const String getStockTransferList = '/admin/stock-transfer/list';
+  static const String availableStockForTransfer = '/admin/stock-transfer/available-stock';
+  static String getStockTransferById(String id) => '/admin/stock-transfer/$id';
 }
