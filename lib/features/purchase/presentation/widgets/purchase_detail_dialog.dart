@@ -23,6 +23,7 @@ class PurchaseDetailDialog extends StatelessWidget {
               godownId: purchase.godownId,
               godownName: purchase.godownName,
               godownCode: purchase.godownCode,
+              batchNo: purchase.batchNo,
               uomId: purchase.uomId,
               uomSymbol: purchase.uomSymbol,
               uomQuantity: purchase.uomQuantity,
@@ -163,6 +164,7 @@ class PurchaseDetailDialog extends StatelessWidget {
                               DataColumn(label: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                               DataColumn(label: Text('Item Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                               DataColumn(label: Text('Delivered Godown', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                              DataColumn(label: Text('Batch / Lot #', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                               DataColumn(label: Text('UOM', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                               DataColumn(label: Text('UOM Qty', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                               DataColumn(label: Text('Actual Qty (Stock)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.success))),
@@ -193,6 +195,23 @@ class PurchaseDetailDialog extends StatelessWidget {
                                           ? '${it.godownName} (${it.godownCode})'
                                           : (purchase.godownName.isNotEmpty ? purchase.godownName : '-'),
                                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade100,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        it.batchNo.isNotEmpty ? it.batchNo : '-',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          fontFamily: 'monospace',
+                                        ),
+                                      ),
                                     ),
                                   ),
                                   DataCell(Text(it.uomSymbol, style: const TextStyle(fontSize: 13))),

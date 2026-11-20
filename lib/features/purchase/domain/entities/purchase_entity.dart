@@ -6,6 +6,7 @@ class PurchaseItemEntity {
   final String godownId;
   final String godownName;
   final String godownCode;
+  final String batchNo;
   final String uomId;
   final String uomSymbol;
   final double uomQuantity;
@@ -24,6 +25,7 @@ class PurchaseItemEntity {
     required this.godownId,
     this.godownName = '',
     this.godownCode = '',
+    this.batchNo = '',
     required this.uomId,
     required this.uomSymbol,
     required this.uomQuantity,
@@ -39,6 +41,7 @@ class PurchaseItemEntity {
 class PurchaseItemInput {
   final String itemId;
   final String godownId;
+  final String batchNo;
   final String uomId;
   final double uomQuantity;
   final double actualQuantity;
@@ -49,6 +52,7 @@ class PurchaseItemInput {
   const PurchaseItemInput({
     required this.itemId,
     required this.godownId,
+    this.batchNo = '',
     required this.uomId,
     required this.uomQuantity,
     required this.actualQuantity,
@@ -60,6 +64,7 @@ class PurchaseItemInput {
   Map<String, dynamic> toJson() => {
     'itemId': itemId,
     'godownId': godownId,
+    'batchNo': batchNo,
     'uomId': uomId,
     'uomQuantity': uomQuantity,
     'actualQuantity': actualQuantity,
@@ -94,6 +99,7 @@ class PurchaseEntity {
   final String _legacyGodownName;
   final String _legacyGodownCode;
   final String _legacyItemId;
+  final String _legacyBatchNo;
   final String _legacyItemName;
   final String _legacyItemCode;
   final double _legacyItemStock;
@@ -131,6 +137,7 @@ class PurchaseEntity {
     this.createdByName = '',
     this.createdAt,
     String itemId = '',
+    String batchNo = '',
     String itemName = '',
     String itemCode = '',
     double itemStock = 0.0,
@@ -147,6 +154,7 @@ class PurchaseEntity {
         _legacyGodownName = godownName,
         _legacyGodownCode = godownCode,
         _legacyItemId = itemId,
+        _legacyBatchNo = batchNo,
         _legacyItemName = itemName,
         _legacyItemCode = itemCode,
         _legacyItemStock = itemStock,
@@ -173,6 +181,7 @@ class PurchaseEntity {
       : _legacyGodownCode;
 
   String get itemId => items.isNotEmpty ? items.first.itemId : _legacyItemId;
+  String get batchNo => items.isNotEmpty ? items.first.batchNo : _legacyBatchNo;
   String get itemName => items.isNotEmpty ? items.first.itemName : _legacyItemName;
   String get itemCode => items.isNotEmpty ? items.first.itemCode : _legacyItemCode;
   double get itemStock => items.isNotEmpty ? items.first.itemStock : _legacyItemStock;

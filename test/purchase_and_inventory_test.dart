@@ -356,6 +356,7 @@ void main() {
       expect(find.text('Party / Supplier Name *'), findsOneWidget);
       expect(find.text('Purchase Type *'), findsOneWidget);
       expect(find.text('Item Name *'), findsOneWidget);
+      expect(find.text('Batch / Lot # *'), findsOneWidget);
       expect(find.text('Delivered Godown *'), findsOneWidget);
       expect(find.text('UOM *'), findsOneWidget);
       expect(find.text('Actual Qty *'), findsOneWidget);

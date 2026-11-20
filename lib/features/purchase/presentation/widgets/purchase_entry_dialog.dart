@@ -10,6 +10,7 @@ class _ItemRowData {
   String? godownId;
   String? uomId;
   String? perId;
+  final TextEditingController batchNoController;
   final TextEditingController uomQtyController;
   final TextEditingController actualQtyController;
   final TextEditingController billedQtyController;
@@ -20,12 +21,14 @@ class _ItemRowData {
     this.godownId,
     this.uomId,
     this.perId,
+    String batchNo = '',
     String uomQty = '1',
     String actualQty = '1',
     String billedQty = '1',
     String rate = '',
     VoidCallback? onChanged,
-  })  : uomQtyController = TextEditingController(text: uomQty),
+  })  : batchNoController = TextEditingController(text: batchNo),
+        uomQtyController = TextEditingController(text: uomQty),
         actualQtyController = TextEditingController(text: actualQty),
         billedQtyController = TextEditingController(text: billedQty),
         rateController = TextEditingController(text: rate) {
@@ -36,6 +39,7 @@ class _ItemRowData {
   }
 
   void dispose() {
+    batchNoController.dispose();
     uomQtyController.dispose();
     actualQtyController.dispose();
     billedQtyController.dispose();
@@ -94,6 +98,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
         _rows.add(_ItemRowData(
           itemId: it.itemId,
           godownId: it.godownId,
+          batchNo: it.batchNo,
           uomId: it.uomId,
           perId: it.perId,
           uomQty: it.uomQuantity.toString(),
@@ -221,6 +226,12 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
         );
         return;
       }
+      if (row.batchNoController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please enter Batch / Lot # for row #${i + 1}')),
+        );
+        return;
+      }
       if (row.uomId == null || row.uomId!.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Please select a UOM for row #${i + 1}')),
@@ -240,6 +251,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
       return PurchaseItemInput(
         itemId: row.itemId!,
         godownId: row.godownId!,
+        batchNo: row.batchNoController.text.trim(),
         uomId: row.uomId!,
         uomQuantity: double.tryParse(row.uomQtyController.text.trim()) ?? 1.0,
         actualQuantity: double.tryParse(row.actualQtyController.text.trim()) ?? 0.0,
@@ -320,7 +332,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1140, maxHeight: 880),
+        constraints: const BoxConstraints(maxWidth: 1220, maxHeight: 880),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Form(
@@ -517,6 +529,11 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                     SizedBox(width: 8),
                                     Expanded(
                                       flex: 2,
+                                      child: Text('Batch / Lot # *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      flex: 2,
                                       child: Text('UOM *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                                     ),
                                     SizedBox(width: 8),
@@ -637,7 +654,26 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                             ),
                                           ),
                                           const SizedBox(width: 8),
-                                          // 3. UOM Dropdown
+                                          // 3. Batch / Lot No.
+                                          Expanded(
+                                            flex: 2,
+                                            child: TextFormField(
+                                              controller: row.batchNoController,
+                                              decoration: const InputDecoration(
+                                                isDense: true,
+                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                border: OutlineInputBorder(),
+                                                hintText: 'Batch/Lot #',
+                                              ),
+                                              style: const TextStyle(fontSize: 13),
+                                              validator: (v) {
+                                                if (v == null || v.trim().isEmpty) return 'Required';
+                                                return null;
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          // 4. UOM Dropdown
                                           Expanded(
                                             flex: 2,
                                             child: DropdownButtonFormField<String>(

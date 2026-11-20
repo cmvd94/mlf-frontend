@@ -9,6 +9,7 @@ class PurchaseItemModel extends PurchaseItemEntity {
     required super.godownId,
     super.godownName,
     super.godownCode,
+    super.batchNo,
     required super.uomId,
     required super.uomSymbol,
     required super.uomQuantity,
@@ -38,6 +39,7 @@ class PurchaseItemModel extends PurchaseItemEntity {
           : godownData?.toString() ?? '',
       godownName: godownData is Map ? godownData['name']?.toString() ?? '' : '',
       godownCode: godownData is Map ? godownData['godownId']?.toString() ?? '' : '',
+      batchNo: json['batchNo']?.toString() ?? json['lotNo']?.toString() ?? '',
       uomId: uomData is Map ? uomData['_id']?.toString() ?? '' : uomData?.toString() ?? '',
       uomSymbol: uomData is Map
           ? uomData['symbol']?.toString() ?? uomData['name']?.toString() ?? ''
@@ -141,6 +143,7 @@ class PurchaseModel extends PurchaseEntity {
             : rootGodownData?.toString() ?? '',
         godownName: rootGodownData is Map ? rootGodownData['name']?.toString() ?? '' : '',
         godownCode: rootGodownData is Map ? rootGodownData['godownId']?.toString() ?? '' : '',
+        batchNo: json['batchNo']?.toString() ?? json['lotNo']?.toString() ?? '',
         uomId: uomData is Map ? uomData['_id']?.toString() ?? '' : uomData?.toString() ?? '',
         uomSymbol: uomData is Map
             ? uomData['symbol']?.toString() ?? uomData['name']?.toString() ?? ''
@@ -256,6 +259,7 @@ class PurchaseModel extends PurchaseEntity {
     String? notes,
     // Optional legacy single-item parameters
     String? itemId,
+    String? batchNo,
     String? uomId,
     double? uomQuantity,
     double? actualQuantity,
@@ -270,6 +274,7 @@ class PurchaseModel extends PurchaseEntity {
       itemsList.add({
         'itemId': itemId,
         'godownId': godownId ?? '',
+        'batchNo': batchNo ?? '',
         'uomId': uomId ?? '',
         'uomQuantity': uomQuantity ?? actualQuantity ?? 1.0,
         'actualQuantity': actualQuantity ?? 0.0,

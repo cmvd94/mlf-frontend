@@ -57,6 +57,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
     double? gstPercentage,
     String? notes,
     String? itemId,
+    String? batchNo,
     String? uomId,
     double? uomQuantity,
     double? actualQuantity,
@@ -72,6 +73,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       itemsPayload.add({
         'itemId': itemId,
         'godownId': godownId ?? '',
+        'batchNo': batchNo ?? '',
         'uomId': uomId,
         'uomQuantity': uomQuantity ?? actualQuantity ?? 1.0,
         'actualQuantity': actualQuantity ?? 0.0,
@@ -87,6 +89,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       purchaseTypeId: purchaseTypeId,
       godownId: godownId,
       items: itemsPayload,
+      batchNo: batchNo,
       isGstBill: isGstBill,
       gstPercentage: gstPercentage,
       notes: notes,
