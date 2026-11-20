@@ -13,6 +13,10 @@ import 'package:mlf_frontend/features/admin/presentation/widgets/environment_bad
 import 'package:mlf_frontend/features/admin/presentation/widgets/change_password_dialog.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/admin_management_page.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/godown_management_page.dart';
+import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
+import 'package:mlf_frontend/features/inventory/presentation/pages/account_inventory_page.dart';
+import 'package:mlf_frontend/features/purchase/presentation/controllers/purchase_controller.dart';
+import 'package:mlf_frontend/features/purchase/presentation/pages/purchase_management_page.dart';
 
 class MainLayoutPage extends StatefulWidget {
   final UserEntity? currentUser;
@@ -27,12 +31,16 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   int _selectedTabIndex = 1; // Default to Admin Management tab as requested
   late final AdminController _adminController;
   late final GodownController _godownController;
+  late final InventoryController _inventoryController;
+  late final PurchaseController _purchaseController;
 
   @override
   void initState() {
     super.initState();
     _adminController = sl<AdminController>();
     _godownController = sl<GodownController>();
+    _inventoryController = sl<InventoryController>();
+    _purchaseController = sl<PurchaseController>();
     AppLogger().i(
       'MainLayoutPage mounted successfully for user: ${widget.currentUser?.name ?? "Admin"} (phone: ${widget.currentUser?.phoneNumber ?? "N/A"})',
       tag: 'PortalUI',
@@ -308,39 +316,61 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             Divider(color: AppColors.primary.withOpacity(0.3), height: 1),
             const SizedBox(height: 12),
 
-          // Nav Items
-          _buildNavItem(
-            index: 0,
-            icon: Icons.dashboard_outlined,
-            activeIcon: Icons.dashboard,
-            label: 'Dashboard',
-            isDrawer: isDrawer,
-          ),
-          _buildNavItem(
-            index: 1,
-            icon: Icons.admin_panel_settings_outlined,
-            activeIcon: Icons.admin_panel_settings,
-            label: 'Admin Users',
-            badge: 'CRUD',
-            isDrawer: isDrawer,
-          ),
-          _buildNavItem(
-            index: 2,
-            icon: Icons.warehouse_outlined,
-            activeIcon: Icons.warehouse,
-            label: 'Godowns',
-            badge: 'CRUD',
-            isDrawer: isDrawer,
-          ),
-          _buildNavItem(
-            index: 3,
-            icon: Icons.tune_outlined,
-            activeIcon: Icons.tune,
-            label: 'Environment & Config',
-            isDrawer: isDrawer,
-          ),
-
-          const Spacer(),
+            // Scrollable Nav Items
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildNavItem(
+                      index: 0,
+                      icon: Icons.dashboard_outlined,
+                      activeIcon: Icons.dashboard,
+                      label: 'Dashboard',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 1,
+                      icon: Icons.admin_panel_settings_outlined,
+                      activeIcon: Icons.admin_panel_settings,
+                      label: 'Admin Users',
+                      badge: 'CRUD',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 2,
+                      icon: Icons.warehouse_outlined,
+                      activeIcon: Icons.warehouse,
+                      label: 'Godowns',
+                      badge: 'CRUD',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 3,
+                      icon: Icons.account_balance_wallet_outlined,
+                      activeIcon: Icons.account_balance_wallet,
+                      label: 'Account & Inventory Info',
+                      badge: 'Masters',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 4,
+                      icon: Icons.shopping_cart_outlined,
+                      activeIcon: Icons.shopping_cart,
+                      label: 'Purchase',
+                      badge: 'Stock',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 5,
+                      icon: Icons.tune_outlined,
+                      activeIcon: Icons.tune,
+                      label: 'Environment & Config',
+                      isDrawer: isDrawer,
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // Environment info footer
           Container(
@@ -483,6 +513,10 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       case 2:
         return 'Godown Management';
       case 3:
+        return 'Account & Inventory Info';
+      case 4:
+        return 'Purchase Entries & Stock Management';
+      case 5:
         return 'Environment & Configuration';
       default:
         return 'Portal';
@@ -498,6 +532,13 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       case 2:
         return GodownManagementPage(controller: _godownController);
       case 3:
+        return AccountInventoryPage(controller: _inventoryController);
+      case 4:
+        return PurchaseManagementPage(
+          purchaseController: _purchaseController,
+          inventoryController: _inventoryController,
+        );
+      case 5:
         return _buildEnvironmentTab();
       default:
         return AdminManagementPage(controller: _adminController);
@@ -539,11 +580,31 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               ),
               const SizedBox(width: 16),
               _buildStatCard(
+                title: 'Inventory & Masters',
+                subtitle: 'Parties, Items, UOMs, Per',
+                icon: Icons.account_balance_wallet,
+                color: Colors.teal,
+                onTap: () => setState(() => _selectedTabIndex = 3),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildStatCard(
+                title: 'Purchase Entries',
+                subtitle: 'New purchase & stock updates',
+                icon: Icons.shopping_cart,
+                color: Colors.deepOrange,
+                onTap: () => setState(() => _selectedTabIndex = 4),
+              ),
+              const SizedBox(width: 16),
+              _buildStatCard(
                 title: 'Environment',
                 subtitle: EnvConfig().environment.displayName,
                 icon: Icons.hub,
                 color: AppColors.yellowDark,
-                onTap: () => setState(() => _selectedTabIndex = 3),
+                onTap: () => setState(() => _selectedTabIndex = 5),
               ),
             ],
           ),

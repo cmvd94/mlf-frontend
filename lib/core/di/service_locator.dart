@@ -37,6 +37,18 @@ import '../../features/admin/domain/usecases/update_godown_is_active_usecase.dar
 import '../../features/admin/domain/usecases/update_godown_usecase.dart';
 import '../../features/admin/presentation/controllers/godown_controller.dart';
 
+// Inventory & Masters
+import '../../features/inventory/data/datasources/inventory_remote_data_source.dart';
+import '../../features/inventory/data/repositories/inventory_repository_impl.dart';
+import '../../features/inventory/domain/repositories/inventory_repository.dart';
+import '../../features/inventory/presentation/controllers/inventory_controller.dart';
+
+// Purchase
+import '../../features/purchase/data/datasources/purchase_remote_data_source.dart';
+import '../../features/purchase/data/repositories/purchase_repository_impl.dart';
+import '../../features/purchase/domain/repositories/purchase_repository.dart';
+import '../../features/purchase/presentation/controllers/purchase_controller.dart';
+
 class ServiceLocator {
   static final ServiceLocator instance = ServiceLocator._internal();
   factory ServiceLocator() => instance;
@@ -188,6 +200,32 @@ class ServiceLocator {
       getEligibleGodownAdminsUseCase: getEligibleGodownAdminsUseCase,
     );
     sl._register<GodownController>(godownController);
+
+    // 10. Inventory Data Sources, Repositories & Controller
+    final inventoryRemoteDataSource = InventoryRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<InventoryRemoteDataSource>(inventoryRemoteDataSource);
+
+    final inventoryRepository = InventoryRepositoryImpl(
+      remoteDataSource: inventoryRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<InventoryRepository>(inventoryRepository);
+
+    final inventoryController = InventoryController(repository: inventoryRepository);
+    sl._register<InventoryController>(inventoryController);
+
+    // 11. Purchase Data Sources, Repositories & Controller
+    final purchaseRemoteDataSource = PurchaseRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<PurchaseRemoteDataSource>(purchaseRemoteDataSource);
+
+    final purchaseRepository = PurchaseRepositoryImpl(
+      remoteDataSource: purchaseRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<PurchaseRepository>(purchaseRepository);
+
+    final purchaseController = PurchaseController(repository: purchaseRepository);
+    sl._register<PurchaseController>(purchaseController);
   }
 }
 

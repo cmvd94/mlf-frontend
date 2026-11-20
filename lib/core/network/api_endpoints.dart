@@ -23,4 +23,44 @@ class ApiEndpoints {
   static String getGodownById(String id) => '/admin/godown/get-a-godown/$id';
   static String updateGodown(String id) => '/admin/godown/update/$id';
   static String deleteGodown(String id) => '/admin/godown/delete/$id';
+
+  // Account & Inventory Masters
+  static const String masters = '/admin/account-inventory/masters';
+  
+  static const String createParty = '/admin/account-inventory/party/create';
+  static const String getPartyList = '/admin/account-inventory/party/list';
+  static String updateParty(String id) => '/admin/account-inventory/party/update/$id';
+  static String deleteParty(String id) => '/admin/account-inventory/party/delete/$id';
+
+  static const String createPurchaseType = '/admin/account-inventory/purchase-type/create';
+  static const String getPurchaseTypeList = '/admin/account-inventory/purchase-type/list';
+  static String updatePurchaseType(String id) => '/admin/account-inventory/purchase-type/update/$id';
+  static String deletePurchaseType(String id) => '/admin/account-inventory/purchase-type/delete/$id';
+
+  static const String createUom = '/admin/account-inventory/uom/create';
+  static const String getUomList = '/admin/account-inventory/uom/list';
+  static String updateUom(String id) => '/admin/account-inventory/uom/update/$id';
+  static String deleteUom(String id) => '/admin/account-inventory/uom/delete/$id';
+
+  static const String createPerUnit = '/admin/account-inventory/per-unit/create';
+  static const String getPerUnitList = '/admin/account-inventory/per-unit/list';
+  static String updatePerUnit(String id) => '/admin/account-inventory/per-unit/update/$id';
+  static String deletePerUnit(String id) => '/admin/account-inventory/per-unit/delete/$id';
+
+  static const String createItemGroup = '/admin/account-inventory/item-group/create';
+  static const String getItemGroupList = '/admin/account-inventory/item-group/list';
+  static String updateItemGroup(String id) => '/admin/account-inventory/item-group/update/$id';
+  static String deleteItemGroup(String id) => '/admin/account-inventory/item-group/delete/$id';
+
+  static const String createItem = '/admin/account-inventory/item/create';
+  static const String getItemList = '/admin/account-inventory/item/list';
+  static String updateItem(String id) => '/admin/account-inventory/item/update/$id';
+  static String deleteItem(String id) => '/admin/account-inventory/item/delete/$id';
+
+  // Purchase Entries
+  static const String createPurchase = '/admin/purchase/create';
+  static const String getPurchaseList = '/admin/purchase/list';
+  static String getPurchaseById(String id) => '/admin/purchase/get-a-purchase/$id';
+  static String updatePurchase(String id) => '/admin/purchase/update/$id';
+  static String deletePurchase(String id) => '/admin/purchase/delete/$id';
 }

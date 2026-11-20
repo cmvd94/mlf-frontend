@@ -26,6 +26,9 @@ import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_is_act
 import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_usecase.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
 import 'godown_test.dart';
+import 'mocks/mock_inventory_purchase.dart';
+import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
+import 'package:mlf_frontend/features/purchase/presentation/controllers/purchase_controller.dart';
 
 class FakeAuthRepository implements AuthRepository {
   @override
@@ -188,6 +191,12 @@ void main() {
       getEligibleGodownAdminsUseCase: GetEligibleGodownAdminsUseCase(godownRepo),
     );
     sl.register<GodownController>(godownCtrl);
+
+    final invRepo = MockInventoryRepository();
+    sl.register<InventoryController>(InventoryController(repository: invRepo));
+
+    final purchaseRepo = MockPurchaseRepository();
+    sl.register<PurchaseController>(PurchaseController(repository: purchaseRepo));
   });
 
   testWidgets('MainLayoutPage renders Admin Management and responds to user clicks', (tester) async {

@@ -1,0 +1,27 @@
+import 'party_entity.dart';
+import 'purchase_type_entity.dart';
+import 'uom_entity.dart';
+import 'per_unit_entity.dart';
+import 'item_group_entity.dart';
+import 'item_entity.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/godown_entity.dart';
+
+class MastersEntity {
+  final List<PartyEntity> parties;
+  final List<PurchaseTypeEntity> purchaseTypes;
+  final List<UomEntity> uoms;
+  final List<PerUnitEntity> perUnits;
+  final List<ItemGroupEntity> itemGroups;
+  final List<ItemEntity> items;
+  final List<GodownEntity> godowns;
+
+  const MastersEntity({
+    this.parties = const [],
+    this.purchaseTypes = const [],
+    this.uoms = const [],
+    this.perUnits = const [],
+    this.itemGroups = const [],
+    this.items = const [],
+    this.godowns = const [],
+  });
+}

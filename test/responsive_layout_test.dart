@@ -24,6 +24,9 @@ import 'package:mlf_frontend/features/admin/domain/usecases/get_godowns_usecase.
 import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_is_active_usecase.dart';
 import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_usecase.dart';
 import 'godown_test.dart';
+import 'mocks/mock_inventory_purchase.dart';
+import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
+import 'package:mlf_frontend/features/purchase/presentation/controllers/purchase_controller.dart';
 import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
 import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mlf_frontend/features/auth/domain/usecases/change_password_usecase.dart';
@@ -127,6 +130,12 @@ void main() {
       deleteGodownUseCase: DeleteGodownUseCase(godownRepo),
       getEligibleGodownAdminsUseCase: GetEligibleGodownAdminsUseCase(godownRepo),
     ));
+
+    final invRepo = MockInventoryRepository();
+    sl.register<InventoryController>(InventoryController(repository: invRepo));
+
+    final purchaseRepo = MockPurchaseRepository();
+    sl.register<PurchaseController>(PurchaseController(repository: purchaseRepo));
   });
 
   testWidgets('Login and transition flow at 1440x900', (tester) async {
