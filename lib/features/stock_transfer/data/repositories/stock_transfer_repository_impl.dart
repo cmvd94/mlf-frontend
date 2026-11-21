@@ -77,4 +77,33 @@ class StockTransferRepositoryImpl implements StockTransferRepository {
 
     return await remoteDataSource.createStockTransfer(body, token: token);
   }
+
+  @override
+  Future<StockTransferEntity> updateStockTransfer({
+    required String id,
+    DateTime? date,
+    List<CreateStockTransferSourceInput>? sourceItems,
+    List<CreateStockTransferDestinationInput>? destinationItems,
+    String? narration,
+  }) async {
+    final token = await _getToken();
+
+    final body = <String, dynamic>{
+      if (date != null)
+        'date': '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}',
+      if (sourceItems != null)
+        'sourceItems': sourceItems.map((s) => s.toJson()).toList(),
+      if (destinationItems != null)
+        'destinationItems': destinationItems.map((d) => d.toJson()).toList(),
+      if (narration != null) 'narration': narration,
+    };
+
+    return await remoteDataSource.updateStockTransfer(id, body, token: token);
+  }
+
+  @override
+  Future<void> deleteStockTransfer(String id) async {
+    final token = await _getToken();
+    await remoteDataSource.deleteStockTransfer(id, token: token);
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/constants/app_constants.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/godown_entity.dart';
 import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
 import '../../domain/entities/purchase_entity.dart';
 import '../controllers/purchase_controller.dart';
@@ -71,6 +72,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
   late DateTime _selectedDate;
   String? _selectedPartyId;
   String? _selectedPurchaseTypeId;
+  String? _selectedCompanyGodownId;
 
   // GST controls
   late bool _isGstBill;
@@ -89,6 +91,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
     _selectedDate = DateTime(initialDate.year, initialDate.month, initialDate.day);
     _selectedPartyId = p?.partyId;
     _selectedPurchaseTypeId = p?.purchaseTypeId;
+    _selectedCompanyGodownId = (p?.companyGodownId.isNotEmpty ?? false) ? p?.companyGodownId : null;
     _notesController = TextEditingController(text: p?.notes ?? '');
 
     _isGstBill = p?.isGstBill ?? false;
@@ -214,6 +217,12 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
       );
       return;
     }
+    if (_selectedCompanyGodownId == null || _selectedCompanyGodownId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a Company Godown for this purchase')),
+      );
+      return;
+    }
 
     // Verify all item rows have required masters and assigned godowns
     for (int i = 0; i < _rows.length; i++) {
@@ -256,6 +265,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
         godownStockId: row.godownStockId,
         itemId: row.itemId!,
         godownId: row.godownId!,
+        companyGodownId: _selectedCompanyGodownId,
         batchNo: row.batchNoController.text.trim(),
         uomId: row.uomId!,
         uomQuantity: double.tryParse(row.uomQtyController.text.trim()) ?? 1.0,
@@ -273,6 +283,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
         date: _selectedDate,
         partyId: _selectedPartyId,
         purchaseTypeId: _selectedPurchaseTypeId,
+        companyGodownId: _selectedCompanyGodownId,
         items: itemsInput,
         isGstBill: _isGstBill,
         gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
@@ -283,6 +294,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
         date: _selectedDate,
         partyId: _selectedPartyId!,
         purchaseTypeId: _selectedPurchaseTypeId!,
+        companyGodownId: _selectedCompanyGodownId!,
         items: itemsInput,
         isGstBill: _isGstBill,
         gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
@@ -322,6 +334,12 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
     final uoms = inv.uoms.where((u) => u.isActive).toList();
     final perUnits = inv.perUnits.where((p) => p.isActive).toList();
     final godowns = inv.godowns.where((g) => g.isActive).toList();
+    final companyGodowns = godowns.where((g) => g.type == GodownType.companyGodown).toList();
+
+    // Auto-select company godown if only 1 is available and none selected yet
+    if (companyGodowns.length == 1) {
+      _selectedCompanyGodownId ??= companyGodowns.first.id;
+    }
 
     // Auto-select if only 1 accessible godown is available
     if (godowns.length == 1) {
@@ -394,13 +412,13 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header Row: Date, Purchase Type, Party Name
+                        // Header Row: Date, Purchase Type, Company Godown, Party Name
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // 1. Date Picker Field
                             Expanded(
-                              flex: 3,
+                              flex: 2,
                               child: InkWell(
                                 onTap: _selectDate,
                                 borderRadius: BorderRadius.circular(8),
@@ -420,7 +438,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                             const SizedBox(width: 12),
                             // 2. Purchase Type Dropdown
                             Expanded(
-                              flex: 3,
+                              flex: 2,
                               child: DropdownButtonFormField<String>(
                                 isExpanded: true,
                                 value: purchaseTypes.any((t) => t.id == _selectedPurchaseTypeId)
@@ -438,20 +456,54 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                   );
                                 }).toList(),
                                 onChanged: (val) => setState(() => _selectedPurchaseTypeId = val),
-                                validator: (v) => v == null ? 'Purchase type required' : null,
+                                validator: (v) => v == null ? 'Required' : null,
                               ),
                             ),
                             const SizedBox(width: 12),
-                            // 3. Party / Supplier Name Dropdown
+                            // 3. Company Godown Dropdown (Mandatory)
                             Expanded(
-                              flex: 4,
+                              flex: 3,
+                              child: DropdownButtonFormField<String>(
+                                isExpanded: true,
+                                value: companyGodowns.any((g) => g.id == _selectedCompanyGodownId)
+                                    ? _selectedCompanyGodownId
+                                    : null,
+                                decoration: const InputDecoration(
+                                  labelText: 'Company Godown *',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.business_outlined, size: 20),
+                                ),
+                                hint: const Text('Select Company Godown', overflow: TextOverflow.ellipsis),
+                                items: companyGodowns.map((g) {
+                                  return DropdownMenuItem<String>(
+                                    value: g.id,
+                                    child: Text(
+                                      '${g.name} (${g.godownId})',
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (val) => setState(() {
+                                  _selectedCompanyGodownId = val;
+                                  // Default item row delivered godowns to this company godown if not yet chosen
+                                  for (final row in _rows) {
+                                    row.godownId ??= val;
+                                  }
+                                }),
+                                validator: (v) => v == null ? 'Company Godown required' : null,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // 4. Party / Supplier Name Dropdown
+                            Expanded(
+                              flex: 3,
                               child: DropdownButtonFormField<String>(
                                 isExpanded: true,
                                 value: parties.any((p) => p.id == _selectedPartyId) ? _selectedPartyId : null,
                                 decoration: const InputDecoration(
                                   labelText: 'Party / Supplier Name *',
                                   border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.business, size: 20),
+                                  prefixIcon: Icon(Icons.person_pin, size: 20),
                                 ),
                                 hint: const Text('Select Party / Supplier', overflow: TextOverflow.ellipsis),
                                 items: parties.map((p) {

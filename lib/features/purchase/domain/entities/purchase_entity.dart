@@ -7,6 +7,9 @@ class PurchaseItemEntity {
   final String godownId;
   final String godownName;
   final String godownCode;
+  final String? companyGodownId;
+  final String companyGodownName;
+  final String companyGodownCode;
   final String batchNo;
   final String uomId;
   final String uomSymbol;
@@ -27,6 +30,9 @@ class PurchaseItemEntity {
     required this.godownId,
     this.godownName = '',
     this.godownCode = '',
+    this.companyGodownId,
+    this.companyGodownName = '',
+    this.companyGodownCode = '',
     this.batchNo = '',
     required this.uomId,
     required this.uomSymbol,
@@ -44,6 +50,7 @@ class PurchaseItemInput {
   final String? godownStockId;
   final String itemId;
   final String godownId;
+  final String? companyGodownId;
   final String batchNo;
   final String uomId;
   final double uomQuantity;
@@ -56,6 +63,7 @@ class PurchaseItemInput {
     this.godownStockId,
     required this.itemId,
     required this.godownId,
+    this.companyGodownId,
     this.batchNo = '',
     required this.uomId,
     required this.uomQuantity,
@@ -69,6 +77,7 @@ class PurchaseItemInput {
     if (godownStockId != null && godownStockId!.isNotEmpty) 'godownStockId': godownStockId,
     'itemId': itemId,
     'godownId': godownId,
+    if (companyGodownId != null && companyGodownId!.isNotEmpty) 'companyGodownId': companyGodownId,
     'batchNo': batchNo,
     'uomId': uomId,
     'uomQuantity': uomQuantity,
@@ -88,6 +97,9 @@ class PurchaseEntity {
   final String partyCode;
   final String purchaseTypeId;
   final String purchaseTypeName;
+  final String companyGodownId;
+  final String companyGodownName;
+  final String companyGodownCode;
   final List<PurchaseItemEntity> items;
   final double subTotal;
   final bool isGstBill;
@@ -127,6 +139,9 @@ class PurchaseEntity {
     this.partyCode = '',
     required this.purchaseTypeId,
     required this.purchaseTypeName,
+    this.companyGodownId = '',
+    this.companyGodownName = '',
+    this.companyGodownCode = '',
     String godownId = '',
     String godownName = '',
     String godownCode = '',

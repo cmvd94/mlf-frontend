@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
+import '../../domain/entities/stock_transfer_entity.dart';
 import '../controllers/stock_transfer_controller.dart';
 import '../widgets/stock_transfer_entry_dialog.dart';
 import '../widgets/stock_transfer_detail_dialog.dart';
@@ -51,6 +52,92 @@ class _StockTransferPageState extends State<StockTransferPage> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+    }
+  }
+
+  void _openEditDialog(StockTransferEntity st) async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => StockTransferEntryDialog(transferToEdit: st),
+    );
+
+    if (result == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_controller.successMessage ?? 'Stock transfer voucher updated successfully!'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _openDetailDialog(StockTransferEntity st) {
+    showDialog(
+      context: context,
+      builder: (_) => StockTransferDetailDialog(
+        transfer: st,
+        onEdit: () => _openEditDialog(st),
+        onDelete: () => _confirmDelete(st),
+      ),
+    );
+  }
+
+  void _confirmDelete(StockTransferEntity st) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: const [
+            Icon(Icons.warning_amber_rounded, color: AppColors.error),
+            SizedBox(width: 8),
+            Text('Delete Stock Transfer'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete Voucher "${st.transferNumber}"?\n\n'
+          'This will revert the transfer: produced destination batches will be removed '
+          'and consumed items will be restored back to source godowns.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete & Restore Stock'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final success = await _controller.deleteStockTransfer(st.id);
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_controller.successMessage ?? 'Stock transfer deleted successfully!'),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else if (_controller.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_controller.errorMessage!),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -333,15 +420,25 @@ class _StockTransferPageState extends State<StockTransferPage> {
                     ),
                   ),
                   DataCell(
-                    IconButton(
-                      tooltip: 'View Voucher Details',
-                      icon: const Icon(Icons.visibility, color: AppColors.primary, size: 20),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => StockTransferDetailDialog(transfer: st),
-                        );
-                      },
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: 'View Voucher Details',
+                          icon: const Icon(Icons.visibility, color: AppColors.primary, size: 20),
+                          onPressed: () => _openDetailDialog(st),
+                        ),
+                        IconButton(
+                          tooltip: 'Edit Voucher',
+                          icon: const Icon(Icons.edit, color: AppColors.primaryLight, size: 20),
+                          onPressed: () => _openEditDialog(st),
+                        ),
+                        IconButton(
+                          tooltip: 'Delete Voucher',
+                          icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                          onPressed: () => _confirmDelete(st),
+                        ),
+                      ],
                     ),
                   ),
                 ],

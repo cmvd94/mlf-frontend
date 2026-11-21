@@ -41,7 +41,9 @@ class _DestinationItemRow {
 }
 
 class StockTransferEntryDialog extends StatefulWidget {
-  const StockTransferEntryDialog({super.key});
+  final StockTransferEntity? transferToEdit;
+
+  const StockTransferEntryDialog({super.key, this.transferToEdit});
 
   @override
   State<StockTransferEntryDialog> createState() => _StockTransferEntryDialogState();
@@ -51,6 +53,8 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
   late final StockTransferController _transferController;
   late final InventoryController _inventoryController;
   late final GodownController _godownController;
+
+  bool get _isEditMode => widget.transferToEdit != null;
 
   DateTime _selectedDate = DateTime.now();
   final TextEditingController _narrationController = TextEditingController();
@@ -68,6 +72,11 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
     _inventoryController = sl<InventoryController>();
     _godownController = sl<GodownController>();
 
+    if (_isEditMode) {
+      _selectedDate = widget.transferToEdit!.date;
+      _narrationController.text = widget.transferToEdit!.narration;
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
@@ -79,6 +88,55 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
       _inventoryController.fetchMasters(),
       _godownController.fetchGodowns(),
     ]);
+
+    if (mounted && _isEditMode) {
+      if (_sourceRows.isEmpty) {
+        for (final src in widget.transferToEdit!.sourceItems) {
+          AvailableStockEntity matched;
+          final existing = _transferController.availableStocks.where((s) => s.godownStockId == src.godownStockId);
+          if (existing.isNotEmpty) {
+            matched = existing.first;
+          } else {
+            matched = AvailableStockEntity(
+              godownStockId: src.godownStockId,
+              godownId: src.godownId,
+              godownName: src.godownName,
+              itemId: src.itemId,
+              itemName: src.itemName,
+              batchNo: src.batchNo,
+              currentStock: src.quantity,
+              rate: src.rate,
+              amount: src.amount,
+              uomSymbol: src.uomSymbol,
+            );
+          }
+
+          final row = _SourceItemRow();
+          row.selectedStock = matched;
+          row.uomId = src.uomId.isNotEmpty ? src.uomId : null;
+          row.uomQtyController.text = '${src.uomQuantity}';
+          row.quantityController.text = '${src.quantity}';
+          row.uomQtyController.addListener(() => setState(() {}));
+          row.quantityController.addListener(() => setState(() {}));
+          _sourceRows.add(row);
+        }
+      }
+
+      if (_destRows.isEmpty) {
+        for (final dest in widget.transferToEdit!.destinationItems) {
+          final row = _DestinationItemRow();
+          row.itemId = dest.itemId.isNotEmpty ? dest.itemId : null;
+          row.godownId = dest.godownId.isNotEmpty ? dest.godownId : null;
+          row.batchNoController.text = dest.batchNo;
+          row.uomId = dest.uomId.isNotEmpty ? dest.uomId : null;
+          row.uomQtyController.text = '${dest.uomQuantity}';
+          row.quantityController.text = '${dest.quantity}';
+          row.uomQtyController.addListener(() => setState(() {}));
+          row.quantityController.addListener(() => setState(() {}));
+          _destRows.add(row);
+        }
+      }
+    }
 
     if (mounted && _sourceRows.isEmpty) {
       _addSourceRow();
@@ -223,12 +281,23 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
             ))
         .toList();
 
-    final success = await _transferController.createStockTransfer(
-      date: _selectedDate,
-      sourceItems: sourceInputs,
-      destinationItems: destInputs,
-      narration: _narrationController.text.trim(),
-    );
+    final bool success;
+    if (_isEditMode) {
+      success = await _transferController.updateStockTransfer(
+        id: widget.transferToEdit!.id,
+        date: _selectedDate,
+        sourceItems: sourceInputs,
+        destinationItems: destInputs,
+        narration: _narrationController.text.trim(),
+      );
+    } else {
+      success = await _transferController.createStockTransfer(
+        date: _selectedDate,
+        sourceItems: sourceInputs,
+        destinationItems: destInputs,
+        narration: _narrationController.text.trim(),
+      );
+    }
 
     if (success && mounted) {
       Navigator.pop(context, true);
@@ -279,18 +348,20 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
                             child: const Icon(Icons.compare_arrows, color: AppColors.primaryDark, size: 22),
                           ),
                           const SizedBox(width: 12),
-                          const Column(
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Inventory Voucher Creation - Stock Journal',
-                                style: TextStyle(
+                                _isEditMode
+                                    ? 'Inventory Voucher Alteration - Stock Journal (${widget.transferToEdit!.transferNumber})'
+                                    : 'Inventory Voucher Creation - Stock Journal',
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textPrimary,
                                 ),
                               ),
-                              Text(
+                              const Text(
                                 'Transfer of Materials (Source Consumption ➔ Destination Production)',
                                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                               ),
@@ -438,7 +509,7 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
                                   height: 18,
                                   child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                 )
-                              : const Text('Save Stock Transfer'),
+                              : Text(_isEditMode ? 'Update Stock Transfer' : 'Save Stock Transfer'),
                         ),
                       ),
                     ],
@@ -506,7 +577,12 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
   }
 
   Widget _buildSourceRowWidget(_SourceItemRow row, int index) {
-    final availableList = _transferController.availableStocks;
+    final availableList = [
+      ..._transferController.availableStocks,
+      if (row.selectedStock != null &&
+          !_transferController.availableStocks.any((s) => s.godownStockId == row.selectedStock!.godownStockId))
+        row.selectedStock!,
+    ];
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -578,7 +654,7 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
               Expanded(
                 flex: 4,
                 child: DropdownButtonFormField<String>(
-                  value: row.uomId,
+                  value: _inventoryController.uoms.any((u) => u.id == row.uomId) ? row.uomId : null,
                   isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'UOM',
@@ -721,7 +797,9 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
 
           // Item selection (can be same item or newly formed item)
           DropdownButtonFormField<String>(
-            value: row.itemId,
+            value: allItems.any((it) => it.id == row.itemId)
+                ? row.itemId
+                : (allItems.isNotEmpty ? allItems.first.id : null),
             isExpanded: true,
             decoration: const InputDecoration(
               labelText: 'Name of Item (Same or New Formed Item)',
@@ -756,7 +834,9 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
               Expanded(
                 flex: 4,
                 child: DropdownButtonFormField<String>(
-                  value: row.godownId,
+                  value: allGodowns.any((g) => g.id == row.godownId)
+                      ? row.godownId
+                      : (allGodowns.isNotEmpty ? allGodowns.first.id : null),
                   isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Destination Godown',
@@ -800,7 +880,7 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
               Expanded(
                 flex: 4,
                 child: DropdownButtonFormField<String>(
-                  value: row.uomId,
+                  value: _inventoryController.uoms.any((u) => u.id == row.uomId) ? row.uomId : null,
                   isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'UOM',

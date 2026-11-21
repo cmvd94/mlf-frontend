@@ -172,4 +172,61 @@ class StockTransferController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> updateStockTransfer({
+    required String id,
+    DateTime? date,
+    List<CreateStockTransferSourceInput>? sourceItems,
+    List<CreateStockTransferDestinationInput>? destinationItems,
+    String? narration,
+  }) async {
+    _isSaving = true;
+    _errorMessage = null;
+    _successMessage = null;
+    notifyListeners();
+
+    try {
+      final updated = await repository.updateStockTransfer(
+        id: id,
+        date: date,
+        sourceItems: sourceItems,
+        destinationItems: destinationItems,
+        narration: narration,
+      );
+
+      _successMessage = 'Stock transfer ${updated.transferNumber} updated successfully!';
+      AppLogger().i('Stock transfer updated: ${updated.transferNumber}', tag: 'StockTransferCtrl');
+      await fetchStockTransfers(page: _pagination.currentPage, reset: true);
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      AppLogger().e('Error updating stock transfer: $e', tag: 'StockTransferCtrl');
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> deleteStockTransfer(String id) async {
+    _isSaving = true;
+    _errorMessage = null;
+    _successMessage = null;
+    notifyListeners();
+
+    try {
+      await repository.deleteStockTransfer(id);
+      _successMessage = 'Stock transfer voucher deleted and stock restored successfully!';
+      AppLogger().i('Stock transfer deleted: $id', tag: 'StockTransferCtrl');
+      await fetchStockTransfers(page: 1, reset: true);
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      AppLogger().e('Error deleting stock transfer: $e', tag: 'StockTransferCtrl');
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
 }

@@ -5,6 +5,9 @@ class StockTransferSourceItemEntity {
   final String itemCode;
   final String godownId;
   final String godownName;
+  final String companyGodownId;
+  final String companyGodownName;
+  final String companyGodownCode;
   final String batchNo;
   final double quantity;
   final double rate;
@@ -20,6 +23,9 @@ class StockTransferSourceItemEntity {
     this.itemCode = '',
     required this.godownId,
     this.godownName = '',
+    this.companyGodownId = '',
+    this.companyGodownName = '',
+    this.companyGodownCode = '',
     this.batchNo = '',
     required this.quantity,
     this.rate = 0.0,
@@ -36,6 +42,9 @@ class StockTransferDestinationItemEntity {
   final String itemCode;
   final String godownId;
   final String godownName;
+  final String companyGodownId;
+  final String companyGodownName;
+  final String companyGodownCode;
   final String batchNo;
   final double quantity;
   final double rate;
@@ -51,6 +60,9 @@ class StockTransferDestinationItemEntity {
     this.itemCode = '',
     required this.godownId,
     this.godownName = '',
+    this.companyGodownId = '',
+    this.companyGodownName = '',
+    this.companyGodownCode = '',
     required this.batchNo,
     required this.quantity,
     this.rate = 0.0,

@@ -25,6 +25,10 @@ abstract class StockTransferRemoteDataSource {
   });
 
   Future<StockTransferModel> createStockTransfer(Map<String, dynamic> body, {String? token});
+
+  Future<StockTransferModel> updateStockTransfer(String id, Map<String, dynamic> body, {String? token});
+
+  Future<void> deleteStockTransfer(String id, {String? token});
 }
 
 class StockTransferRemoteDataSourceImpl implements StockTransferRemoteDataSource {
@@ -120,5 +124,23 @@ class StockTransferRemoteDataSourceImpl implements StockTransferRemoteDataSource
       token: token,
     );
     return StockTransferModel.fromJson(response['data'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<StockTransferModel> updateStockTransfer(String id, Map<String, dynamic> body, {String? token}) async {
+    final response = await apiClient.patch(
+      ApiEndpoints.updateStockTransfer(id),
+      body: body,
+      token: token,
+    );
+    return StockTransferModel.fromJson(response['data'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> deleteStockTransfer(String id, {String? token}) async {
+    await apiClient.delete(
+      ApiEndpoints.deleteStockTransfer(id),
+      token: token,
+    );
   }
 }

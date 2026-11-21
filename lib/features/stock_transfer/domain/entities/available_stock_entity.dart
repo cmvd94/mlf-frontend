@@ -3,6 +3,9 @@ class AvailableStockEntity {
   final String godownId;
   final String godownName;
   final String godownCode;
+  final String companyGodownId;
+  final String companyGodownName;
+  final String companyGodownCode;
   final String itemId;
   final String itemName;
   final String itemCode;
@@ -22,6 +25,9 @@ class AvailableStockEntity {
     required this.godownId,
     required this.godownName,
     this.godownCode = '',
+    this.companyGodownId = '',
+    this.companyGodownName = '',
+    this.companyGodownCode = '',
     required this.itemId,
     required this.itemName,
     this.itemCode = '',
@@ -38,5 +44,15 @@ class AvailableStockEntity {
   });
 
   String get displayName =>
-      '$itemName ${batchNo.isNotEmpty ? "[$batchNo]" : ""} - $godownName (Stock: $currentStock ${uomSymbol.isNotEmpty ? uomSymbol : ""})';
+      '$itemName ${batchNo.isNotEmpty ? "[$batchNo]" : ""} - $godownName${companyGodownName.isNotEmpty && companyGodownName != godownName ? " (Owner: $companyGodownName)" : ""} (Stock: $currentStock ${uomSymbol.isNotEmpty ? uomSymbol : ""})';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AvailableStockEntity &&
+          runtimeType == other.runtimeType &&
+          godownStockId == other.godownStockId;
+
+  @override
+  int get hashCode => godownStockId.hashCode;
 }

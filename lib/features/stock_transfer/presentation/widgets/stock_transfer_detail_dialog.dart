@@ -4,8 +4,15 @@ import '../../domain/entities/stock_transfer_entity.dart';
 
 class StockTransferDetailDialog extends StatelessWidget {
   final StockTransferEntity transfer;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const StockTransferDetailDialog({super.key, required this.transfer});
+  const StockTransferDetailDialog({
+    super.key,
+    required this.transfer,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -121,9 +128,39 @@ class StockTransferDetailDialog extends StatelessWidget {
                     transfer.createdByName.isNotEmpty ? 'Created by: ${transfer.createdByName}' : '',
                     style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                   ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Close'),
+                  Row(
+                    children: [
+                      if (onEdit != null) ...[
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.edit, size: 16),
+                          label: const Text('Edit'),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            onEdit!();
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      if (onDelete != null) ...[
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.error,
+                            side: const BorderSide(color: AppColors.error),
+                          ),
+                          icon: const Icon(Icons.delete_outline, size: 16),
+                          label: const Text('Delete'),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            onDelete!();
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Close'),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -179,6 +216,11 @@ class StockTransferDetailDialog extends StatelessWidget {
                             'Godown: ${item.godownName}',
                             style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                           ),
+                          if (item.companyGodownName.isNotEmpty && item.companyGodownName != item.godownName)
+                            Text(
+                              'Company Godown: ${item.companyGodownName}',
+                              style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w500),
+                            ),
                           if (item.batchNo.isNotEmpty)
                             Text(
                               'Batch: ${item.batchNo}',
@@ -257,6 +299,11 @@ class StockTransferDetailDialog extends StatelessWidget {
                             'Godown: ${item.godownName}',
                             style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                           ),
+                          if (item.companyGodownName.isNotEmpty && item.companyGodownName != item.godownName)
+                            Text(
+                              'Company Godown: ${item.companyGodownName}',
+                              style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w500),
+                            ),
                           if (item.batchNo.isNotEmpty)
                             Text(
                               'New Batch: ${item.batchNo}',

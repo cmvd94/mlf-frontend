@@ -110,6 +110,16 @@ class PurchaseDetailDialog extends StatelessWidget {
                             const SizedBox(width: 14),
                             Expanded(
                               child: _buildMetaItem(
+                                'Company Godown',
+                                purchase.companyGodownName.isNotEmpty
+                                    ? '${purchase.companyGodownName} (${purchase.companyGodownCode})'
+                                    : (purchase.godownName.isNotEmpty ? purchase.godownName : 'N/A'),
+                              ),
+                            ),
+                            Container(width: 1, height: 40, color: Colors.grey.shade300),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: _buildMetaItem(
                                 'Tax Status',
                                 purchase.isGstBill
                                     ? 'GST Applied (${purchase.gstPercentage.toStringAsFixed(0)}%)'

@@ -73,4 +73,6 @@ class ApiEndpoints {
   static const String getStockTransferList = '/admin/stock-transfer/list';
   static const String availableStockForTransfer = '/admin/stock-transfer/available-stock';
   static String getStockTransferById(String id) => '/admin/stock-transfer/$id';
+  static String updateStockTransfer(String id) => '/admin/stock-transfer/update/$id';
+  static String deleteStockTransfer(String id) => '/admin/stock-transfer/delete/$id';
 }

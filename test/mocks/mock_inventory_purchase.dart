@@ -451,6 +451,7 @@ class MockPurchaseRepository implements PurchaseRepository {
     required DateTime date,
     required String partyId,
     required String purchaseTypeId,
+    required String companyGodownId,
     String? godownId,
     List<PurchaseItemInput>? items,
     bool? isGstBill,
@@ -475,6 +476,9 @@ class MockPurchaseRepository implements PurchaseRepository {
           godownId: it.godownId.isNotEmpty ? it.godownId : (godownId ?? 'gd1'),
           godownName: 'Godown ${it.godownId}',
           godownCode: 'GD_${it.godownId}',
+          companyGodownId: companyGodownId,
+          companyGodownName: 'Main Central Godown',
+          companyGodownCode: 'GD_01',
           batchNo: it.batchNo,
           uomId: it.uomId,
           uomSymbol: 'PCS',
@@ -495,6 +499,9 @@ class MockPurchaseRepository implements PurchaseRepository {
         godownId: godownId ?? 'gd1',
         godownName: 'Main Central Godown',
         godownCode: 'GD_01',
+        companyGodownId: companyGodownId,
+        companyGodownName: 'Main Central Godown',
+        companyGodownCode: 'GD_01',
         batchNo: batchNo ?? 'LOT_2026_01',
         uomId: uomId,
         uomSymbol: 'KGS',
@@ -524,6 +531,9 @@ class MockPurchaseRepository implements PurchaseRepository {
       partyName: 'Alpha Steel Corp',
       purchaseTypeId: purchaseTypeId,
       purchaseTypeName: 'Local Purchase',
+      companyGodownId: companyGodownId,
+      companyGodownName: 'Main Central Godown',
+      companyGodownCode: 'GD_01',
       godownId: godownId ?? 'gd1',
       godownName: 'Main Central Godown',
       godownCode: 'GD_01',
@@ -547,6 +557,7 @@ class MockPurchaseRepository implements PurchaseRepository {
     DateTime? date,
     String? partyId,
     String? purchaseTypeId,
+    String? companyGodownId,
     List<PurchaseItemInput>? items,
     bool? isGstBill,
     double? gstPercentage,
@@ -696,6 +707,69 @@ class MockStockTransferRepository implements StockTransferRepository {
     );
     transfers.add(newTransfer);
     return newTransfer;
+  }
+
+  @override
+  Future<StockTransferEntity> updateStockTransfer({
+    required String id,
+    DateTime? date,
+    List<CreateStockTransferSourceInput>? sourceItems,
+    List<CreateStockTransferDestinationInput>? destinationItems,
+    String? narration,
+  }) async {
+    final index = transfers.indexWhere((t) => t.id == id);
+    if (index == -1) throw Exception('Stock transfer not found');
+    final old = transfers[index];
+
+    final updated = StockTransferEntity(
+      id: old.id,
+      transferNumber: old.transferNumber,
+      date: date ?? old.date,
+      sourceItems: sourceItems != null
+          ? sourceItems
+              .map((s) => StockTransferSourceItemEntity(
+                    godownStockId: s.godownStockId,
+                    itemId: 'itm_1',
+                    itemName: 'Yarn 20s',
+                    godownId: 'gd_1',
+                    godownName: 'Main Godown',
+                    quantity: s.quantity,
+                    rate: s.rate ?? 100.0,
+                    amount: s.quantity * (s.rate ?? 100.0),
+                  ))
+              .toList()
+          : old.sourceItems,
+      destinationItems: destinationItems != null
+          ? destinationItems
+              .map((d) => StockTransferDestinationItemEntity(
+                    itemId: d.itemId,
+                    itemName: 'Fabric',
+                    godownId: d.godownId,
+                    godownName: 'Branch Godown',
+                    batchNo: d.batchNo,
+                    quantity: d.quantity,
+                    rate: d.rate ?? 100.0,
+                    amount: d.quantity * (d.rate ?? 100.0),
+                  ))
+              .toList()
+          : old.destinationItems,
+      totalSourceQuantity: sourceItems != null
+          ? sourceItems.fold(0.0, (sum, s) => sum + s.quantity)
+          : old.totalSourceQuantity,
+      totalDestinationQuantity: destinationItems != null
+          ? destinationItems.fold(0.0, (sum, d) => sum + d.quantity)
+          : old.totalDestinationQuantity,
+      narration: narration ?? old.narration,
+    );
+    transfers[index] = updated;
+    return updated;
+  }
+
+  @override
+  Future<void> deleteStockTransfer(String id) async {
+    final index = transfers.indexWhere((t) => t.id == id);
+    if (index == -1) throw Exception('Stock transfer not found');
+    transfers.removeAt(index);
   }
 }
 

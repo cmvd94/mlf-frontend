@@ -25,4 +25,14 @@ abstract class StockTransferRepository {
     required List<CreateStockTransferDestinationInput> destinationItems,
     String? narration,
   });
+
+  Future<StockTransferEntity> updateStockTransfer({
+    required String id,
+    DateTime? date,
+    List<CreateStockTransferSourceInput>? sourceItems,
+    List<CreateStockTransferDestinationInput>? destinationItems,
+    String? narration,
+  });
+
+  Future<void> deleteStockTransfer(String id);
 }

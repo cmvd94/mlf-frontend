@@ -150,6 +150,7 @@ void main() {
         date: now,
         partyId: 'p1',
         purchaseTypeId: 't1',
+        companyGodownId: 'gd1',
         itemId: 'i1',
         uomId: 'u1',
         actualQuantity: 50.0,
@@ -202,6 +203,7 @@ void main() {
         date: now,
         partyId: 'p1',
         purchaseTypeId: 't1',
+        companyGodownId: 'gd1',
         godownId: 'gd1',
         items: items,
         notes: 'Multi-item invoice',
@@ -230,6 +232,7 @@ void main() {
         date: DateTime.now(),
         partyId: 'p1',
         purchaseTypeId: 't1',
+        companyGodownId: 'gd1',
         itemId: 'i1',
         uomId: 'u1',
         actualQuantity: 20.0,
@@ -260,6 +263,7 @@ void main() {
         date: DateTime(2026, 11, 19),
         partyId: 'p1',
         purchaseTypeId: 't1',
+        companyGodownId: 'gd1',
         itemId: 'i1',
         uomId: 'u1',
         actualQuantity: 100.0,
@@ -271,6 +275,7 @@ void main() {
       );
 
       expect(payload['godownId'], 'gd1');
+      expect(payload['companyGodownId'], 'gd1');
       expect(payload['partyId'], 'p1');
       expect(payload['actualQuantity'], 100.0);
     });
@@ -353,6 +358,7 @@ void main() {
 
       // Verify PurchaseEntryDialog is open with dynamic master dropdowns, individual item godowns, and GST controls
       expect(find.byType(PurchaseEntryDialog), findsOneWidget);
+      expect(find.text('Company Godown *'), findsOneWidget);
       expect(find.text('Party / Supplier Name *'), findsOneWidget);
       expect(find.text('Purchase Type *'), findsOneWidget);
       expect(find.text('Item Name *'), findsOneWidget);
@@ -373,6 +379,7 @@ void main() {
         date: DateTime.now(),
         partyId: 'p1',
         purchaseTypeId: 't1',
+        companyGodownId: 'gd1',
         items: [
           PurchaseItemInput(
             itemId: 'i1',
@@ -402,6 +409,7 @@ void main() {
         date: DateTime.now(),
         partyId: 'p1',
         purchaseTypeId: 't1',
+        companyGodownId: 'gd1',
         items: [
           PurchaseItemInput(
             itemId: 'i1',

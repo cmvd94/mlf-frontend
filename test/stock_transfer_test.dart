@@ -123,6 +123,8 @@ void main() {
         'godownStockId': 'stk_123',
         'godownId': 'gd_1',
         'godownName': 'Main Godown',
+        'companyGodownId': 'gd_comp_1',
+        'companyGodownName': 'Central Godown',
         'itemId': 'itm_1',
         'itemName': 'Cotton Yarn',
         'batchNo': 'Batch-A1',
@@ -134,6 +136,8 @@ void main() {
 
       final model = AvailableStockModel.fromJson(json);
       expect(model.godownStockId, 'stk_123');
+      expect(model.companyGodownId, 'gd_comp_1');
+      expect(model.companyGodownName, 'Central Godown');
       expect(model.itemName, 'Cotton Yarn');
       expect(model.batchNo, 'Batch-A1');
       expect(model.currentStock, 200.0);
@@ -230,6 +234,93 @@ void main() {
       expect(ctrl.transfers.first.destinationItems.first.batchNo, 'FAB_LOT_101');
       expect(ctrl.transfers.first.destinationItems.first.quantity, 98.0);
     });
+
+    test('updateStockTransfer updates existing voucher successfully', () async {
+      final ctrl = sl.get<StockTransferController>();
+
+      await ctrl.createStockTransfer(
+        date: DateTime(2026, 11, 20),
+        sourceItems: [
+          const CreateStockTransferSourceInput(
+            godownStockId: 'stk_001',
+            quantity: 50.0,
+            rate: 250.0,
+          ),
+        ],
+        destinationItems: [
+          const CreateStockTransferDestinationInput(
+            itemId: 'itm_2',
+            godownId: 'gd_02',
+            batchNo: 'FAB_LOT_OLD',
+            quantity: 48.0,
+            rate: 270.0,
+          ),
+        ],
+        narration: 'Original transfer narration',
+      );
+
+      final transferId = ctrl.transfers.first.id;
+
+      final updated = await ctrl.updateStockTransfer(
+        id: transferId,
+        date: DateTime(2026, 11, 21),
+        sourceItems: [
+          const CreateStockTransferSourceInput(
+            godownStockId: 'stk_001',
+            quantity: 60.0,
+            rate: 250.0,
+          ),
+        ],
+        destinationItems: [
+          const CreateStockTransferDestinationInput(
+            itemId: 'itm_2',
+            godownId: 'gd_02',
+            batchNo: 'FAB_LOT_NEW',
+            quantity: 58.0,
+            rate: 280.0,
+          ),
+        ],
+        narration: 'Updated transfer narration',
+      );
+
+      expect(updated, true);
+      expect(ctrl.transfers.first.narration, 'Updated transfer narration');
+      expect(ctrl.transfers.first.sourceItems.first.quantity, 60.0);
+      expect(ctrl.transfers.first.destinationItems.first.batchNo, 'FAB_LOT_NEW');
+      expect(ctrl.transfers.first.destinationItems.first.quantity, 58.0);
+    });
+
+    test('deleteStockTransfer deletes voucher and refreshes list', () async {
+      final ctrl = sl.get<StockTransferController>();
+
+      await ctrl.createStockTransfer(
+        date: DateTime(2026, 11, 20),
+        sourceItems: [
+          const CreateStockTransferSourceInput(
+            godownStockId: 'stk_001',
+            quantity: 30.0,
+            rate: 250.0,
+          ),
+        ],
+        destinationItems: [
+          const CreateStockTransferDestinationInput(
+            itemId: 'itm_2',
+            godownId: 'gd_02',
+            batchNo: 'FAB_LOT_DEL',
+            quantity: 28.0,
+            rate: 270.0,
+          ),
+        ],
+        narration: 'Transfer to be deleted',
+      );
+
+      expect(ctrl.transfers.isNotEmpty, true);
+      final idToDelete = ctrl.transfers.first.id;
+
+      final deleted = await ctrl.deleteStockTransfer(idToDelete);
+      expect(deleted, true);
+      expect(ctrl.transfers.isEmpty, true);
+    });
   });
 
   group('StockTransfer UI Widget tests', () {
@@ -323,6 +414,151 @@ void main() {
       expect(find.text('Grey Knitted Single Jersey Fabric'), findsOneWidget);
       expect(find.text('New Batch: FBR_BATCH_149'), findsOneWidget);
       expect(find.text('Yarn converted to fabric under stock journal 149'), findsOneWidget);
+    });
+
+    testWidgets('StockTransferPage opens edit dialog when edit button is tapped', (tester) async {
+      tester.view.physicalSize = const Size(2200, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final ctrl = sl.get<StockTransferController>();
+      await ctrl.createStockTransfer(
+        date: DateTime(2026, 11, 20),
+        sourceItems: [
+          const CreateStockTransferSourceInput(
+            godownStockId: 'stk_001',
+            quantity: 40.0,
+            rate: 250.0,
+          ),
+        ],
+        destinationItems: [
+          const CreateStockTransferDestinationInput(
+            itemId: 'itm_2',
+            godownId: 'gd_02',
+            batchNo: 'FAB_LOT_EDIT',
+            quantity: 38.0,
+            rate: 270.0,
+          ),
+        ],
+        narration: 'Voucher before edit',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const StockTransferPage(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip('Edit Voucher'), findsOneWidget);
+      await tester.tap(find.byTooltip('Edit Voucher'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      // Check edit dialog opened with alteration title and update button
+      expect(find.textContaining('Inventory Voucher Alteration'), findsOneWidget);
+      expect(find.text('Update Stock Transfer'), findsOneWidget);
+    });
+
+    testWidgets('StockTransferPage opens delete dialog and confirms deletion', (tester) async {
+      tester.view.physicalSize = const Size(2200, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final ctrl = sl.get<StockTransferController>();
+      await ctrl.createStockTransfer(
+        date: DateTime(2026, 11, 20),
+        sourceItems: [
+          const CreateStockTransferSourceInput(
+            godownStockId: 'stk_001',
+            quantity: 25.0,
+            rate: 250.0,
+          ),
+        ],
+        destinationItems: [
+          const CreateStockTransferDestinationInput(
+            itemId: 'itm_2',
+            godownId: 'gd_02',
+            batchNo: 'FAB_LOT_DEL',
+            quantity: 24.0,
+            rate: 270.0,
+          ),
+        ],
+        narration: 'Voucher to test delete dialog',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const StockTransferPage(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip('Delete Voucher'), findsOneWidget);
+      await tester.tap(find.byTooltip('Delete Voucher'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete Stock Transfer'), findsOneWidget);
+      expect(find.text('Delete & Restore Stock'), findsOneWidget);
+
+      await tester.tap(find.text('Delete & Restore Stock'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(ctrl.transfers.isEmpty, true);
+    });
+
+    testWidgets('StockTransferDetailDialog triggers onEdit and onDelete callbacks', (tester) async {
+      bool editCalled = false;
+      bool deleteCalled = false;
+
+      final transfer = StockTransferEntity(
+        id: 'st_001',
+        transferNumber: 'ST_0001',
+        date: DateTime(2026, 11, 20),
+        sourceItems: const [],
+        destinationItems: const [],
+        totalSourceQuantity: 0,
+        totalSourceAmount: 0,
+        totalDestinationQuantity: 0,
+        totalDestinationAmount: 0,
+        narration: 'Test voucher',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: Scaffold(
+            body: StockTransferDetailDialog(
+              transfer: transfer,
+              onEdit: () => editCalled = true,
+              onDelete: () => deleteCalled = true,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
+      expect(editCalled, true);
     });
   });
 }

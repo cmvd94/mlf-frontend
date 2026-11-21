@@ -8,6 +8,9 @@ class StockTransferSourceItemModel extends StockTransferSourceItemEntity {
     super.itemCode,
     required super.godownId,
     super.godownName,
+    super.companyGodownId,
+    super.companyGodownName,
+    super.companyGodownCode,
     super.batchNo,
     required super.quantity,
     super.rate,
@@ -20,10 +23,12 @@ class StockTransferSourceItemModel extends StockTransferSourceItemEntity {
   factory StockTransferSourceItemModel.fromJson(Map<String, dynamic> json) {
     final itemObj = json['itemId'] is Map ? json['itemId'] as Map<String, dynamic> : null;
     final godownObj = json['godownId'] is Map ? json['godownId'] as Map<String, dynamic> : null;
+    final companyGodownObj = json['companyGodownId'] is Map ? json['companyGodownId'] as Map<String, dynamic> : null;
     final uomObj = json['uomId'] is Map ? json['uomId'] as Map<String, dynamic> : null;
 
     final itemIdStr = (itemObj != null ? itemObj['_id'] : json['itemId'])?.toString() ?? '';
     final godownIdStr = (godownObj != null ? godownObj['_id'] : json['godownId'])?.toString() ?? '';
+    final companyGodownIdStr = (companyGodownObj != null ? companyGodownObj['_id'] : json['companyGodownId'])?.toString() ?? '';
     final uomIdStr = (uomObj != null ? uomObj['_id'] : json['uomId'])?.toString() ?? '';
 
     return StockTransferSourceItemModel(
@@ -33,6 +38,9 @@ class StockTransferSourceItemModel extends StockTransferSourceItemEntity {
       itemCode: (itemObj?['itemCode'] ?? json['itemCode'] ?? '').toString(),
       godownId: godownIdStr,
       godownName: (godownObj?['name'] ?? json['godownName'] ?? 'Godown').toString(),
+      companyGodownId: companyGodownIdStr,
+      companyGodownName: (companyGodownObj?['name'] ?? json['companyGodownName'] ?? '').toString(),
+      companyGodownCode: (companyGodownObj?['godownId'] ?? json['companyGodownCode'] ?? '').toString(),
       batchNo: (json['batchNo'] ?? '').toString(),
       quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       rate: (json['rate'] as num?)?.toDouble() ?? 0.0,
@@ -51,6 +59,9 @@ class StockTransferDestinationItemModel extends StockTransferDestinationItemEnti
     super.itemCode,
     required super.godownId,
     super.godownName,
+    super.companyGodownId,
+    super.companyGodownName,
+    super.companyGodownCode,
     required super.batchNo,
     required super.quantity,
     super.rate,
@@ -64,10 +75,12 @@ class StockTransferDestinationItemModel extends StockTransferDestinationItemEnti
   factory StockTransferDestinationItemModel.fromJson(Map<String, dynamic> json) {
     final itemObj = json['itemId'] is Map ? json['itemId'] as Map<String, dynamic> : null;
     final godownObj = json['godownId'] is Map ? json['godownId'] as Map<String, dynamic> : null;
+    final companyGodownObj = json['companyGodownId'] is Map ? json['companyGodownId'] as Map<String, dynamic> : null;
     final uomObj = json['uomId'] is Map ? json['uomId'] as Map<String, dynamic> : null;
 
     final itemIdStr = (itemObj != null ? itemObj['_id'] : json['itemId'])?.toString() ?? '';
     final godownIdStr = (godownObj != null ? godownObj['_id'] : json['godownId'])?.toString() ?? '';
+    final companyGodownIdStr = (companyGodownObj != null ? companyGodownObj['_id'] : json['companyGodownId'])?.toString() ?? '';
     final uomIdStr = (uomObj != null ? uomObj['_id'] : json['uomId'])?.toString() ?? '';
 
     return StockTransferDestinationItemModel(
@@ -76,6 +89,9 @@ class StockTransferDestinationItemModel extends StockTransferDestinationItemEnti
       itemCode: (itemObj?['itemCode'] ?? json['itemCode'] ?? '').toString(),
       godownId: godownIdStr,
       godownName: (godownObj?['name'] ?? json['godownName'] ?? 'Godown').toString(),
+      companyGodownId: companyGodownIdStr,
+      companyGodownName: (companyGodownObj?['name'] ?? json['companyGodownName'] ?? '').toString(),
+      companyGodownCode: (companyGodownObj?['godownId'] ?? json['companyGodownCode'] ?? '').toString(),
       batchNo: (json['batchNo'] ?? '').toString(),
       quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       rate: (json['rate'] as num?)?.toDouble() ?? 0.0,

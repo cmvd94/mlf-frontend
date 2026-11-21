@@ -10,6 +10,9 @@ class PurchaseItemModel extends PurchaseItemEntity {
     required super.godownId,
     super.godownName,
     super.godownCode,
+    super.companyGodownId,
+    super.companyGodownName,
+    super.companyGodownCode,
     super.batchNo,
     required super.uomId,
     required super.uomSymbol,
@@ -25,6 +28,7 @@ class PurchaseItemModel extends PurchaseItemEntity {
   factory PurchaseItemModel.fromJson(Map<String, dynamic> json) {
     final itemData = json['itemId'];
     final godownData = json['godownId'];
+    final companyGodownData = json['companyGodownId'];
     final uomData = json['uomId'];
     final perData = json['perId'];
     final stockData = json['godownStockId'];
@@ -42,6 +46,11 @@ class PurchaseItemModel extends PurchaseItemEntity {
           : godownData?.toString() ?? '',
       godownName: godownData is Map ? godownData['name']?.toString() ?? '' : '',
       godownCode: godownData is Map ? godownData['godownId']?.toString() ?? '' : '',
+      companyGodownId: companyGodownData is Map
+          ? companyGodownData['_id']?.toString() ?? ''
+          : companyGodownData?.toString(),
+      companyGodownName: companyGodownData is Map ? companyGodownData['name']?.toString() ?? '' : '',
+      companyGodownCode: companyGodownData is Map ? companyGodownData['godownId']?.toString() ?? '' : '',
       batchNo: json['batchNo']?.toString() ?? json['lotNo']?.toString() ?? '',
       uomId: uomData is Map ? uomData['_id']?.toString() ?? '' : uomData?.toString() ?? '',
       uomSymbol: uomData is Map
@@ -76,6 +85,9 @@ class PurchaseModel extends PurchaseEntity {
     super.partyCode,
     required super.purchaseTypeId,
     required super.purchaseTypeName,
+    super.companyGodownId,
+    super.companyGodownName,
+    super.companyGodownCode,
     super.godownId,
     super.godownName,
     super.godownCode,
@@ -108,6 +120,7 @@ class PurchaseModel extends PurchaseEntity {
   factory PurchaseModel.fromJson(Map<String, dynamic> json) {
     final partyData = json['partyId'];
     final typeData = json['purchaseTypeId'];
+    final companyGodownData = json['companyGodownId'];
     final rootGodownData = json['godownId'];
     final createdByData = json['createdBy'];
 
@@ -120,11 +133,17 @@ class PurchaseModel extends PurchaseEntity {
           if (it['godownId'] == null && rootGodownData != null) {
             it['godownId'] = rootGodownData;
           }
+          if (it['companyGodownId'] == null && companyGodownData != null) {
+            it['companyGodownId'] = companyGodownData;
+          }
           items.add(PurchaseItemModel.fromJson(it));
         } else if (it is Map) {
           final map = Map<String, dynamic>.from(it);
           if (map['godownId'] == null && rootGodownData != null) {
             map['godownId'] = rootGodownData;
+          }
+          if (map['companyGodownId'] == null && companyGodownData != null) {
+            map['companyGodownId'] = companyGodownData;
           }
           items.add(PurchaseItemModel.fromJson(map));
         }
@@ -199,6 +218,18 @@ class PurchaseModel extends PurchaseEntity {
         ? items.first.godownId
         : (rootGodownData is Map ? rootGodownData['_id']?.toString() ?? '' : rootGodownData?.toString() ?? '');
 
+    final firstCompanyGodownId = companyGodownData is Map
+        ? companyGodownData['_id']?.toString() ?? ''
+        : companyGodownData?.toString() ?? '';
+
+    final firstCompanyGodownName = companyGodownData is Map
+        ? companyGodownData['name']?.toString() ?? ''
+        : '';
+
+    final firstCompanyGodownCode = companyGodownData is Map
+        ? companyGodownData['godownId']?.toString() ?? ''
+        : '';
+
     final firstGodownName = items.isNotEmpty && items.first.godownName.isNotEmpty
         ? items.first.godownName
         : (rootGodownData is Map ? rootGodownData['name']?.toString() ?? '' : '');
@@ -218,6 +249,9 @@ class PurchaseModel extends PurchaseEntity {
       partyCode: partyData is Map ? partyData['partyCode']?.toString() ?? '' : '',
       purchaseTypeId: typeData is Map ? typeData['_id']?.toString() ?? '' : typeData?.toString() ?? '',
       purchaseTypeName: typeData is Map ? typeData['name']?.toString() ?? '' : '',
+      companyGodownId: firstCompanyGodownId,
+      companyGodownName: firstCompanyGodownName,
+      companyGodownCode: firstCompanyGodownCode,
       godownId: firstGodownId,
       godownName: firstGodownName,
       godownCode: firstGodownCode,
@@ -255,6 +289,7 @@ class PurchaseModel extends PurchaseEntity {
     required DateTime date,
     required String partyId,
     required String purchaseTypeId,
+    required String companyGodownId,
     String? godownId,
     List<Map<String, dynamic>>? items,
     bool? isGstBill,
@@ -276,7 +311,8 @@ class PurchaseModel extends PurchaseEntity {
     } else if (itemId != null) {
       itemsList.add({
         'itemId': itemId,
-        'godownId': godownId ?? '',
+        'godownId': godownId ?? companyGodownId,
+        'companyGodownId': companyGodownId,
         'batchNo': batchNo ?? '',
         'uomId': uomId ?? '',
         'uomQuantity': uomQuantity ?? actualQuantity ?? 1.0,
@@ -294,6 +330,7 @@ class PurchaseModel extends PurchaseEntity {
       'date': formattedDate,
       'partyId': partyId,
       'purchaseTypeId': purchaseTypeId,
+      'companyGodownId': companyGodownId,
       if (godownId != null && godownId.isNotEmpty) 'godownId': godownId,
       'items': itemsList,
       'isGstBill': isGstBill ?? false,
@@ -312,6 +349,7 @@ class PurchaseModel extends PurchaseEntity {
     DateTime? date,
     String? partyId,
     String? purchaseTypeId,
+    String? companyGodownId,
     List<Map<String, dynamic>>? items,
     bool? isGstBill,
     double? gstPercentage,
@@ -326,6 +364,8 @@ class PurchaseModel extends PurchaseEntity {
       if (partyId != null && partyId.isNotEmpty) 'partyId': partyId,
       if (purchaseTypeId != null && purchaseTypeId.isNotEmpty)
         'purchaseTypeId': purchaseTypeId,
+      if (companyGodownId != null && companyGodownId.isNotEmpty)
+        'companyGodownId': companyGodownId,
       if (items != null) 'items': items,
       if (isGstBill != null) 'isGstBill': isGstBill,
       if (gstPercentage != null) 'gstPercentage': gstPercentage,
