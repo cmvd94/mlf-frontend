@@ -10,7 +10,9 @@ class PurchaseItemEntity {
   final String? companyGodownId;
   final String companyGodownName;
   final String companyGodownCode;
-  final String batchNo;
+  final String dcNo;
+  final String lotNo;
+  String get batchNo => dcNo;
   final String uomId;
   final String uomSymbol;
   final double uomQuantity;
@@ -33,7 +35,9 @@ class PurchaseItemEntity {
     this.companyGodownId,
     this.companyGodownName = '',
     this.companyGodownCode = '',
-    this.batchNo = '',
+    this.dcNo = '',
+    this.lotNo = '',
+    String batchNo = '',
     required this.uomId,
     required this.uomSymbol,
     required this.uomQuantity,
@@ -51,7 +55,9 @@ class PurchaseItemInput {
   final String itemId;
   final String godownId;
   final String? companyGodownId;
-  final String batchNo;
+  final String dcNo;
+  final String lotNo;
+  String get batchNo => dcNo;
   final String uomId;
   final double uomQuantity;
   final double actualQuantity;
@@ -64,7 +70,9 @@ class PurchaseItemInput {
     required this.itemId,
     required this.godownId,
     this.companyGodownId,
-    this.batchNo = '',
+    this.dcNo = '',
+    this.lotNo = '',
+    String batchNo = '',
     required this.uomId,
     required this.uomQuantity,
     required this.actualQuantity,
@@ -78,7 +86,9 @@ class PurchaseItemInput {
     'itemId': itemId,
     'godownId': godownId,
     if (companyGodownId != null && companyGodownId!.isNotEmpty) 'companyGodownId': companyGodownId,
-    'batchNo': batchNo,
+    'dcNo': dcNo.isNotEmpty ? dcNo : batchNo,
+    'lotNo': lotNo,
+    'batchNo': dcNo.isNotEmpty ? dcNo : batchNo,
     'uomId': uomId,
     'uomQuantity': uomQuantity,
     'actualQuantity': actualQuantity,
@@ -116,6 +126,8 @@ class PurchaseEntity {
   final String _legacyGodownName;
   final String _legacyGodownCode;
   final String _legacyItemId;
+  final String _legacyDcNo;
+  final String _legacyLotNo;
   final String _legacyBatchNo;
   final String _legacyItemName;
   final String _legacyItemCode;
@@ -157,6 +169,8 @@ class PurchaseEntity {
     this.createdByName = '',
     this.createdAt,
     String itemId = '',
+    String dcNo = '',
+    String lotNo = '',
     String batchNo = '',
     String itemName = '',
     String itemCode = '',
@@ -174,6 +188,8 @@ class PurchaseEntity {
         _legacyGodownName = godownName,
         _legacyGodownCode = godownCode,
         _legacyItemId = itemId,
+        _legacyDcNo = dcNo,
+        _legacyLotNo = lotNo,
         _legacyBatchNo = batchNo,
         _legacyItemName = itemName,
         _legacyItemCode = itemCode,
@@ -201,7 +217,11 @@ class PurchaseEntity {
       : _legacyGodownCode;
 
   String get itemId => items.isNotEmpty ? items.first.itemId : _legacyItemId;
-  String get batchNo => items.isNotEmpty ? items.first.batchNo : _legacyBatchNo;
+  String get dcNo => items.isNotEmpty
+      ? items.first.dcNo
+      : (_legacyDcNo.isNotEmpty ? _legacyDcNo : _legacyBatchNo);
+  String get lotNo => items.isNotEmpty ? items.first.lotNo : _legacyLotNo;
+  String get batchNo => dcNo.isNotEmpty ? dcNo : _legacyBatchNo;
   String get itemName => items.isNotEmpty ? items.first.itemName : _legacyItemName;
   String get itemCode => items.isNotEmpty ? items.first.itemCode : _legacyItemCode;
   double get itemStock => items.isNotEmpty ? items.first.itemStock : _legacyItemStock;

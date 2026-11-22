@@ -12,6 +12,8 @@ class AvailableStockModel extends AvailableStockEntity {
     required super.itemId,
     required super.itemName,
     super.itemCode,
+    super.dcNo,
+    super.lotNo,
     super.batchNo,
     required super.currentStock,
     super.rate,
@@ -21,6 +23,8 @@ class AvailableStockModel extends AvailableStockEntity {
     super.uomSymbol,
     super.uomQuantity,
     super.perId,
+    super.perName,
+    super.perSymbol,
     super.perMultiplier,
   });
 
@@ -36,7 +40,9 @@ class AvailableStockModel extends AvailableStockEntity {
       itemId: (json['itemId'] ?? '').toString(),
       itemName: (json['itemName'] ?? 'Unknown Item').toString(),
       itemCode: (json['itemCode'] ?? '').toString(),
-      batchNo: (json['batchNo'] ?? '').toString(),
+      dcNo: (json['dcNo'] ?? json['batchNo'] ?? '').toString(),
+      lotNo: (json['lotNo'] ?? '').toString(),
+      batchNo: (json['dcNo'] ?? json['batchNo'] ?? '').toString(),
       currentStock: (json['currentStock'] as num?)?.toDouble() ?? 0.0,
       rate: (json['rate'] as num?)?.toDouble() ?? 0.0,
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
@@ -45,6 +51,8 @@ class AvailableStockModel extends AvailableStockEntity {
       uomSymbol: (json['uomSymbol'] ?? '').toString(),
       uomQuantity: (json['uomQuantity'] as num?)?.toDouble() ?? 1.0,
       perId: (json['perId'] ?? '').toString(),
+      perName: (json['perName'] ?? '').toString(),
+      perSymbol: (json['perSymbol'] ?? '').toString(),
       perMultiplier: (json['perMultiplier'] as num?)?.toDouble() ?? 1.0,
     );
   }

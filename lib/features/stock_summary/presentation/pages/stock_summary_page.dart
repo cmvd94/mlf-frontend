@@ -200,7 +200,7 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                   controller: _searchController,
                   style: const TextStyle(fontSize: 13),
                   decoration: InputDecoration(
-                    hintText: 'Search group, item, batch...',
+                    hintText: 'Search group, item, DC, lot...',
                     prefixIcon: const Icon(Icons.search, size: 18),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
@@ -338,9 +338,65 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
       child: const Row(
         children: [
           Expanded(
-            flex: 5,
+            flex: 4,
             child: Text(
               'Particulars',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Date',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Godown',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'DC No',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Lot No',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'UOM Qty',
+              textAlign: TextAlign.right,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
@@ -364,18 +420,6 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
             flex: 2,
             child: Text(
               'Rate',
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              'Value',
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
@@ -450,7 +494,7 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                       child: Row(
                         children: [
                           Expanded(
-                            flex: 5,
+                            flex: 4,
                             child: Row(
                               children: [
                                 Icon(
@@ -477,6 +521,52 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                           Expanded(
                             flex: 2,
                             child: Text(
+                              '-',
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                fontFamily: 'monospace',
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              '-',
+                              style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              '-',
+                              style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              '-',
+                              style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              group.formattedUomQuantity.isNotEmpty ? group.formattedUomQuantity : '-',
+                              textAlign: TextAlign.right,
+                              style: const TextStyle(
+                                fontFamily: 'monospace',
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
                               group.formattedQuantity,
                               textAlign: TextAlign.right,
                               style: const TextStyle(
@@ -498,18 +588,6 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                               ),
                             ),
                           ),
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              group.formattedValue,
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                fontFamily: 'monospace',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -524,15 +602,59 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                         child: Row(
                           children: [
                             Expanded(
-                              flex: 5,
+                              flex: 4,
                               child: Padding(
-                                padding: const EdgeInsets.only(left: 28),
+                                padding: const EdgeInsets.only(left: 24),
                                 child: Text(
                                   item.itemName,
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     color: Colors.blueGrey.shade800,
                                   ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                '-',
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 12.5,
+                                  color: Colors.grey.shade400,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                '-',
+                                style: TextStyle(fontSize: 12.5, color: Colors.grey.shade400),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                '-',
+                                style: TextStyle(fontSize: 12.5, color: Colors.grey.shade400),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                '-',
+                                style: TextStyle(fontSize: 12.5, color: Colors.grey.shade400),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                item.formattedUomQuantity.isNotEmpty ? item.formattedUomQuantity : '-',
+                                textAlign: TextAlign.right,
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 12.5,
                                 ),
                               ),
                             ),
@@ -551,17 +673,6 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                               flex: 2,
                               child: Text(
                                 item.formattedRate,
-                                textAlign: TextAlign.right,
-                                style: const TextStyle(
-                                  fontFamily: 'monospace',
-                                  fontSize: 12.5,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                item.formattedValue,
                                 textAlign: TextAlign.right,
                                 style: const TextStyle(
                                   fontFamily: 'monospace',
@@ -642,13 +753,59 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                     child: Row(
                       children: [
                         Expanded(
-                          flex: 5,
+                          flex: 4,
                           child: Text(
                             item.itemName,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
                               color: Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            '-',
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            '-',
+                            style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            '-',
+                            style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            '-',
+                            style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            item.formattedUomQuantity.isNotEmpty ? item.formattedUomQuantity : '-',
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
                             ),
                           ),
                         ),
@@ -676,23 +833,11 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                             ),
                           ),
                         ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            item.formattedValue,
-                            textAlign: TextAlign.right,
-                            style: const TextStyle(
-                              fontFamily: 'monospace',
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),
 
-                  // DETAILED VIEW (IMAGE 3): Split-up by Batch No and Godown
+                  // DETAILED VIEW (IMAGE 3): Split-up by Godown, DC Number, Lot Number with inward creation date in front
                   if (isDetailed)
                     ...item.batches.map(
                       (batch) => Container(
@@ -701,16 +846,69 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                         child: Row(
                           children: [
                             Expanded(
-                              flex: 5,
+                              flex: 4,
                               child: Padding(
-                                padding: const EdgeInsets.only(left: 28),
+                                padding: const EdgeInsets.only(left: 20),
                                 child: Text(
-                                  batch.particulars,
+                                  '-',
                                   style: TextStyle(
                                     fontSize: 12.5,
-                                    color: Colors.grey.shade800,
-                                    fontStyle: FontStyle.normal,
+                                    color: Colors.grey.shade400,
                                   ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                batch.formattedDate,
+                                textAlign: TextAlign.left,
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                batch.godownName,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: Colors.grey.shade800,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                batch.dcNo.isNotEmpty ? batch.dcNo : '-',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: Colors.grey.shade800,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                batch.lotNo.isNotEmpty ? batch.lotNo : '-',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: Colors.grey.shade800,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                batch.formattedUomQuantity.isNotEmpty ? batch.formattedUomQuantity : '-',
+                                textAlign: TextAlign.right,
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 12.5,
                                 ),
                               ),
                             ),
@@ -729,17 +927,6 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                               flex: 2,
                               child: Text(
                                 batch.formattedRate,
-                                textAlign: TextAlign.right,
-                                style: const TextStyle(
-                                  fontFamily: 'monospace',
-                                  fontSize: 12.5,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                batch.formattedValue,
                                 textAlign: TextAlign.right,
                                 style: const TextStyle(
                                   fontFamily: 'monospace',
@@ -769,9 +956,10 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
     final totalQtyStr = isSingleGroup
         ? selectedGroup?.formattedQuantity ?? '0.000 kg'
         : summary?.grandTotal.formattedQuantity ?? '0.000 kg';
-    final totalValStr = isSingleGroup
-        ? selectedGroup?.formattedValue ?? '0.00'
-        : summary?.grandTotal.formattedValue ?? '0.00';
+
+    final totalUomQtyStr = isSingleGroup
+        ? selectedGroup?.formattedUomQuantity ?? ''
+        : summary?.grandTotal.formattedUomQuantity ?? '';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -782,7 +970,7 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
       child: Row(
         children: [
           const Expanded(
-            flex: 5,
+            flex: 4,
             child: Text(
               'Grand Total',
               style: TextStyle(
@@ -790,6 +978,35 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
                 letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          const Expanded(
+            flex: 2,
+            child: SizedBox.shrink(),
+          ),
+          const Expanded(
+            flex: 3,
+            child: SizedBox.shrink(),
+          ),
+          const Expanded(
+            flex: 2,
+            child: SizedBox.shrink(),
+          ),
+          const Expanded(
+            flex: 2,
+            child: SizedBox.shrink(),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              totalUomQtyStr,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                color: AppColors.yellow,
+                fontFamily: 'monospace',
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
               ),
             ),
           ),
@@ -808,20 +1025,7 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
           ),
           const Expanded(
             flex: 2,
-            child: SizedBox.shrink(), // Tally does not print rate on grand total row
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              totalValStr,
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                color: AppColors.yellow,
-                fontFamily: 'monospace',
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
+            child: SizedBox.shrink(), // No rate on grand total row
           ),
         ],
       ),

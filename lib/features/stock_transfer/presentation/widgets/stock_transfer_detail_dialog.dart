@@ -221,9 +221,13 @@ class StockTransferDetailDialog extends StatelessWidget {
                               'Company Godown: ${item.companyGodownName}',
                               style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w500),
                             ),
-                          if (item.batchNo.isNotEmpty)
+                          if (item.dcNo.isNotEmpty || item.lotNo.isNotEmpty || item.batchNo.isNotEmpty)
                             Text(
-                              'Batch: ${item.batchNo}',
+                              [
+                                if (item.dcNo.isNotEmpty) 'DC: ${item.dcNo}',
+                                if (item.lotNo.isNotEmpty) 'Lot: ${item.lotNo}',
+                                if (item.dcNo.isEmpty && item.lotNo.isEmpty && item.batchNo.isNotEmpty) 'DC: ${item.batchNo}',
+                              ].join(' • '),
                               style: const TextStyle(fontSize: 11, color: Colors.brown, fontWeight: FontWeight.w500),
                             ),
                         ],
@@ -235,12 +239,12 @@ class StockTransferDetailDialog extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '${item.quantity} ${item.uomSymbol}',
+                            '${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${item.perSymbol.isNotEmpty ? item.perSymbol : 'kg'}',
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                           if (item.uomQuantity > 0)
                             Text(
-                              'UOM Qty: ${item.uomQuantity}',
+                              '${item.uomQuantity.toStringAsFixed(item.uomQuantity.truncateToDouble() == item.uomQuantity ? 0 : 2)} ${item.uomSymbol.isNotEmpty ? item.uomSymbol : 'UOM'}',
                               style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                             ),
                         ],
@@ -304,9 +308,13 @@ class StockTransferDetailDialog extends StatelessWidget {
                               'Company Godown: ${item.companyGodownName}',
                               style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w500),
                             ),
-                          if (item.batchNo.isNotEmpty)
+                          if (item.dcNo.isNotEmpty || item.lotNo.isNotEmpty || item.batchNo.isNotEmpty)
                             Text(
-                              'New Batch: ${item.batchNo}',
+                              [
+                                if (item.dcNo.isNotEmpty) 'New DC: ${item.dcNo}',
+                                if (item.lotNo.isNotEmpty) 'Lot: ${item.lotNo}',
+                                if (item.dcNo.isEmpty && item.lotNo.isEmpty && item.batchNo.isNotEmpty) 'New DC: ${item.batchNo}',
+                              ].join(' • '),
                               style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold),
                             ),
                         ],
@@ -318,12 +326,12 @@ class StockTransferDetailDialog extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '${item.quantity} ${item.uomSymbol}',
+                            '${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${item.perSymbol.isNotEmpty ? item.perSymbol : 'kg'}',
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                           if (item.uomQuantity > 0)
                             Text(
-                              'UOM Qty: ${item.uomQuantity}',
+                              '${item.uomQuantity.toStringAsFixed(item.uomQuantity.truncateToDouble() == item.uomQuantity ? 0 : 2)} ${item.uomSymbol.isNotEmpty ? item.uomSymbol : 'UOM'}',
                               style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                             ),
                         ],

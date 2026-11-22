@@ -11,6 +11,8 @@ class StockTransferSourceItemModel extends StockTransferSourceItemEntity {
     super.companyGodownId,
     super.companyGodownName,
     super.companyGodownCode,
+    super.dcNo,
+    super.lotNo,
     super.batchNo,
     required super.quantity,
     super.rate,
@@ -18,6 +20,9 @@ class StockTransferSourceItemModel extends StockTransferSourceItemEntity {
     super.uomId,
     super.uomSymbol,
     super.uomQuantity,
+    super.perId,
+    super.perName,
+    super.perSymbol,
   });
 
   factory StockTransferSourceItemModel.fromJson(Map<String, dynamic> json) {
@@ -25,11 +30,13 @@ class StockTransferSourceItemModel extends StockTransferSourceItemEntity {
     final godownObj = json['godownId'] is Map ? json['godownId'] as Map<String, dynamic> : null;
     final companyGodownObj = json['companyGodownId'] is Map ? json['companyGodownId'] as Map<String, dynamic> : null;
     final uomObj = json['uomId'] is Map ? json['uomId'] as Map<String, dynamic> : null;
+    final perObj = json['perId'] is Map ? json['perId'] as Map<String, dynamic> : null;
 
     final itemIdStr = (itemObj != null ? itemObj['_id'] : json['itemId'])?.toString() ?? '';
     final godownIdStr = (godownObj != null ? godownObj['_id'] : json['godownId'])?.toString() ?? '';
     final companyGodownIdStr = (companyGodownObj != null ? companyGodownObj['_id'] : json['companyGodownId'])?.toString() ?? '';
     final uomIdStr = (uomObj != null ? uomObj['_id'] : json['uomId'])?.toString() ?? '';
+    final perIdStr = (perObj != null ? perObj['_id'] : json['perId'])?.toString() ?? '';
 
     return StockTransferSourceItemModel(
       godownStockId: (json['godownStockId'] ?? '').toString(),
@@ -41,13 +48,18 @@ class StockTransferSourceItemModel extends StockTransferSourceItemEntity {
       companyGodownId: companyGodownIdStr,
       companyGodownName: (companyGodownObj?['name'] ?? json['companyGodownName'] ?? '').toString(),
       companyGodownCode: (companyGodownObj?['godownId'] ?? json['companyGodownCode'] ?? '').toString(),
-      batchNo: (json['batchNo'] ?? '').toString(),
+      dcNo: (json['dcNo'] ?? json['batchNo'] ?? '').toString(),
+      lotNo: (json['lotNo'] ?? '').toString(),
+      batchNo: (json['dcNo'] ?? json['batchNo'] ?? '').toString(),
       quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       rate: (json['rate'] as num?)?.toDouble() ?? 0.0,
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       uomId: uomIdStr,
       uomSymbol: (uomObj?['symbol'] ?? json['uomSymbol'] ?? '').toString(),
       uomQuantity: (json['uomQuantity'] as num?)?.toDouble() ?? 1.0,
+      perId: perIdStr,
+      perName: (perObj?['name'] ?? json['perName'] ?? '').toString(),
+      perSymbol: (perObj?['symbol'] ?? json['perSymbol'] ?? '').toString(),
     );
   }
 }
@@ -62,13 +74,18 @@ class StockTransferDestinationItemModel extends StockTransferDestinationItemEnti
     super.companyGodownId,
     super.companyGodownName,
     super.companyGodownCode,
-    required super.batchNo,
+    super.dcNo,
+    super.lotNo,
+    super.batchNo,
     required super.quantity,
     super.rate,
     super.amount,
     super.uomId,
     super.uomSymbol,
     super.uomQuantity,
+    super.perId,
+    super.perName,
+    super.perSymbol,
     super.destinationGodownStockId,
   });
 
@@ -77,11 +94,13 @@ class StockTransferDestinationItemModel extends StockTransferDestinationItemEnti
     final godownObj = json['godownId'] is Map ? json['godownId'] as Map<String, dynamic> : null;
     final companyGodownObj = json['companyGodownId'] is Map ? json['companyGodownId'] as Map<String, dynamic> : null;
     final uomObj = json['uomId'] is Map ? json['uomId'] as Map<String, dynamic> : null;
+    final perObj = json['perId'] is Map ? json['perId'] as Map<String, dynamic> : null;
 
     final itemIdStr = (itemObj != null ? itemObj['_id'] : json['itemId'])?.toString() ?? '';
     final godownIdStr = (godownObj != null ? godownObj['_id'] : json['godownId'])?.toString() ?? '';
     final companyGodownIdStr = (companyGodownObj != null ? companyGodownObj['_id'] : json['companyGodownId'])?.toString() ?? '';
     final uomIdStr = (uomObj != null ? uomObj['_id'] : json['uomId'])?.toString() ?? '';
+    final perIdStr = (perObj != null ? perObj['_id'] : json['perId'])?.toString() ?? '';
 
     return StockTransferDestinationItemModel(
       itemId: itemIdStr,
@@ -92,13 +111,18 @@ class StockTransferDestinationItemModel extends StockTransferDestinationItemEnti
       companyGodownId: companyGodownIdStr,
       companyGodownName: (companyGodownObj?['name'] ?? json['companyGodownName'] ?? '').toString(),
       companyGodownCode: (companyGodownObj?['godownId'] ?? json['companyGodownCode'] ?? '').toString(),
-      batchNo: (json['batchNo'] ?? '').toString(),
+      dcNo: (json['dcNo'] ?? json['batchNo'] ?? '').toString(),
+      lotNo: (json['lotNo'] ?? '').toString(),
+      batchNo: (json['dcNo'] ?? json['batchNo'] ?? '').toString(),
       quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       rate: (json['rate'] as num?)?.toDouble() ?? 0.0,
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       uomId: uomIdStr,
       uomSymbol: (uomObj?['symbol'] ?? json['uomSymbol'] ?? '').toString(),
       uomQuantity: (json['uomQuantity'] as num?)?.toDouble() ?? 1.0,
+      perId: perIdStr,
+      perName: (perObj?['name'] ?? json['perName'] ?? '').toString(),
+      perSymbol: (perObj?['symbol'] ?? json['perSymbol'] ?? '').toString(),
       destinationGodownStockId: json['destinationGodownStockId']?.toString(),
     );
   }

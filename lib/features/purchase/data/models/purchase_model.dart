@@ -13,6 +13,8 @@ class PurchaseItemModel extends PurchaseItemEntity {
     super.companyGodownId,
     super.companyGodownName,
     super.companyGodownCode,
+    super.dcNo,
+    super.lotNo,
     super.batchNo,
     required super.uomId,
     required super.uomSymbol,
@@ -51,7 +53,9 @@ class PurchaseItemModel extends PurchaseItemEntity {
           : companyGodownData?.toString(),
       companyGodownName: companyGodownData is Map ? companyGodownData['name']?.toString() ?? '' : '',
       companyGodownCode: companyGodownData is Map ? companyGodownData['godownId']?.toString() ?? '' : '',
-      batchNo: json['batchNo']?.toString() ?? json['lotNo']?.toString() ?? '',
+      dcNo: json['dcNo']?.toString() ?? json['batchNo']?.toString() ?? '',
+      lotNo: json['lotNo']?.toString() ?? '',
+      batchNo: json['dcNo']?.toString() ?? json['batchNo']?.toString() ?? '',
       uomId: uomData is Map ? uomData['_id']?.toString() ?? '' : uomData?.toString() ?? '',
       uomSymbol: uomData is Map
           ? uomData['symbol']?.toString() ?? uomData['name']?.toString() ?? ''
@@ -165,7 +169,9 @@ class PurchaseModel extends PurchaseEntity {
             : rootGodownData?.toString() ?? '',
         godownName: rootGodownData is Map ? rootGodownData['name']?.toString() ?? '' : '',
         godownCode: rootGodownData is Map ? rootGodownData['godownId']?.toString() ?? '' : '',
-        batchNo: json['batchNo']?.toString() ?? json['lotNo']?.toString() ?? '',
+        dcNo: json['dcNo']?.toString() ?? json['batchNo']?.toString() ?? '',
+        lotNo: json['lotNo']?.toString() ?? '',
+        batchNo: json['dcNo']?.toString() ?? json['batchNo']?.toString() ?? '',
         uomId: uomData is Map ? uomData['_id']?.toString() ?? '' : uomData?.toString() ?? '',
         uomSymbol: uomData is Map
             ? uomData['symbol']?.toString() ?? uomData['name']?.toString() ?? ''
@@ -297,6 +303,8 @@ class PurchaseModel extends PurchaseEntity {
     String? notes,
     // Optional legacy single-item parameters
     String? itemId,
+    String? dcNo,
+    String? lotNo,
     String? batchNo,
     String? uomId,
     double? uomQuantity,
@@ -313,7 +321,9 @@ class PurchaseModel extends PurchaseEntity {
         'itemId': itemId,
         'godownId': godownId ?? companyGodownId,
         'companyGodownId': companyGodownId,
-        'batchNo': batchNo ?? '',
+        'dcNo': dcNo ?? batchNo ?? '',
+        'lotNo': lotNo ?? '',
+        'batchNo': dcNo ?? batchNo ?? '',
         'uomId': uomId ?? '',
         'uomQuantity': uomQuantity ?? actualQuantity ?? 1.0,
         'actualQuantity': actualQuantity ?? 0.0,

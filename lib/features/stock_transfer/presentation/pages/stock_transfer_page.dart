@@ -254,7 +254,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search by Voucher #, Batch # or Narration...',
+                hintText: 'Search by Voucher #, DC #, Lot # or Narration...',
                 prefixIcon: const Icon(Icons.search, size: 20),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(

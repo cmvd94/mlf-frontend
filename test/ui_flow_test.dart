@@ -32,6 +32,8 @@ import 'package:mlf_frontend/features/purchase/presentation/controllers/purchase
 import 'package:mlf_frontend/features/stock_transfer/presentation/controllers/stock_transfer_controller.dart';
 import 'package:mlf_frontend/features/stock_summary/domain/usecases/get_stock_summary_usecase.dart';
 import 'package:mlf_frontend/features/stock_summary/presentation/controllers/stock_summary_controller.dart';
+import 'package:mlf_frontend/features/stock_summary/domain/entities/stock_summary_entity.dart';
+import 'package:mlf_frontend/features/stock_summary/presentation/pages/stock_summary_page.dart';
 
 class FakeAuthRepository implements AuthRepository {
   @override
@@ -275,5 +277,109 @@ void main() {
     await tester.tap(find.widgetWithText(ListTile, 'Admin Users'));
     await tester.pumpAndSettle();
     expect(find.text('Admin Management'), findsOneWidget);
+  });
+
+  testWidgets('StockSummaryPage displays Date column and entry creation date instead of Value tab', (tester) async {
+    tester.view.physicalSize = const Size(1440, 1024);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final stockSummaryRepo = MockStockSummaryRepository();
+    stockSummaryRepo.summary = const StockSummaryEntity(
+      companyName: 'ML Fabric',
+      period: StockSummaryPeriodEntity(formattedPeriod: '1-Apr-2026 to 31-Mar-2027'),
+      godownFilter: StockSummaryFilterEntity(),
+      groups: [
+        StockSummaryGroupEntity(
+          groupId: 'grp_yarn',
+          groupName: 'Yarn Group',
+          uom: 'kg',
+          totalQuantity: 150.0,
+          averageRate: 250.0,
+          totalValue: 37500.0,
+          formattedQuantity: '150.000 kg',
+          formattedRate: '250.00',
+          formattedValue: '37,500.00',
+          itemsCount: 1,
+          items: [
+            StockSummaryItemEntity(
+              itemId: 'itm_cotton',
+              itemName: 'Cotton Yarn 30s',
+              itemCode: 'YRN_30',
+              groupId: 'grp_yarn',
+              groupName: 'Yarn Group',
+              uom: 'kg',
+              quantity: 150.0,
+              averageRate: 250.0,
+              totalValue: 37500.0,
+              formattedQuantity: '150.000 kg',
+              formattedRate: '250.00',
+              formattedValue: '37,500.00',
+              batchesCount: 1,
+              batches: [
+                StockSummaryBatchEntity(
+                  dcNo: 'Dc174/7-10-26',
+                  lotNo: '',
+                  batchNo: 'Dc174/7-10-26',
+                  godownId: 'gd_01',
+                  godownName: 'Main Storage Godown',
+                  particulars: 'Dc174/7-10-26 Main Storage Godown',
+                  quantity: 150.0,
+                  rate: 250.0,
+                  value: 37500.0,
+                  formattedQuantity: '150.000 kg',
+                  formattedRate: '250.00',
+                  formattedValue: '37,500.00',
+                  uom: 'kg',
+                  date: '2026-11-21T10:00:00.000Z',
+                  formattedDate: '21/11/2026',
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+      grandTotal: StockSummaryGrandTotalEntity(
+        totalQuantity: 150.0,
+        averageRate: 250.0,
+        totalValue: 37500.0,
+        formattedQuantity: '150.000 kg',
+        formattedRate: '250.00',
+        formattedValue: '37,500.00',
+        groupsCount: 1,
+        itemsCount: 1,
+      ),
+    );
+
+    final ctrl = StockSummaryController(getStockSummaryUseCase: GetStockSummaryUseCase(stockSummaryRepo));
+    await ctrl.fetchStockSummary();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: StockSummaryPage(controller: ctrl),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify table header contains 'Date' and NOT 'Value'
+    expect(find.text('Particulars'), findsOneWidget);
+    expect(find.text('Quantity'), findsOneWidget);
+    expect(find.text('Rate'), findsOneWidget);
+    expect(find.text('Date'), findsOneWidget);
+    expect(find.text('Value'), findsNothing);
+
+    // Drill down to group (View 3: single group detail)
+    await tester.tap(find.text('Yarn Group'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cotton Yarn 30s'), findsOneWidget);
+
+    // In single group view, batches are detailed by default to display item inward lines
+    expect(find.text('Main Storage Godown'), findsOneWidget);
+    expect(find.text('Dc174/7-10-26'), findsOneWidget);
+    expect(find.text('21/11/2026'), findsOneWidget);
   });
 }

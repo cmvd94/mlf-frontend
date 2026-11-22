@@ -25,6 +25,8 @@ abstract class PurchaseRepository {
     String? notes,
     // Optional legacy single-item parameters
     String? itemId,
+    String? dcNo,
+    String? lotNo,
     String? batchNo,
     String? uomId,
     double? uomQuantity,

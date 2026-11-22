@@ -10,6 +10,7 @@ import '../controllers/stock_transfer_controller.dart';
 class _SourceItemRow {
   AvailableStockEntity? selectedStock;
   String? uomId;
+  String? perId;
   final TextEditingController uomQtyController = TextEditingController(text: '1');
   final TextEditingController quantityController = TextEditingController();
 
@@ -26,7 +27,10 @@ class _DestinationItemRow {
   String? itemId;
   String? godownId;
   String? uomId;
-  final TextEditingController batchNoController = TextEditingController();
+  String? perId;
+  final TextEditingController dcNoController = TextEditingController();
+  final TextEditingController lotNoController = TextEditingController();
+  TextEditingController get batchNoController => dcNoController;
   final TextEditingController uomQtyController = TextEditingController(text: '1');
   final TextEditingController quantityController = TextEditingController();
 
@@ -34,7 +38,8 @@ class _DestinationItemRow {
   double get quantity => double.tryParse(quantityController.text.trim()) ?? 0.0;
 
   void dispose() {
-    batchNoController.dispose();
+    dcNoController.dispose();
+    lotNoController.dispose();
     uomQtyController.dispose();
     quantityController.dispose();
   }
@@ -103,6 +108,8 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
               godownName: src.godownName,
               itemId: src.itemId,
               itemName: src.itemName,
+              dcNo: src.dcNo,
+              lotNo: src.lotNo,
               batchNo: src.batchNo,
               currentStock: src.quantity,
               rate: src.rate,
@@ -113,7 +120,8 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
 
           final row = _SourceItemRow();
           row.selectedStock = matched;
-          row.uomId = src.uomId.isNotEmpty ? src.uomId : null;
+          row.uomId = src.uomId.isNotEmpty ? src.uomId : (matched.uomId.isNotEmpty ? matched.uomId : null);
+          row.perId = src.perId.isNotEmpty ? src.perId : (matched.perId.isNotEmpty ? matched.perId : null);
           row.uomQtyController.text = '${src.uomQuantity}';
           row.quantityController.text = '${src.quantity}';
           row.uomQtyController.addListener(() => setState(() {}));
@@ -127,8 +135,10 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
           final row = _DestinationItemRow();
           row.itemId = dest.itemId.isNotEmpty ? dest.itemId : null;
           row.godownId = dest.godownId.isNotEmpty ? dest.godownId : null;
-          row.batchNoController.text = dest.batchNo;
+          row.dcNoController.text = dest.dcNo.isNotEmpty ? dest.dcNo : dest.batchNo;
+          row.lotNoController.text = dest.lotNo;
           row.uomId = dest.uomId.isNotEmpty ? dest.uomId : null;
+          row.perId = dest.perId.isNotEmpty ? dest.perId : null;
           row.uomQtyController.text = '${dest.uomQuantity}';
           row.quantityController.text = '${dest.quantity}';
           row.uomQtyController.addListener(() => setState(() {}));
@@ -173,8 +183,11 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
       if (_inventoryController.items.isNotEmpty) {
         final it = _inventoryController.items.first;
         row.itemId = it.id;
-        if (it.defaultUomId != null && it.defaultUomId!.isNotEmpty) {
+        if (it.defaultUomId.isNotEmpty) {
           row.uomId = it.defaultUomId;
+        }
+        if (it.defaultPerId.isNotEmpty) {
+          row.perId = it.defaultPerId;
         }
       }
       if (_godownController.godowns.isNotEmpty) {
@@ -239,6 +252,12 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
         );
         return;
       }
+      if (r.selectedStock != null && r.selectedStock!.uomQuantity > 0 && r.uomQuantity > r.selectedStock!.uomQuantity) {
+        _showError(
+          'UOM quantity for DC "${r.selectedStock!.dcNo}" exceeds available stock (${r.selectedStock!.uomQuantity})',
+        );
+        return;
+      }
     }
 
     for (int i = 0; i < _destRows.length; i++) {
@@ -251,8 +270,8 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
         _showError('Please select a destination godown for line ${i + 1}');
         return;
       }
-      if (r.batchNoController.text.trim().isEmpty) {
-        _showError('Please enter a new Batch / Lot number for destination line ${i + 1}');
+      if (r.dcNoController.text.trim().isEmpty) {
+        _showError('Please enter a destination DC number for line ${i + 1}');
         return;
       }
       if (r.quantity <= 0) {
@@ -267,6 +286,7 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
               uomId: r.uomId,
               uomQuantity: r.uomQuantity,
               quantity: r.quantity,
+              perId: r.perId,
             ))
         .toList();
 
@@ -274,10 +294,13 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
         .map((r) => CreateStockTransferDestinationInput(
               itemId: r.itemId!,
               godownId: r.godownId!,
-              batchNo: r.batchNoController.text.trim(),
+              dcNo: r.dcNoController.text.trim(),
+              lotNo: r.lotNoController.text.trim(),
+              batchNo: r.dcNoController.text.trim(),
               uomId: r.uomId,
               uomQuantity: r.uomQuantity,
               quantity: r.quantity,
+              perId: r.perId,
             ))
         .toList();
 
@@ -611,12 +634,12 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
           ),
           const SizedBox(height: 4),
 
-          // Stock batch selector
+          // Stock selector
           DropdownButtonFormField<AvailableStockEntity>(
             value: row.selectedStock,
             isExpanded: true,
             decoration: const InputDecoration(
-              labelText: 'Select Stock Batch (Godown • Item • Batch)',
+              labelText: 'Select Stock (Godown • Item • DC & Lot)',
               isDense: true,
               border: OutlineInputBorder(),
             ),
@@ -637,6 +660,9 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
                   if (selected.uomId.isNotEmpty) {
                     row.uomId = selected.uomId;
                   }
+                  if (selected.perId.isNotEmpty) {
+                    row.perId = selected.perId;
+                  }
                   row.uomQtyController.text = (selected.uomQuantity > 0 ? selected.uomQuantity : 1.0).toString();
                   if (row.quantityController.text.isEmpty) {
                     row.quantityController.text = selected.currentStock.toString();
@@ -647,58 +673,103 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
           ),
           const SizedBox(height: 8),
 
-          // UOM & UOM Quantity & Quantity
+          // Pairs: [UOM | UOM Qty] and [Quantity | Per Unit]
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Pair 1: UOM & UOM Qty
               Expanded(
-                flex: 4,
-                child: DropdownButtonFormField<String>(
-                  value: _inventoryController.uoms.any((u) => u.id == row.uomId) ? row.uomId : null,
-                  isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'UOM',
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                  ),
-                  items: _inventoryController.uoms.map((u) {
-                    return DropdownMenuItem<String>(
-                      value: u.id,
-                      child: Text(
-                        '${u.name} (${u.symbol})',
-                        style: const TextStyle(fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
+                flex: 5,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: DropdownButtonFormField<String>(
+                        value: _inventoryController.uoms.any((u) => u.id == row.uomId) ? row.uomId : null,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'UOM',
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _inventoryController.uoms.map((u) {
+                          return DropdownMenuItem<String>(
+                            value: u.id,
+                            child: Text(
+                              '${u.name} (${u.symbol})',
+                              style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) => setState(() => row.uomId = val),
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (val) => setState(() => row.uomId = val),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      flex: 2,
+                      child: TextField(
+                        controller: row.uomQtyController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(
+                          labelText: 'UOM Qty',
+                          isDense: true,
+                          border: const OutlineInputBorder(),
+                          helperText: row.selectedStock != null && row.selectedStock!.uomQuantity > 0
+                              ? 'Avail: ${row.selectedStock!.uomQuantity}'
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 8),
+              // Pair 2: Quantity & Per Unit
               Expanded(
-                flex: 3,
-                child: TextField(
-                  controller: row.uomQtyController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: 'UOM Qty',
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 4,
-                child: TextField(
-                  controller: row.quantityController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: 'Quantity',
-                    isDense: true,
-                    border: const OutlineInputBorder(),
-                    helperText: row.selectedStock != null ? 'Avail: ${row.selectedStock!.currentStock}' : null,
-                  ),
+                flex: 5,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: TextField(
+                        controller: row.quantityController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(
+                          labelText: 'Quantity',
+                          isDense: true,
+                          border: const OutlineInputBorder(),
+                          helperText: row.selectedStock != null ? 'Avail: ${row.selectedStock!.currentStock}' : null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      flex: 2,
+                      child: DropdownButtonFormField<String>(
+                        value: _inventoryController.perUnits.any((p) => p.id == row.perId) ? row.perId : null,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Per Unit',
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _inventoryController.perUnits.map((p) {
+                          return DropdownMenuItem<String>(
+                            value: p.id,
+                            child: Text(
+                              p.symbol.isNotEmpty ? p.symbol : p.name,
+                              style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) => setState(() => row.perId = val),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -819,9 +890,14 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
             onChanged: (val) {
               setState(() {
                 row.itemId = val;
-                final it = allItems.firstWhere((item) => item.id == val);
-                if (it.defaultUomId != null && it.defaultUomId!.isNotEmpty) {
-                  row.uomId = it.defaultUomId;
+                final it = allItems.where((item) => item.id == val).firstOrNull;
+                if (it != null) {
+                  if (it.defaultUomId.isNotEmpty) {
+                    row.uomId = it.defaultUomId;
+                  }
+                  if (it.defaultPerId.isNotEmpty) {
+                    row.perId = it.defaultPerId;
+                  }
                 }
               });
             },
@@ -858,12 +934,25 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                flex: 3,
+                flex: 2,
                 child: TextField(
-                  controller: row.batchNoController,
+                  controller: row.dcNoController,
                   decoration: const InputDecoration(
-                    labelText: 'New Batch / Lot No.',
-                    hintText: 'e.g. Dc174/7-10-26',
+                    labelText: 'Destination DC # *',
+                    hintText: 'e.g. dc10',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: TextField(
+                  controller: row.lotNoController,
+                  decoration: const InputDecoration(
+                    labelText: 'Lot #',
+                    hintText: 'e.g. lot1',
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
@@ -873,57 +962,99 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
           ),
           const SizedBox(height: 8),
 
-          // UOM & UOM Quantity & Quantity
+          // Pairs: [UOM | UOM Qty] and [Quantity | Per Unit]
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Pair 1: UOM & UOM Qty
               Expanded(
-                flex: 4,
-                child: DropdownButtonFormField<String>(
-                  value: _inventoryController.uoms.any((u) => u.id == row.uomId) ? row.uomId : null,
-                  isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'UOM',
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                  ),
-                  items: _inventoryController.uoms.map((u) {
-                    return DropdownMenuItem<String>(
-                      value: u.id,
-                      child: Text(
-                        '${u.name} (${u.symbol})',
-                        style: const TextStyle(fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
+                flex: 5,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: DropdownButtonFormField<String>(
+                        value: _inventoryController.uoms.any((u) => u.id == row.uomId) ? row.uomId : null,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'UOM',
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _inventoryController.uoms.map((u) {
+                          return DropdownMenuItem<String>(
+                            value: u.id,
+                            child: Text(
+                              '${u.name} (${u.symbol})',
+                              style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) => setState(() => row.uomId = val),
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (val) => setState(() => row.uomId = val),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      flex: 2,
+                      child: TextField(
+                        controller: row.uomQtyController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'UOM Qty',
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 8),
+              // Pair 2: Quantity & Per Unit
               Expanded(
-                flex: 3,
-                child: TextField(
-                  controller: row.uomQtyController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: 'UOM Qty',
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 4,
-                child: TextField(
-                  controller: row.quantityController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: 'Quantity',
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                  ),
+                flex: 5,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: TextField(
+                        controller: row.quantityController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Quantity',
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      flex: 2,
+                      child: DropdownButtonFormField<String>(
+                        value: _inventoryController.perUnits.any((p) => p.id == row.perId) ? row.perId : null,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Per Unit',
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _inventoryController.perUnits.map((p) {
+                          return DropdownMenuItem<String>(
+                            value: p.id,
+                            child: Text(
+                              p.symbol.isNotEmpty ? p.symbol : p.name,
+                              style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) => setState(() => row.perId = val),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

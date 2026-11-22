@@ -127,11 +127,14 @@ void main() {
         'companyGodownName': 'Central Godown',
         'itemId': 'itm_1',
         'itemName': 'Cotton Yarn',
-        'batchNo': 'Batch-A1',
-        'currentStock': 200,
+        'dcNo': 'DC10',
+        'lotNo': 'L2',
+        'currentStock': 600,
         'rate': 150.0,
         'amount': 30000.0,
-        'uomSymbol': 'KG',
+        'uomSymbol': 'BAG',
+        'uomQuantity': 20,
+        'perSymbol': 'kg',
       };
 
       final model = AvailableStockModel.fromJson(json);
@@ -139,13 +142,32 @@ void main() {
       expect(model.companyGodownId, 'gd_comp_1');
       expect(model.companyGodownName, 'Central Godown');
       expect(model.itemName, 'Cotton Yarn');
-      expect(model.batchNo, 'Batch-A1');
-      expect(model.currentStock, 200.0);
+      expect(model.dcNo, 'DC10');
+      expect(model.lotNo, 'L2');
+      expect(model.currentStock, 600.0);
+      expect(model.uomQuantity, 20.0);
+      expect(model.perSymbol, 'kg');
       expect(model.displayName, contains('Cotton Yarn'));
-      expect(model.displayName, contains('Batch-A1'));
+      expect(model.displayName, contains('DC: DC10'));
+      expect(model.displayName, contains('Lot: L2'));
+      expect(model.displayName, contains('20 BAG | 600 kg'));
     });
 
-    test('StockTransferModel parses voucher JSON correctly', () {
+    test('CreateStockTransferSourceInput includes uomQuantity and perId in toJson', () {
+      const input = CreateStockTransferSourceInput(
+        godownStockId: 'stk_123',
+        uomQuantity: 5.0,
+        quantity: 150.0,
+        perId: 'per_1',
+      );
+      final json = input.toJson();
+      expect(json['godownStockId'], 'stk_123');
+      expect(json['uomQuantity'], 5.0);
+      expect(json['quantity'], 150.0);
+      expect(json['perId'], 'per_1');
+    });
+
+    test('StockTransferModel parses voucher JSON correctly with perId and pairs', () {
       final json = {
         '_id': 'st_123',
         'transferNumber': 'ST_0001',
@@ -155,10 +177,71 @@ void main() {
             'godownStockId': 'stk_001',
             'itemId': {'_id': 'itm_1', 'name': '20s Combed VL', 'itemCode': 'YRN_20S'},
             'godownId': {'_id': 'gd_01', 'name': 'Main Godown'},
-            'batchNo': 'Dc174/7-10-26',
-            'quantity': 100,
+            'dcNo': '3',
+            'lotNo': 'y2',
+            'uomQuantity': 20,
+            'quantity': 600,
             'rate': 250,
             'amount': 25000,
+            'uomId': {'_id': 'uom_1', 'symbol': 'BAG'},
+            'perId': {'_id': 'per_1', 'name': 'Per Kg', 'symbol': 'kg'},
+          }
+        ],
+        'destinationItems': [
+          {
+            'itemId': {'_id': 'itm_2', 'name': 'Grey Knitted Fabric', 'itemCode': 'FBR_01'},
+            'godownId': {'_id': 'gd_02', 'name': 'Shivamurugan'},
+            'dcNo': 'dc5',
+            'lotNo': 'y2',
+            'uomQuantity': 10,
+            'quantity': 600,
+            'rate': 280,
+            'amount': 26600,
+            'uomId': {'_id': 'uom_1', 'symbol': 'BAG'},
+            'perId': {'_id': 'per_1', 'name': 'Per Kg', 'symbol': 'kg'},
+          }
+        ],
+        'totalSourceQuantity': 600,
+        'totalSourceAmount': 0,
+        'totalDestinationQuantity': 600,
+        'totalDestinationAmount': 0,
+        'narration': 'Yarn issued to jobwork for knitting',
+        'createdBy': {'name': 'Vishnudas'},
+      };
+
+      final model = StockTransferModel.fromJson(json);
+      expect(model.transferNumber, 'ST_0001');
+      expect(model.sourceItems.length, 1);
+      expect(model.sourceItems.first.dcNo, '3');
+      expect(model.sourceItems.first.lotNo, 'y2');
+      expect(model.sourceItems.first.uomQuantity, 20.0);
+      expect(model.sourceItems.first.uomSymbol, 'BAG');
+      expect(model.sourceItems.first.quantity, 600.0);
+      expect(model.sourceItems.first.perSymbol, 'kg');
+
+      expect(model.destinationItems.first.dcNo, 'dc5');
+      expect(model.destinationItems.first.lotNo, 'y2');
+      expect(model.destinationItems.first.uomQuantity, 10.0);
+      expect(model.destinationItems.first.uomSymbol, 'BAG');
+      expect(model.destinationItems.first.quantity, 600.0);
+      expect(model.destinationItems.first.perSymbol, 'kg');
+      expect(model.totalSourceQuantity, 600.0);
+      expect(model.totalDestinationQuantity, 600.0);
+      expect(model.narration, 'Yarn issued to jobwork for knitting');
+    });
+
+    test('StockTransferModel deserializes cleanly without amount fields (pure stock mode)', () {
+      final json = {
+        '_id': 'st_002',
+        'transferNumber': 'ST_0002',
+        'date': '2026-11-21T00:00:00.000Z',
+        'sourceItems': [
+          {
+            'godownStockId': 'gs_1',
+            'itemId': {'_id': 'itm_1', 'name': 'Cotton Yarn 30s', 'itemCode': 'YRN_30'},
+            'godownId': {'_id': 'gd_01', 'name': 'Main Godown'},
+            'batchNo': 'Dc174/7-10-26',
+            'quantity': 100,
             'uomSymbol': 'KG',
           }
         ],
@@ -168,28 +251,22 @@ void main() {
             'godownId': {'_id': 'gd_02', 'name': 'Shivamurugan'},
             'batchNo': 'FAB_LOT_99',
             'quantity': 95,
-            'rate': 280,
-            'amount': 26600,
             'uomSymbol': 'KG',
           }
         ],
         'totalSourceQuantity': 100,
-        'totalSourceAmount': 25000,
         'totalDestinationQuantity': 95,
-        'totalDestinationAmount': 26600,
-        'narration': 'Yarn issued to jobwork for knitting',
-        'createdBy': {'name': 'Vishnudas'},
+        'narration': 'Pure stock transfer without amount storage',
       };
 
       final model = StockTransferModel.fromJson(json);
-      expect(model.transferNumber, 'ST_0001');
-      expect(model.sourceItems.length, 1);
-      expect(model.sourceItems.first.batchNo, 'Dc174/7-10-26');
-      expect(model.destinationItems.first.batchNo, 'FAB_LOT_99');
-      expect(model.destinationItems.first.itemName, 'Grey Knitted Fabric');
+      expect(model.transferNumber, 'ST_0002');
       expect(model.totalSourceQuantity, 100.0);
       expect(model.totalDestinationQuantity, 95.0);
-      expect(model.narration, 'Yarn issued to jobwork for knitting');
+      expect(model.totalSourceAmount, 0.0);
+      expect(model.totalDestinationAmount, 0.0);
+      expect(model.sourceItems.first.amount, 0.0);
+      expect(model.destinationItems.first.amount, 0.0);
     });
   });
 
@@ -410,9 +487,9 @@ void main() {
 
       expect(find.text('Stock Journal: ST_0149'), findsOneWidget);
       expect(find.text('20s Combed VL'), findsOneWidget);
-      expect(find.text('Batch: Dc174/7-10-26'), findsOneWidget);
+      expect(find.text('DC: Dc174/7-10-26'), findsOneWidget);
       expect(find.text('Grey Knitted Single Jersey Fabric'), findsOneWidget);
-      expect(find.text('New Batch: FBR_BATCH_149'), findsOneWidget);
+      expect(find.text('New DC: FBR_BATCH_149'), findsOneWidget);
       expect(find.text('Yarn converted to fabric under stock journal 149'), findsOneWidget);
     });
 

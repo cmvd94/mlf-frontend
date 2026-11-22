@@ -8,13 +8,18 @@ class StockTransferSourceItemEntity {
   final String companyGodownId;
   final String companyGodownName;
   final String companyGodownCode;
-  final String batchNo;
+  final String dcNo;
+  final String lotNo;
+  String get batchNo => dcNo;
   final double quantity;
   final double rate;
   final double amount;
   final String uomId;
   final String uomSymbol;
   final double uomQuantity;
+  final String perId;
+  final String perName;
+  final String perSymbol;
 
   const StockTransferSourceItemEntity({
     required this.godownStockId,
@@ -26,14 +31,19 @@ class StockTransferSourceItemEntity {
     this.companyGodownId = '',
     this.companyGodownName = '',
     this.companyGodownCode = '',
-    this.batchNo = '',
+    String dcNo = '',
+    this.lotNo = '',
+    String batchNo = '',
     required this.quantity,
     this.rate = 0.0,
     this.amount = 0.0,
     this.uomId = '',
     this.uomSymbol = '',
     this.uomQuantity = 1.0,
-  });
+    this.perId = '',
+    this.perName = '',
+    this.perSymbol = '',
+  }) : dcNo = dcNo != '' ? dcNo : batchNo;
 }
 
 class StockTransferDestinationItemEntity {
@@ -45,13 +55,18 @@ class StockTransferDestinationItemEntity {
   final String companyGodownId;
   final String companyGodownName;
   final String companyGodownCode;
-  final String batchNo;
+  final String dcNo;
+  final String lotNo;
+  String get batchNo => dcNo;
   final double quantity;
   final double rate;
   final double amount;
   final String uomId;
   final String uomSymbol;
   final double uomQuantity;
+  final String perId;
+  final String perName;
+  final String perSymbol;
   final String? destinationGodownStockId;
 
   const StockTransferDestinationItemEntity({
@@ -63,15 +78,20 @@ class StockTransferDestinationItemEntity {
     this.companyGodownId = '',
     this.companyGodownName = '',
     this.companyGodownCode = '',
-    required this.batchNo,
+    String dcNo = '',
+    this.lotNo = '',
+    String batchNo = '',
     required this.quantity,
     this.rate = 0.0,
     this.amount = 0.0,
     this.uomId = '',
     this.uomSymbol = '',
     this.uomQuantity = 1.0,
+    this.perId = '',
+    this.perName = '',
+    this.perSymbol = '',
     this.destinationGodownStockId,
-  });
+  }) : dcNo = dcNo != '' ? dcNo : batchNo;
 }
 
 class StockTransferEntity {
@@ -134,6 +154,7 @@ class CreateStockTransferSourceInput {
   final double? uomQuantity;
   final double quantity;
   final double? rate;
+  final String? perId;
 
   const CreateStockTransferSourceInput({
     required this.godownStockId,
@@ -141,6 +162,7 @@ class CreateStockTransferSourceInput {
     this.uomQuantity,
     required this.quantity,
     this.rate,
+    this.perId,
   });
 
   Map<String, dynamic> toJson() => {
@@ -149,13 +171,16 @@ class CreateStockTransferSourceInput {
         if (uomQuantity != null) 'uomQuantity': uomQuantity,
         'quantity': quantity,
         if (rate != null) 'rate': rate,
+        if (perId != null) 'perId': perId,
       };
 }
 
 class CreateStockTransferDestinationInput {
   final String itemId;
   final String godownId;
-  final String batchNo;
+  final String dcNo;
+  final String lotNo;
+  String get batchNo => dcNo;
   final String? uomId;
   final double? uomQuantity;
   final double quantity;
@@ -165,18 +190,22 @@ class CreateStockTransferDestinationInput {
   const CreateStockTransferDestinationInput({
     required this.itemId,
     required this.godownId,
-    required this.batchNo,
+    String dcNo = '',
+    this.lotNo = '',
+    String batchNo = '',
     this.uomId,
     this.uomQuantity,
     required this.quantity,
     this.rate,
     this.perId,
-  });
+  }) : dcNo = dcNo != '' ? dcNo : batchNo;
 
   Map<String, dynamic> toJson() => {
         'itemId': itemId,
         'godownId': godownId,
-        'batchNo': batchNo,
+        'dcNo': dcNo.isNotEmpty ? dcNo : batchNo,
+        'lotNo': lotNo,
+        'batchNo': dcNo.isNotEmpty ? dcNo : batchNo,
         if (uomId != null) 'uomId': uomId,
         if (uomQuantity != null) 'uomQuantity': uomQuantity,
         'quantity': quantity,

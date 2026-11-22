@@ -12,7 +12,9 @@ class _ItemRowData {
   String? godownId;
   String? uomId;
   String? perId;
-  final TextEditingController batchNoController;
+  final TextEditingController dcNoController;
+  final TextEditingController lotNoController;
+  TextEditingController get batchNoController => dcNoController;
   final TextEditingController uomQtyController;
   final TextEditingController actualQtyController;
   final TextEditingController billedQtyController;
@@ -24,13 +26,16 @@ class _ItemRowData {
     this.godownId,
     this.uomId,
     this.perId,
+    String dcNo = '',
+    String lotNo = '',
     String batchNo = '',
     String uomQty = '1',
     String actualQty = '1',
     String billedQty = '1',
     String rate = '',
     VoidCallback? onChanged,
-  })  : batchNoController = TextEditingController(text: batchNo),
+  })  : dcNoController = TextEditingController(text: dcNo.isNotEmpty ? dcNo : batchNo),
+        lotNoController = TextEditingController(text: lotNo),
         uomQtyController = TextEditingController(text: uomQty),
         actualQtyController = TextEditingController(text: actualQty),
         billedQtyController = TextEditingController(text: billedQty),
@@ -42,7 +47,8 @@ class _ItemRowData {
   }
 
   void dispose() {
-    batchNoController.dispose();
+    dcNoController.dispose();
+    lotNoController.dispose();
     uomQtyController.dispose();
     actualQtyController.dispose();
     billedQtyController.dispose();
@@ -105,6 +111,8 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
           godownStockId: it.godownStockId,
           itemId: it.itemId,
           godownId: it.godownId,
+          dcNo: it.dcNo,
+          lotNo: it.lotNo,
           batchNo: it.batchNo,
           uomId: it.uomId,
           perId: it.perId,
@@ -239,9 +247,9 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
         );
         return;
       }
-      if (row.batchNoController.text.trim().isEmpty) {
+      if (row.dcNoController.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please enter Batch / Lot # for row #${i + 1}')),
+          SnackBar(content: Text('Please enter DC # for row #${i + 1}')),
         );
         return;
       }
@@ -266,7 +274,9 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
         itemId: row.itemId!,
         godownId: row.godownId!,
         companyGodownId: _selectedCompanyGodownId,
-        batchNo: row.batchNoController.text.trim(),
+        dcNo: row.dcNoController.text.trim(),
+        lotNo: row.lotNoController.text.trim(),
+        batchNo: row.dcNoController.text.trim(),
         uomId: row.uomId!,
         uomQuantity: double.tryParse(row.uomQtyController.text.trim()) ?? 1.0,
         actualQuantity: double.tryParse(row.actualQtyController.text.trim()) ?? 0.0,
@@ -586,7 +596,12 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                     SizedBox(width: 8),
                                     Expanded(
                                       flex: 2,
-                                      child: Text('Batch / Lot # *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                      child: Text('DC # *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text('Lot #', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                                     ),
                                     SizedBox(width: 8),
                                     Expanded(
@@ -711,22 +726,37 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                             ),
                                           ),
                                           const SizedBox(width: 8),
-                                          // 3. Batch / Lot No.
+                                          // 3. DC No.
                                           Expanded(
                                             flex: 2,
                                             child: TextFormField(
-                                              controller: row.batchNoController,
+                                              controller: row.dcNoController,
                                               decoration: const InputDecoration(
                                                 isDense: true,
                                                 contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                                                 border: OutlineInputBorder(),
-                                                hintText: 'Batch/Lot #',
+                                                hintText: 'DC #',
                                               ),
                                               style: const TextStyle(fontSize: 13),
                                               validator: (v) {
                                                 if (v == null || v.trim().isEmpty) return 'Required';
                                                 return null;
                                               },
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          // 4. Lot No.
+                                          Expanded(
+                                            flex: 2,
+                                            child: TextFormField(
+                                              controller: row.lotNoController,
+                                              decoration: const InputDecoration(
+                                                isDense: true,
+                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                border: OutlineInputBorder(),
+                                                hintText: 'Lot #',
+                                              ),
+                                              style: const TextStyle(fontSize: 13),
                                             ),
                                           ),
                                           const SizedBox(width: 8),

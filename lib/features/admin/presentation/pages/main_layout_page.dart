@@ -639,7 +639,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               const SizedBox(width: 16),
               _buildStatCard(
                 title: 'Stock Summary',
-                subtitle: 'Tally group & batch summary',
+                subtitle: 'Tally group & stock summary',
                 icon: Icons.assessment,
                 color: Colors.green.shade700,
                 onTap: () => setState(() => _selectedTabIndex = 5),

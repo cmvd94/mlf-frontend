@@ -2,11 +2,17 @@ import 'package:mlf_frontend/features/stock_summary/domain/entities/stock_summar
 
 class StockSummaryBatchModel extends StockSummaryBatchEntity {
   const StockSummaryBatchModel({
-    required super.batchNo,
+    super.dcNo,
+    super.lotNo,
+    super.batchNo,
     required super.godownId,
     required super.godownName,
     super.godownCode,
+    super.date,
+    super.formattedDate,
     required super.particulars,
+    super.uomQuantity,
+    super.formattedUomQuantity,
     required super.quantity,
     required super.rate,
     required super.value,
@@ -14,15 +20,23 @@ class StockSummaryBatchModel extends StockSummaryBatchEntity {
     required super.formattedRate,
     required super.formattedValue,
     required super.uom,
+    super.uomSymbol,
+    super.perSymbol,
   });
 
   factory StockSummaryBatchModel.fromJson(Map<String, dynamic> json) {
     return StockSummaryBatchModel(
-      batchNo: json['batchNo']?.toString() ?? '',
+      dcNo: json['dcNo']?.toString() ?? json['batchNo']?.toString() ?? '',
+      lotNo: json['lotNo']?.toString() ?? '',
+      batchNo: json['dcNo']?.toString() ?? json['batchNo']?.toString() ?? '',
       godownId: json['godownId']?.toString() ?? '',
       godownName: json['godownName']?.toString() ?? 'Godown',
       godownCode: json['godownCode']?.toString(),
+      date: json['date']?.toString(),
+      formattedDate: json['formattedDate']?.toString() ?? '-',
       particulars: json['particulars']?.toString() ?? '',
+      uomQuantity: (json['uomQuantity'] as num?)?.toDouble() ?? 0.0,
+      formattedUomQuantity: json['formattedUomQuantity']?.toString() ?? '',
       quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       rate: (json['rate'] as num?)?.toDouble() ?? 0.0,
       value: (json['value'] as num?)?.toDouble() ?? 0.0,
@@ -30,6 +44,8 @@ class StockSummaryBatchModel extends StockSummaryBatchEntity {
       formattedRate: json['formattedRate']?.toString() ?? '0.00',
       formattedValue: json['formattedValue']?.toString() ?? '0.00',
       uom: json['uom']?.toString() ?? 'kg',
+      uomSymbol: json['uomSymbol']?.toString() ?? '',
+      perSymbol: json['perSymbol']?.toString() ?? '',
     );
   }
 }
@@ -42,6 +58,10 @@ class StockSummaryItemModel extends StockSummaryItemEntity {
     super.groupId,
     super.groupName,
     required super.uom,
+    super.uomQuantity,
+    super.formattedUomQuantity,
+    super.uomSymbol,
+    super.perSymbol,
     required super.quantity,
     required super.averageRate,
     required super.totalValue,
@@ -65,6 +85,10 @@ class StockSummaryItemModel extends StockSummaryItemEntity {
       groupId: json['groupId']?.toString(),
       groupName: json['groupName']?.toString(),
       uom: json['uom']?.toString() ?? 'kg',
+      uomQuantity: (json['uomQuantity'] as num?)?.toDouble() ?? 0.0,
+      formattedUomQuantity: json['formattedUomQuantity']?.toString() ?? '',
+      uomSymbol: json['uomSymbol']?.toString() ?? '',
+      perSymbol: json['perSymbol']?.toString() ?? '',
       quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       averageRate: (json['averageRate'] as num?)?.toDouble() ?? 0.0,
       totalValue: (json['totalValue'] as num?)?.toDouble() ?? 0.0,
@@ -84,6 +108,10 @@ class StockSummaryGroupModel extends StockSummaryGroupEntity {
     super.groupCode,
     required super.uom,
     required super.totalQuantity,
+    super.totalUomQuantity,
+    super.formattedUomQuantity,
+    super.uomSymbol,
+    super.perSymbol,
     required super.averageRate,
     required super.totalValue,
     required super.formattedQuantity,
@@ -105,6 +133,10 @@ class StockSummaryGroupModel extends StockSummaryGroupEntity {
       groupCode: json['groupCode']?.toString(),
       uom: json['uom']?.toString() ?? 'kg',
       totalQuantity: (json['totalQuantity'] as num?)?.toDouble() ?? 0.0,
+      totalUomQuantity: (json['totalUomQuantity'] as num?)?.toDouble() ?? 0.0,
+      formattedUomQuantity: json['formattedUomQuantity']?.toString() ?? '',
+      uomSymbol: json['uomSymbol']?.toString() ?? '',
+      perSymbol: json['perSymbol']?.toString() ?? '',
       averageRate: (json['averageRate'] as num?)?.toDouble() ?? 0.0,
       totalValue: (json['totalValue'] as num?)?.toDouble() ?? 0.0,
       formattedQuantity: json['formattedQuantity']?.toString() ?? '0.000',
@@ -119,6 +151,8 @@ class StockSummaryGroupModel extends StockSummaryGroupEntity {
 class StockSummaryGrandTotalModel extends StockSummaryGrandTotalEntity {
   const StockSummaryGrandTotalModel({
     required super.totalQuantity,
+    super.totalUomQuantity,
+    super.formattedUomQuantity,
     required super.averageRate,
     required super.totalValue,
     required super.formattedQuantity,
@@ -131,9 +165,11 @@ class StockSummaryGrandTotalModel extends StockSummaryGrandTotalEntity {
   factory StockSummaryGrandTotalModel.fromJson(Map<String, dynamic> json) {
     return StockSummaryGrandTotalModel(
       totalQuantity: (json['totalQuantity'] as num?)?.toDouble() ?? 0.0,
+      totalUomQuantity: (json['totalUomQuantity'] as num?)?.toDouble() ?? 0.0,
       averageRate: (json['averageRate'] as num?)?.toDouble() ?? 0.0,
       totalValue: (json['totalValue'] as num?)?.toDouble() ?? 0.0,
       formattedQuantity: json['formattedQuantity']?.toString() ?? '0.000 kg',
+      formattedUomQuantity: json['formattedUomQuantity']?.toString() ?? '',
       formattedRate: json['formattedRate']?.toString() ?? '0.00',
       formattedValue: json['formattedValue']?.toString() ?? '0.00',
       groupsCount: (json['groupsCount'] as num?)?.toInt() ?? 0,
