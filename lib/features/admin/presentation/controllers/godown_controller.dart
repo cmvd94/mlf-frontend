@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
+import 'package:mlf_frontend/core/utils/error_utils.dart';
 import '../../domain/entities/godown_entity.dart';
 import '../../domain/entities/godown_list_entity.dart';
 import '../../domain/usecases/create_godown_usecase.dart';
@@ -84,7 +85,7 @@ class GodownController extends ChangeNotifier {
         tag: 'GodownController',
       );
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Failed to fetch godowns: $e', tag: 'GodownController');
     } finally {
       _isLoading = false;
@@ -128,7 +129,7 @@ class GodownController extends ChangeNotifier {
       _selectedGodown = godown;
       return godown;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Failed to fetch godown details: $e', tag: 'GodownController');
       return null;
     } finally {
@@ -181,7 +182,7 @@ class GodownController extends ChangeNotifier {
       await fetchGodowns();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Failed to create godown: $e', tag: 'GodownController');
       return false;
     } finally {
@@ -226,7 +227,7 @@ class GodownController extends ChangeNotifier {
       await fetchGodowns();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Failed to update godown: $e', tag: 'GodownController');
       return false;
     } finally {
@@ -257,7 +258,7 @@ class GodownController extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Failed to toggle godown status: $e', tag: 'GodownController');
       return false;
     } finally {
@@ -279,7 +280,7 @@ class GodownController extends ChangeNotifier {
       await fetchGodowns();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Failed to delete godown: $e', tag: 'GodownController');
       return false;
     } finally {

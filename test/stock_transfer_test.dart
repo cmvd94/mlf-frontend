@@ -76,6 +76,7 @@ void main() {
     ));
 
     inventoryRepo = MockInventoryRepository();
+    inventoryRepo.godowns = godownRepo.godowns;
     inventoryRepo.uoms = [const UomEntity(id: 'uom_1', name: 'Kilograms', symbol: 'KG')];
     inventoryRepo.perUnits = [const PerUnitEntity(id: 'per_1', name: 'Per Kg', symbol: 'KG', multiplier: 1.0)];
     inventoryRepo.items = [
@@ -432,6 +433,44 @@ void main() {
       expect(find.text('Source (Consumption)'), findsOneWidget);
       expect(find.text('Destination (Production)'), findsOneWidget);
       expect(find.text('Save Stock Transfer'), findsOneWidget);
+    });
+
+    testWidgets('StockTransferEntryDialog displays both company and jobwork godowns even if godownController was filtered', (tester) async {
+      tester.view.physicalSize = const Size(2200, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // Simulate godown controller having jobworkGodown filter set from admin page
+      final gCtrl = sl.get<GodownController>();
+      gCtrl.setTypeFilter(GodownType.jobworkGodown);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const Scaffold(
+            body: StockTransferEntryDialog(),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      // Tap the destination godown dropdown to open options
+      final destGodownFinder = find.byWidgetPredicate(
+        (w) => w is DropdownButtonFormField<String> &&
+               w.decoration.labelText == 'Destination Godown',
+      );
+      expect(destGodownFinder, findsOneWidget);
+
+      await tester.tap(destGodownFinder);
+      await tester.pumpAndSettle();
+
+      // Check both Company Godown and Jobwork Godown appear in the destination list
+      expect(find.textContaining('Main Storage Godown (Company)'), findsWidgets);
+      expect(find.textContaining('Shivamurugan Processing Godown (Jobwork)'), findsWidgets);
     });
 
     testWidgets('StockTransferDetailDialog displays voucher breakdown', (tester) async {

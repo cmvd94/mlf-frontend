@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
+import 'package:mlf_frontend/core/utils/error_utils.dart';
 import '../../domain/entities/party_entity.dart';
 import '../../domain/entities/purchase_type_entity.dart';
 import '../../domain/entities/uom_entity.dart';
@@ -107,7 +108,7 @@ class InventoryController extends ChangeNotifier {
           break;
       }
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Error loading inventory tab $_selectedSubTab: $e', tag: 'InventoryCtrl');
     } finally {
       _isLoading = false;
@@ -141,7 +142,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -173,7 +174,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -186,7 +187,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -210,7 +211,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -234,7 +235,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -247,7 +248,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -271,7 +272,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -295,7 +296,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -308,7 +309,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -334,7 +335,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -360,7 +361,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -373,7 +374,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -397,7 +398,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -421,7 +422,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -434,7 +435,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -468,7 +469,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -500,7 +501,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -513,7 +514,7 @@ class InventoryController extends ChangeNotifier {
       fetchMasters();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }

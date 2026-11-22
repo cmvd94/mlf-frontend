@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
 import '../../domain/entities/item_entity.dart';
 import '../controllers/inventory_controller.dart';
 
@@ -30,6 +31,15 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
   String? _selectedPerId;
   late bool _isActive;
   bool _isSaving = false;
+  bool _isFullScreen = false;
+  String? _formErrorMessage;
+
+  void _showError(String message) {
+    if (mounted) {
+      setState(() => _formErrorMessage = message);
+      AppNotification.showError(context, message);
+    }
+  }
 
   bool get isEditing => widget.item != null;
 
@@ -72,17 +82,14 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
   }
 
   Future<void> _submit() async {
+    setState(() => _formErrorMessage = null);
     if (!_formKey.currentState!.validate()) return;
     if (_selectedUomId == null || _selectedUomId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a default UOM')),
-      );
+      _showError('Please select a default UOM');
       return;
     }
     if (_selectedPerId == null || _selectedPerId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a default Per Unit')),
-      );
+      _showError('Please select a default Per Unit');
       return;
     }
 
@@ -118,19 +125,12 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
       setState(() => _isSaving = false);
       if (success) {
         Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isEditing ? 'Item updated successfully' : 'Item created successfully'),
-            backgroundColor: AppColors.success,
-          ),
+        AppNotification.showSuccess(
+          context,
+          isEditing ? 'Item updated successfully' : 'Item created successfully',
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.controller.errorMessage ?? 'Failed to save item'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        _showError(widget.controller.errorMessage ?? 'Failed to save item');
       }
     }
   }
@@ -148,9 +148,17 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
         : widget.controller.masters.perUnits;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: _isFullScreen
+          ? EdgeInsets.zero
+          : const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_isFullScreen ? 0 : 16),
+      ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
+        constraints: BoxConstraints(
+          maxWidth: _isFullScreen ? double.infinity : 520,
+          maxHeight: _isFullScreen ? double.infinity : double.infinity,
+        ),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Form(
@@ -176,6 +184,16 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                           isEditing ? 'Edit Item' : 'Add New Item',
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          _isFullScreen
+                              ? Icons.fullscreen_exit_rounded
+                              : Icons.fullscreen_rounded,
+                          color: AppColors.textSecondary,
+                        ),
+                        tooltip: _isFullScreen ? 'Exit Full Screen' : 'Full Screen View',
+                        onPressed: () => setState(() => _isFullScreen = !_isFullScreen),
                       ),
                       IconButton(
                         icon: const Icon(Icons.close),
@@ -330,6 +348,40 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                     onChanged: (val) => setState(() => _isActive = val),
                     contentPadding: EdgeInsets.zero,
                   ),
+                  if (_formErrorMessage != null) ...[
+                    Container(
+                      margin: const EdgeInsets.only(top: 8, bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _formErrorMessage!,
+                              style: const TextStyle(
+                                color: AppColors.error,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 16, color: AppColors.error),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => setState(() => _formErrorMessage = null),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,

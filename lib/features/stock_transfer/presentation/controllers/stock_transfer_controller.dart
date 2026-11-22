@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
+import 'package:mlf_frontend/core/utils/error_utils.dart';
 import '../../domain/entities/stock_transfer_entity.dart';
 import '../../domain/entities/available_stock_entity.dart';
 import '../../domain/repositories/stock_transfer_repository.dart';
@@ -92,7 +93,7 @@ class StockTransferController extends ChangeNotifier {
         tag: 'StockTransferCtrl',
       );
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Error fetching stock transfers: $e', tag: 'StockTransferCtrl');
     } finally {
       _isLoading = false;
@@ -131,7 +132,7 @@ class StockTransferController extends ChangeNotifier {
       _selectedTransfer = transfer;
       return transfer;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Error fetching transfer details: $e', tag: 'StockTransferCtrl');
       return null;
     } finally {
@@ -164,7 +165,7 @@ class StockTransferController extends ChangeNotifier {
       await fetchStockTransfers(page: 1, reset: true);
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Error creating stock transfer: $e', tag: 'StockTransferCtrl');
       return false;
     } finally {
@@ -199,7 +200,7 @@ class StockTransferController extends ChangeNotifier {
       await fetchStockTransfers(page: _pagination.currentPage, reset: true);
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Error updating stock transfer: $e', tag: 'StockTransferCtrl');
       return false;
     } finally {
@@ -221,7 +222,7 @@ class StockTransferController extends ChangeNotifier {
       await fetchStockTransfers(page: 1, reset: true);
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Error deleting stock transfer: $e', tag: 'StockTransferCtrl');
       return false;
     } finally {

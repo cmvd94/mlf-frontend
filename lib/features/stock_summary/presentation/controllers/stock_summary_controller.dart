@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
+import 'package:mlf_frontend/core/utils/error_utils.dart';
 import '../../domain/entities/stock_summary_entity.dart';
 import '../../domain/usecases/get_stock_summary_usecase.dart';
 
@@ -120,7 +121,7 @@ class StockSummaryController extends ChangeNotifier {
 
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Failed to load stock summary: $e', tag: 'StockSummary');
     } finally {
       _isLoading = false;

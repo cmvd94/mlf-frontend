@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/config/env_config.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/core/logger/log_viewer_dialog.dart';
 import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
@@ -110,13 +111,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     );
 
     if (changed == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password changed successfully!'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppNotification.showSuccess(context, 'Password changed successfully!');
     }
   }
 

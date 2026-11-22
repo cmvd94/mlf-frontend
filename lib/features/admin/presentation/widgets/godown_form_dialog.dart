@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
 import '../../domain/entities/godown_entity.dart';
 import '../controllers/godown_controller.dart';
@@ -32,6 +33,15 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
 
   late GodownType _selectedType;
   late bool _isActive;
+  bool _isFullScreen = false;
+  String? _formErrorMessage;
+
+  void _showError(String message) {
+    if (mounted) {
+      setState(() => _formErrorMessage = message);
+      AppNotification.showError(context, message);
+    }
+  }
 
   // Regional Scope State
   String? _selectedCountry;
@@ -178,18 +188,14 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
       .toList();
 
   Future<void> _submit() async {
+    setState(() => _formErrorMessage = null);
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedCountry == null ||
         _selectedZone == null ||
         _selectedState == null ||
         _selectedDistrict == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select all regional scope fields (Country, Zone, State, District)'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      _showError('Please select all regional scope fields (Country, Zone, State, District)');
       return;
     }
 
@@ -233,6 +239,8 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
 
     if (success && mounted) {
       Navigator.pop(context, true);
+    } else if (mounted && widget.controller.errorMessage != null) {
+      _showError(widget.controller.errorMessage!);
     }
   }
 
@@ -326,9 +334,17 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
     ];
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: _isFullScreen
+          ? EdgeInsets.zero
+          : const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_isFullScreen ? 0 : 16),
+      ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 620, maxHeight: 780),
+        constraints: BoxConstraints(
+          maxWidth: _isFullScreen ? double.infinity : 620,
+          maxHeight: _isFullScreen ? double.infinity : 780,
+        ),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -378,9 +394,24 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          _isFullScreen
+                              ? Icons.fullscreen_exit_rounded
+                              : Icons.fullscreen_rounded,
+                          color: AppColors.textSecondary,
+                        ),
+                        tooltip: _isFullScreen ? 'Exit Full Screen' : 'Full Screen View',
+                        onPressed: () => setState(() => _isFullScreen = !_isFullScreen),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -813,6 +844,40 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
               const SizedBox(height: 16),
               const Divider(height: 1),
               const SizedBox(height: 16),
+
+              if (_formErrorMessage != null) ...[
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _formErrorMessage!,
+                          style: const TextStyle(
+                            color: AppColors.error,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 16, color: AppColors.error),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () => setState(() => _formErrorMessage = null),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
 
               // Actions
               Row(

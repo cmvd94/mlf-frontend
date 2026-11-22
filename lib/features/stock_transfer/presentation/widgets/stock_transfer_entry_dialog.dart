@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/godown_entity.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
 import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
 import '../../domain/entities/available_stock_entity.dart';
@@ -69,6 +71,19 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
   final List<_DestinationItemRow> _destRows = [];
 
   bool _isInit = true;
+  bool _isFullScreen = false;
+  String? _formErrorMessage;
+
+  List<GodownEntity> get _allGodowns {
+    final Map<String, GodownEntity> map = {};
+    for (final g in _godownController.godowns) {
+      if (g.isActive) map[g.id] = g;
+    }
+    for (final g in _inventoryController.godowns) {
+      if (g.isActive) map[g.id] = g;
+    }
+    return map.values.toList();
+  }
 
   @override
   void initState() {
@@ -88,6 +103,8 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
   }
 
   Future<void> _loadData() async {
+    _godownController.setTypeFilter(null);
+    _godownController.setSearch(null);
     await Future.wait([
       _transferController.fetchAvailableStocks(),
       _inventoryController.fetchMasters(),
@@ -155,6 +172,11 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
       _addDestinationRow();
     }
     if (mounted) {
+      for (final row in _destRows) {
+        if (row.godownId == null && _allGodowns.isNotEmpty) {
+          row.godownId = _allGodowns.first.id;
+        }
+      }
       setState(() => _isInit = false);
     }
   }
@@ -190,8 +212,8 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
           row.perId = it.defaultPerId;
         }
       }
-      if (_godownController.godowns.isNotEmpty) {
-        row.godownId = _godownController.godowns.first.id;
+      if (_allGodowns.isNotEmpty) {
+        row.godownId = _allGodowns.first.id;
       }
       row.uomQtyController.addListener(() => setState(() {}));
       row.quantityController.addListener(() => setState(() {}));
@@ -235,6 +257,7 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
   }
 
   Future<void> _submit() async {
+    setState(() => _formErrorMessage = null);
     // Basic UI input validations before submitting to backend
     for (int i = 0; i < _sourceRows.length; i++) {
       final r = _sourceRows[i];
@@ -330,13 +353,12 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    if (mounted) {
+      setState(() {
+        _formErrorMessage = message;
+      });
+      AppNotification.showError(context, message);
+    }
   }
 
   @override
@@ -346,10 +368,20 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
         '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}';
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      insetPadding: _isFullScreen
+          ? EdgeInsets.zero
+          : const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_isFullScreen ? 0 : 12),
+      ),
       child: Container(
-        width: isDesktop ? 1150 : double.infinity,
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.92),
+        width: _isFullScreen ? double.infinity : (isDesktop ? 1200 : double.infinity),
+        height: _isFullScreen ? double.infinity : null,
+        constraints: BoxConstraints(
+          maxHeight: _isFullScreen
+              ? double.infinity
+              : MediaQuery.of(context).size.height * 0.94,
+        ),
         padding: const EdgeInsets.all(20),
         child: _isInit
             ? const Center(child: CircularProgressIndicator())
@@ -392,9 +424,24 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
                           ),
                         ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              _isFullScreen
+                                  ? Icons.fullscreen_exit_rounded
+                                  : Icons.fullscreen_rounded,
+                              color: AppColors.textSecondary,
+                            ),
+                            tooltip: _isFullScreen ? 'Exit Full Screen' : 'Full Screen View',
+                            onPressed: () => setState(() => _isFullScreen = !_isFullScreen),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -429,7 +476,7 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
                             ),
                           ],
                         ),
-                        if (_godownController.godowns.isNotEmpty)
+                        if (_allGodowns.isNotEmpty)
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -441,10 +488,13 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
                                 isDense: true,
                                 items: [
                                   const DropdownMenuItem(value: null, child: Text('All Godowns', style: TextStyle(fontSize: 12))),
-                                  ..._godownController.godowns.map(
+                                  ..._allGodowns.map(
                                     (g) => DropdownMenuItem(
                                       value: g.id,
-                                      child: Text(g.name, style: const TextStyle(fontSize: 12)),
+                                      child: Text(
+                                        '${g.name} (${g.type == GodownType.companyGodown ? 'Company' : 'Jobwork'})',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -482,6 +532,40 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
                           ),
                   ),
                   const SizedBox(height: 12),
+
+                  if (_formErrorMessage != null) ...[
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _formErrorMessage!,
+                              style: const TextStyle(
+                                color: AppColors.error,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 16, color: AppColors.error),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => setState(() => _formErrorMessage = null),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
 
                   // Bottom Bar: Narration & Actions
                   Row(
@@ -837,7 +921,10 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
 
   Widget _buildDestinationRowWidget(_DestinationItemRow row, int index) {
     final allItems = _inventoryController.items;
-    final allGodowns = _godownController.godowns;
+    final allGodowns = _allGodowns;
+    if (row.godownId == null && allGodowns.isNotEmpty) {
+      row.godownId = allGodowns.first.id;
+    }
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -920,10 +1007,11 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
                     border: OutlineInputBorder(),
                   ),
                   items: allGodowns.map((g) {
+                    final typeLabel = g.type == GodownType.companyGodown ? 'Company' : 'Jobwork';
                     return DropdownMenuItem<String>(
                       value: g.id,
                       child: Text(
-                        g.name,
+                        '${g.name} ($typeLabel)',
                         style: const TextStyle(fontSize: 12),
                         overflow: TextOverflow.ellipsis,
                       ),

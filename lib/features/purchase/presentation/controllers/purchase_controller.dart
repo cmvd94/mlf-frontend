@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
+import 'package:mlf_frontend/core/utils/error_utils.dart';
 import '../../domain/entities/purchase_entity.dart';
 import '../../domain/repositories/purchase_repository.dart';
 
@@ -84,7 +85,7 @@ class PurchaseController extends ChangeNotifier {
         tag: 'PurchaseCtrl',
       );
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Failed to load purchases: $e', tag: 'PurchaseCtrl');
     } finally {
       _isLoading = false;
@@ -146,7 +147,7 @@ class PurchaseController extends ChangeNotifier {
       await fetchPurchases();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Failed to create purchase: $e', tag: 'PurchaseCtrl');
       return false;
     } finally {
@@ -186,7 +187,7 @@ class PurchaseController extends ChangeNotifier {
       await fetchPurchases();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Failed to update purchase: $e', tag: 'PurchaseCtrl');
       return false;
     } finally {
@@ -206,7 +207,7 @@ class PurchaseController extends ChangeNotifier {
       await fetchPurchases();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       AppLogger().e('Failed to delete purchase: $e', tag: 'PurchaseCtrl');
       return false;
     } finally {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
 import '../../domain/entities/godown_entity.dart';
 import '../controllers/godown_controller.dart';
@@ -57,13 +58,7 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
     );
 
     if (result == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Godown created successfully!'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppNotification.showSuccess(context, 'Godown created successfully!');
     }
   }
 
@@ -77,13 +72,7 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
     );
 
     if (result == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Godown updated successfully!'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppNotification.showSuccess(context, 'Godown updated successfully!');
     }
   }
 
@@ -122,13 +111,7 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
     if (confirmed == true) {
       final success = await widget.controller.deleteGodown(godown.id);
       if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Godown deleted successfully!'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppNotification.showSuccess(context, 'Godown deleted successfully!');
       }
     }
   }
@@ -142,13 +125,7 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
 
         if (ctrl.successMessage != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(ctrl.successMessage!),
-                backgroundColor: AppColors.success,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            AppNotification.showSuccess(context, ctrl.successMessage!);
             ctrl.clearMessages();
           });
         }

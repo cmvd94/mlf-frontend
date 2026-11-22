@@ -5,6 +5,7 @@ import 'package:mlf_frontend/core/constants/app_strings.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/core/logger/log_viewer_dialog.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/core/utils/responsive_layout.dart';
 import 'package:mlf_frontend/core/utils/validators.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/main_layout_page.dart';
@@ -47,14 +48,8 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
     if (_controller.status == LoginStatus.failure &&
         _controller.errorMessage != null) {
-      AppLogger().w('Login failure snackbar: ${_controller.errorMessage}', tag: 'AuthUI');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_controller.errorMessage!),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppLogger().w('Login failure toast: ${_controller.errorMessage}', tag: 'AuthUI');
+      AppNotification.showError(context, _controller.errorMessage!);
     }
   }
 

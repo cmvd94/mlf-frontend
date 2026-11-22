@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
 import '../../domain/entities/stock_transfer_entity.dart';
 import '../controllers/stock_transfer_controller.dart';
@@ -26,6 +27,8 @@ class _StockTransferPageState extends State<StockTransferPage> {
     _godownController = sl<GodownController>();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _godownController.setTypeFilter(null);
+      _godownController.setSearch(null);
       _controller.fetchStockTransfers();
       _godownController.fetchGodowns();
     });
@@ -45,12 +48,9 @@ class _StockTransferPageState extends State<StockTransferPage> {
     );
 
     if (result == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_controller.successMessage ?? 'Stock transfer voucher created successfully!'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppNotification.showSuccess(
+        context,
+        _controller.successMessage ?? 'Stock transfer voucher created successfully!',
       );
     }
   }
@@ -63,12 +63,9 @@ class _StockTransferPageState extends State<StockTransferPage> {
     );
 
     if (result == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_controller.successMessage ?? 'Stock transfer voucher updated successfully!'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppNotification.showSuccess(
+        context,
+        _controller.successMessage ?? 'Stock transfer voucher updated successfully!',
       );
     }
   }
@@ -121,20 +118,14 @@ class _StockTransferPageState extends State<StockTransferPage> {
       final success = await _controller.deleteStockTransfer(st.id);
       if (mounted) {
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(_controller.successMessage ?? 'Stock transfer deleted successfully!'),
-              backgroundColor: AppColors.success,
-              behavior: SnackBarBehavior.floating,
-            ),
+          AppNotification.showSuccess(
+            context,
+            _controller.successMessage ?? 'Stock transfer deleted successfully!',
           );
         } else if (_controller.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(_controller.errorMessage!),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
+          AppNotification.showError(
+            context,
+            _controller.errorMessage!,
           );
         }
       }
