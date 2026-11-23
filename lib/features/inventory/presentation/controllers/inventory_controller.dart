@@ -3,6 +3,7 @@ import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/core/utils/error_utils.dart';
 import '../../domain/entities/party_entity.dart';
 import '../../domain/entities/purchase_type_entity.dart';
+import '../../domain/entities/sales_type_entity.dart';
 import '../../domain/entities/uom_entity.dart';
 import '../../domain/entities/per_unit_entity.dart';
 import '../../domain/entities/item_group_entity.dart';
@@ -33,6 +34,9 @@ class InventoryController extends ChangeNotifier {
 
   List<PurchaseTypeEntity> _purchaseTypes = [];
   List<PurchaseTypeEntity> get purchaseTypes => _purchaseTypes;
+
+  List<SalesTypeEntity> _salesTypes = [];
+  List<SalesTypeEntity> get salesTypes => _salesTypes;
 
   List<ItemGroupEntity> _itemGroups = [];
   List<ItemGroupEntity> get itemGroups => _itemGroups;
@@ -69,6 +73,7 @@ class InventoryController extends ChangeNotifier {
       _masters = await repository.getMasters();
       _parties = _masters.parties;
       _purchaseTypes = _masters.purchaseTypes;
+      _salesTypes = _masters.salesTypes;
       _itemGroups = _masters.itemGroups;
       _uoms = _masters.uoms;
       _perUnits = _masters.perUnits;
@@ -95,15 +100,18 @@ class InventoryController extends ChangeNotifier {
           _purchaseTypes = await repository.getPurchaseTypes(search: _searchQuery);
           break;
         case 2:
-          _itemGroups = await repository.getItemGroups(search: _searchQuery);
+          _salesTypes = await repository.getSalesTypes(search: _searchQuery);
           break;
         case 3:
-          _items = await repository.getItems(search: _searchQuery);
+          _itemGroups = await repository.getItemGroups(search: _searchQuery);
           break;
         case 4:
-          _uoms = await repository.getUoms(search: _searchQuery);
+          _items = await repository.getItems(search: _searchQuery);
           break;
         case 5:
+          _uoms = await repository.getUoms(search: _searchQuery);
+          break;
+        case 6:
           _perUnits = await repository.getPerUnits(search: _searchQuery);
           break;
       }
@@ -244,6 +252,67 @@ class InventoryController extends ChangeNotifier {
   Future<bool> deletePurchaseType(String id) async {
     try {
       await repository.deletePurchaseType(id);
+      await fetchCurrentTabData();
+      fetchMasters();
+      return true;
+    } catch (e) {
+      _errorMessage = cleanErrorMessage(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Sales Type CRUD
+  Future<bool> createSalesType({
+    required String name,
+    String? code,
+    String? description,
+    bool isActive = true,
+  }) async {
+    try {
+      await repository.createSalesType(
+        name: name,
+        code: code,
+        description: description,
+        isActive: isActive,
+      );
+      await fetchCurrentTabData();
+      fetchMasters();
+      return true;
+    } catch (e) {
+      _errorMessage = cleanErrorMessage(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateSalesType(String id, {
+    String? name,
+    String? code,
+    String? description,
+    bool? isActive,
+  }) async {
+    try {
+      await repository.updateSalesType(
+        id,
+        name: name,
+        code: code,
+        description: description,
+        isActive: isActive,
+      );
+      await fetchCurrentTabData();
+      fetchMasters();
+      return true;
+    } catch (e) {
+      _errorMessage = cleanErrorMessage(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteSalesType(String id) async {
+    try {
+      await repository.deleteSalesType(id);
       await fetchCurrentTabData();
       fetchMasters();
       return true;

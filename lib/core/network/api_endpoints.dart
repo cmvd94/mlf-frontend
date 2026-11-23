@@ -37,6 +37,11 @@ class ApiEndpoints {
   static String updatePurchaseType(String id) => '/admin/account-inventory/purchase-type/update/$id';
   static String deletePurchaseType(String id) => '/admin/account-inventory/purchase-type/delete/$id';
 
+  static const String createSalesType = '/admin/account-inventory/sales-type/create';
+  static const String getSalesTypeList = '/admin/account-inventory/sales-type/list';
+  static String updateSalesType(String id) => '/admin/account-inventory/sales-type/update/$id';
+  static String deleteSalesType(String id) => '/admin/account-inventory/sales-type/delete/$id';
+
   static const String createUom = '/admin/account-inventory/uom/create';
   static const String getUomList = '/admin/account-inventory/uom/list';
   static String updateUom(String id) => '/admin/account-inventory/uom/update/$id';
@@ -75,4 +80,12 @@ class ApiEndpoints {
   static String getStockTransferById(String id) => '/admin/stock-transfer/$id';
   static String updateStockTransfer(String id) => '/admin/stock-transfer/update/$id';
   static String deleteStockTransfer(String id) => '/admin/stock-transfer/delete/$id';
+
+  // Sales Entries
+  static const String createSale = '/admin/sale/create';
+  static const String getSaleList = '/admin/sale/list';
+  static const String availableStockForSale = '/admin/sale/available-stock';
+  static String getSaleById(String id) => '/admin/sale/get-a-sale/$id';
+  static String updateSale(String id) => '/admin/sale/update/$id';
+  static String deleteSale(String id) => '/admin/sale/delete/$id';
 }

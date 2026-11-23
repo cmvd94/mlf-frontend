@@ -2,6 +2,7 @@ import 'package:mlf_frontend/core/network/api_client.dart';
 import 'package:mlf_frontend/core/network/api_endpoints.dart';
 import '../models/party_model.dart';
 import '../models/purchase_type_model.dart';
+import '../models/sales_type_model.dart';
 import '../models/uom_model.dart';
 import '../models/per_unit_model.dart';
 import '../models/item_group_model.dart';
@@ -22,6 +23,12 @@ abstract class InventoryRemoteDataSource {
   Future<PurchaseTypeModel> createPurchaseType(Map<String, dynamic> body, {String? token});
   Future<PurchaseTypeModel> updatePurchaseType(String id, Map<String, dynamic> body, {String? token});
   Future<void> deletePurchaseType(String id, {String? token});
+
+  // Sales Types
+  Future<List<SalesTypeModel>> getSalesTypes({String? search, bool? isActive, String? token});
+  Future<SalesTypeModel> createSalesType(Map<String, dynamic> body, {String? token});
+  Future<SalesTypeModel> updateSalesType(String id, Map<String, dynamic> body, {String? token});
+  Future<void> deleteSalesType(String id, {String? token});
 
   // Units (UOM)
   Future<List<UomModel>> getUoms({String? search, bool? isActive, String? token});
@@ -115,6 +122,35 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   @override
   Future<void> deletePurchaseType(String id, {String? token}) async {
     await apiClient.delete(ApiEndpoints.deletePurchaseType(id), token: token);
+  }
+
+  // Sales Types
+  @override
+  Future<List<SalesTypeModel>> getSalesTypes({String? search, bool? isActive, String? token}) async {
+    final queryParams = <String, dynamic>{
+      if (search != null && search.isNotEmpty) 'search': search,
+      if (isActive != null) 'isActive': isActive,
+    };
+    final response = await apiClient.get(ApiEndpoints.getSalesTypeList, queryParams: queryParams, token: token);
+    final list = response['data']?['salesTypes'] as List? ?? [];
+    return list.map((e) => SalesTypeModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<SalesTypeModel> createSalesType(Map<String, dynamic> body, {String? token}) async {
+    final response = await apiClient.post(ApiEndpoints.createSalesType, body: body, token: token);
+    return SalesTypeModel.fromJson(response['data'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<SalesTypeModel> updateSalesType(String id, Map<String, dynamic> body, {String? token}) async {
+    final response = await apiClient.patch(ApiEndpoints.updateSalesType(id), body: body, token: token);
+    return SalesTypeModel.fromJson(response['data'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> deleteSalesType(String id, {String? token}) async {
+    await apiClient.delete(ApiEndpoints.deleteSalesType(id), token: token);
   }
 
   // Units

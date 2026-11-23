@@ -4,6 +4,7 @@ import 'package:mlf_frontend/core/utils/confirm_delete_dialog.dart';
 import '../controllers/inventory_controller.dart';
 import '../widgets/party_form_dialog.dart';
 import '../widgets/purchase_type_form_dialog.dart';
+import '../widgets/sales_type_form_dialog.dart';
 import '../widgets/item_group_form_dialog.dart';
 import '../widgets/uom_form_dialog.dart';
 import '../widgets/per_unit_form_dialog.dart';
@@ -24,6 +25,7 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
   final List<Map<String, dynamic>> _tabs = [
     {'title': 'Parties', 'icon': Icons.business},
     {'title': 'Purchase Types', 'icon': Icons.category},
+    {'title': 'Sales Types', 'icon': Icons.point_of_sale},
     {'title': 'Item Groups', 'icon': Icons.folder},
     {'title': 'Items', 'icon': Icons.inventory_2},
     {'title': 'Units (UOM)', 'icon': Icons.straighten},
@@ -61,22 +63,28 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
       case 2:
         showDialog(
           context: context,
-          builder: (_) => ItemGroupFormDialog(controller: widget.controller),
+          builder: (_) => SalesTypeFormDialog(controller: widget.controller),
         );
         break;
       case 3:
         showDialog(
           context: context,
-          builder: (_) => ItemFormDialog(controller: widget.controller),
+          builder: (_) => ItemGroupFormDialog(controller: widget.controller),
         );
         break;
       case 4:
         showDialog(
           context: context,
-          builder: (_) => UomFormDialog(controller: widget.controller),
+          builder: (_) => ItemFormDialog(controller: widget.controller),
         );
         break;
       case 5:
+        showDialog(
+          context: context,
+          builder: (_) => UomFormDialog(controller: widget.controller),
+        );
+        break;
+      case 6:
         showDialog(
           context: context,
           builder: (_) => PerUnitFormDialog(controller: widget.controller),
@@ -261,12 +269,14 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
       case 1:
         return _buildPurchaseTypeTable(ctrl);
       case 2:
-        return _buildItemGroupTable(ctrl);
+        return _buildSalesTypeTable(ctrl);
       case 3:
-        return _buildItemTable(ctrl);
+        return _buildItemGroupTable(ctrl);
       case 4:
-        return _buildUomTable(ctrl);
+        return _buildItemTable(ctrl);
       case 5:
+        return _buildUomTable(ctrl);
+      case 6:
         return _buildPerUnitTable(ctrl);
       default:
         return const SizedBox.shrink();
@@ -395,6 +405,72 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
                           );
                           if (confirm == true) {
                             await ctrl.deletePurchaseType(t.id);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  // Sales Types Table
+  Widget _buildSalesTypeTable(InventoryController ctrl) {
+    if (ctrl.salesTypes.isEmpty) {
+      return _buildEmptyState('No sales types found. Click "+ Add Sales Types" to create one.');
+    }
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('Type Name', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('Code', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('Description', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
+          ],
+          rows: ctrl.salesTypes.map((t) {
+            return DataRow(
+              cells: [
+                DataCell(Text(t.name, style: const TextStyle(fontWeight: FontWeight.bold))),
+                DataCell(Text(t.code, style: const TextStyle(fontFamily: 'monospace'))),
+                DataCell(Text(t.description.isEmpty ? '-' : t.description)),
+                DataCell(_buildStatusChip(t.isActive)),
+                DataCell(
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 18, color: AppColors.primary),
+                        tooltip: 'Edit',
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => SalesTypeFormDialog(controller: ctrl, salesType: t),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                        tooltip: 'Delete',
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => ConfirmDeleteDialog(
+                              title: 'Delete Sales Type',
+                              content: 'Are you sure you want to delete "${t.name}"?',
+                            ),
+                          );
+                          if (confirm == true) {
+                            await ctrl.deleteSalesType(t.id);
                           }
                         },
                       ),

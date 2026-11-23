@@ -1,6 +1,7 @@
 import 'package:mlf_frontend/features/auth/data/datasources/auth_local_data_source.dart';
 import '../../domain/entities/party_entity.dart';
 import '../../domain/entities/purchase_type_entity.dart';
+import '../../domain/entities/sales_type_entity.dart';
 import '../../domain/entities/uom_entity.dart';
 import '../../domain/entities/per_unit_entity.dart';
 import '../../domain/entities/item_group_entity.dart';
@@ -136,6 +137,53 @@ class InventoryRepositoryImpl implements InventoryRepository {
   Future<void> deletePurchaseType(String id) async {
     final token = await _getToken();
     await remoteDataSource.deletePurchaseType(id, token: token);
+  }
+
+  // Sales Types
+  @override
+  Future<List<SalesTypeEntity>> getSalesTypes({String? search, bool? isActive}) async {
+    final token = await _getToken();
+    return await remoteDataSource.getSalesTypes(search: search, isActive: isActive, token: token);
+  }
+
+  @override
+  Future<SalesTypeEntity> createSalesType({
+    required String name,
+    String? code,
+    String? description,
+    bool isActive = true,
+  }) async {
+    final token = await _getToken();
+    final body = {
+      'name': name,
+      if (code != null && code.isNotEmpty) 'code': code,
+      if (description != null && description.isNotEmpty) 'description': description,
+      'isActive': isActive,
+    };
+    return await remoteDataSource.createSalesType(body, token: token);
+  }
+
+  @override
+  Future<SalesTypeEntity> updateSalesType(String id, {
+    String? name,
+    String? code,
+    String? description,
+    bool? isActive,
+  }) async {
+    final token = await _getToken();
+    final body = <String, dynamic>{
+      if (name != null) 'name': name,
+      if (code != null) 'code': code,
+      if (description != null) 'description': description,
+      if (isActive != null) 'isActive': isActive,
+    };
+    return await remoteDataSource.updateSalesType(id, body, token: token);
+  }
+
+  @override
+  Future<void> deleteSalesType(String id) async {
+    final token = await _getToken();
+    await remoteDataSource.deleteSalesType(id, token: token);
   }
 
   // Units

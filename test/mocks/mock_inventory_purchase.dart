@@ -1,5 +1,6 @@
 import 'package:mlf_frontend/features/inventory/domain/entities/party_entity.dart';
 import 'package:mlf_frontend/features/inventory/domain/entities/purchase_type_entity.dart';
+import 'package:mlf_frontend/features/inventory/domain/entities/sales_type_entity.dart';
 import 'package:mlf_frontend/features/inventory/domain/entities/uom_entity.dart';
 import 'package:mlf_frontend/features/inventory/domain/entities/per_unit_entity.dart';
 import 'package:mlf_frontend/features/inventory/domain/entities/item_group_entity.dart';
@@ -21,6 +22,9 @@ class MockInventoryRepository implements InventoryRepository {
   ];
   List<PurchaseTypeEntity> purchaseTypes = [
     const PurchaseTypeEntity(id: 't1', name: 'Local Purchase', code: 'LOCAL'),
+  ];
+  List<SalesTypeEntity> salesTypes = [
+    const SalesTypeEntity(id: 'st1', name: 'Local Sale', code: 'LOCAL'),
   ];
   List<ItemGroupEntity> itemGroups = [
     const ItemGroupEntity(id: 'g1', name: 'Raw Material', code: 'RAW'),
@@ -67,6 +71,7 @@ class MockInventoryRepository implements InventoryRepository {
     return MastersEntity(
       parties: parties,
       purchaseTypes: purchaseTypes,
+      salesTypes: salesTypes,
       itemGroups: itemGroups,
       uoms: uoms,
       perUnits: perUnits,
@@ -187,6 +192,55 @@ class MockInventoryRepository implements InventoryRepository {
   @override
   Future<void> deletePurchaseType(String id) async {
     purchaseTypes.removeWhere((t) => t.id == id);
+  }
+
+  @override
+  Future<List<SalesTypeEntity>> getSalesTypes({String? search, bool? isActive}) async => salesTypes;
+
+  @override
+  Future<SalesTypeEntity> createSalesType({
+    required String name,
+    String? code,
+    String? description,
+    bool isActive = true,
+  }) async {
+    final t = SalesTypeEntity(
+      id: 'st_${DateTime.now().millisecondsSinceEpoch}',
+      name: name,
+      code: code ?? '',
+      description: description ?? '',
+      isActive: isActive,
+    );
+    salesTypes.add(t);
+    return t;
+  }
+
+  @override
+  Future<SalesTypeEntity> updateSalesType(String id, {
+    String? name,
+    String? code,
+    String? description,
+    bool? isActive,
+  }) async {
+    final index = salesTypes.indexWhere((t) => t.id == id);
+    if (index >= 0) {
+      final old = salesTypes[index];
+      final updated = SalesTypeEntity(
+        id: old.id,
+        name: name ?? old.name,
+        code: code ?? old.code,
+        description: description ?? old.description,
+        isActive: isActive ?? old.isActive,
+      );
+      salesTypes[index] = updated;
+      return updated;
+    }
+    throw Exception('Sales type not found');
+  }
+
+  @override
+  Future<void> deleteSalesType(String id) async {
+    salesTypes.removeWhere((t) => t.id == id);
   }
 
   @override

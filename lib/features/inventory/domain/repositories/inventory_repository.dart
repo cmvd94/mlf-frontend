@@ -1,5 +1,6 @@
 import '../entities/party_entity.dart';
 import '../entities/purchase_type_entity.dart';
+import '../entities/sales_type_entity.dart';
 import '../entities/uom_entity.dart';
 import '../entities/per_unit_entity.dart';
 import '../entities/item_group_entity.dart';
@@ -48,6 +49,22 @@ abstract class InventoryRepository {
     bool? isActive,
   });
   Future<void> deletePurchaseType(String id);
+
+  // Sales Types
+  Future<List<SalesTypeEntity>> getSalesTypes({String? search, bool? isActive});
+  Future<SalesTypeEntity> createSalesType({
+    required String name,
+    String? code,
+    String? description,
+    bool isActive = true,
+  });
+  Future<SalesTypeEntity> updateSalesType(String id, {
+    String? name,
+    String? code,
+    String? description,
+    bool? isActive,
+  });
+  Future<void> deleteSalesType(String id);
 
   // Units
   Future<List<UomEntity>> getUoms({String? search, bool? isActive});

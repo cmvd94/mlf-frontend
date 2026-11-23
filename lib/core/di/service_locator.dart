@@ -62,6 +62,12 @@ import '../../features/stock_transfer/data/repositories/stock_transfer_repositor
 import '../../features/stock_transfer/domain/repositories/stock_transfer_repository.dart';
 import '../../features/stock_transfer/presentation/controllers/stock_transfer_controller.dart';
 
+// Sales
+import '../../features/sales/data/datasources/sales_remote_data_source.dart';
+import '../../features/sales/data/repositories/sales_repository_impl.dart';
+import '../../features/sales/domain/repositories/sales_repository.dart';
+import '../../features/sales/presentation/controllers/sales_controller.dart';
+
 class ServiceLocator {
   static final ServiceLocator instance = ServiceLocator._internal();
   factory ServiceLocator() => instance;
@@ -268,6 +274,19 @@ class ServiceLocator {
 
     final stockTransferController = StockTransferController(repository: stockTransferRepository);
     sl._register<StockTransferController>(stockTransferController);
+
+    // 14. Sales Data Sources, Repositories & Controller
+    final salesRemoteDataSource = SalesRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<SalesRemoteDataSource>(salesRemoteDataSource);
+
+    final salesRepository = SalesRepositoryImpl(
+      remoteDataSource: salesRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<SalesRepository>(salesRepository);
+
+    final salesController = SalesController(repository: salesRepository);
+    sl._register<SalesController>(salesController);
   }
 }
 

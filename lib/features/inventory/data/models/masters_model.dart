@@ -1,6 +1,7 @@
 import '../../domain/entities/masters_entity.dart';
 import 'party_model.dart';
 import 'purchase_type_model.dart';
+import 'sales_type_model.dart';
 import 'uom_model.dart';
 import 'per_unit_model.dart';
 import 'item_group_model.dart';
@@ -11,6 +12,7 @@ class MastersModel extends MastersEntity {
   const MastersModel({
     super.parties = const [],
     super.purchaseTypes = const [],
+    super.salesTypes = const [],
     super.uoms = const [],
     super.perUnits = const [],
     super.itemGroups = const [],
@@ -25,6 +27,9 @@ class MastersModel extends MastersEntity {
           .toList(),
       purchaseTypes: (json['purchaseTypes'] as List? ?? [])
           .map((e) => PurchaseTypeModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      salesTypes: (json['salesTypes'] as List? ?? [])
+          .map((e) => SalesTypeModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       uoms: (json['uoms'] as List? ?? [])
           .map((e) => UomModel.fromJson(e as Map<String, dynamic>))
