@@ -5,7 +5,6 @@ import 'package:mlf_frontend/core/di/service_locator.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/core/utils/error_boundary.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
-import 'package:mlf_frontend/core/logger/log_viewer_dialog.dart';
 import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
 import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mlf_frontend/features/auth/presentation/pages/login_page.dart';
@@ -212,12 +211,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                 ),
                 const SizedBox(width: 12),
                 const EnvironmentBadge(),
-                const SizedBox(width: 8),
-                IconButton(
-                  tooltip: 'Application Debug Logs',
-                  icon: const Icon(Icons.terminal, color: AppColors.primary, size: 20),
-                  onPressed: () => LogViewerDialog.show(context),
-                ),
+
               ],
             ),
           ),

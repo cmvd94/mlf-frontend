@@ -4,7 +4,6 @@ import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/constants/app_strings.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
-import 'package:mlf_frontend/core/logger/log_viewer_dialog.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/core/utils/responsive_layout.dart';
 import 'package:mlf_frontend/core/utils/validators.dart';
@@ -78,22 +77,11 @@ class _LoginPageState extends State<LoginPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Top action bar: Environment & Debug Logs
+            // Top action bar: Environment
             Positioned(
               top: 16,
               right: 16,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    tooltip: 'Application Debug Logs',
-                    icon: const Icon(Icons.terminal, color: AppColors.primary),
-                    onPressed: () => LogViewerDialog.show(context),
-                  ),
-                  const SizedBox(width: 8),
-                  const EnvironmentBadge(),
-                ],
-              ),
+              child: const EnvironmentBadge(),
             ),
             Center(
               child: SingleChildScrollView(
