@@ -8,6 +8,7 @@ import '../../domain/entities/uom_entity.dart';
 import '../../domain/entities/per_unit_entity.dart';
 import '../../domain/entities/item_group_entity.dart';
 import '../../domain/entities/item_entity.dart';
+import '../../domain/entities/hsn_code_entity.dart';
 import '../../domain/entities/masters_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/godown_entity.dart';
 import '../../domain/repositories/inventory_repository.dart';
@@ -50,6 +51,9 @@ class InventoryController extends ChangeNotifier {
   List<ItemEntity> _items = [];
   List<ItemEntity> get items => _items;
 
+  List<HsnCodeEntity> _hsnCodes = [];
+  List<HsnCodeEntity> get hsnCodes => _hsnCodes;
+
   List<GodownEntity> _godowns = [];
   List<GodownEntity> get godowns => _godowns;
 
@@ -79,6 +83,7 @@ class InventoryController extends ChangeNotifier {
       _perUnits = _masters.perUnits;
       _items = _masters.items;
       _godowns = _masters.godowns;
+      _hsnCodes = _masters.hsnCodes;
       notifyListeners();
       AppLogger().i('Loaded masters successfully', tag: 'InventoryCtrl');
     } catch (e) {
@@ -113,6 +118,9 @@ class InventoryController extends ChangeNotifier {
           break;
         case 6:
           _perUnits = await repository.getPerUnits(search: _searchQuery);
+          break;
+        case 7:
+          _hsnCodes = await repository.getHsnCodes(search: _searchQuery);
           break;
       }
     } catch (e) {
@@ -518,6 +526,8 @@ class InventoryController extends ChangeNotifier {
     String? description,
     required String defaultUomId,
     required String defaultPerId,
+    String? hsnCodeId,
+    String? hsnCode,
     double standardRate = 0.0,
     double openingStock = 0.0,
     bool isActive = true,
@@ -530,6 +540,8 @@ class InventoryController extends ChangeNotifier {
         description: description,
         defaultUomId: defaultUomId,
         defaultPerId: defaultPerId,
+        hsnCodeId: hsnCodeId,
+        hsnCode: hsnCode,
         standardRate: standardRate,
         openingStock: openingStock,
         isActive: isActive,
@@ -551,6 +563,8 @@ class InventoryController extends ChangeNotifier {
     String? description,
     String? defaultUomId,
     String? defaultPerId,
+    String? hsnCodeId,
+    String? hsnCode,
     double? standardRate,
     bool? isActive,
   }) async {
@@ -563,6 +577,8 @@ class InventoryController extends ChangeNotifier {
         description: description,
         defaultUomId: defaultUomId,
         defaultPerId: defaultPerId,
+        hsnCodeId: hsnCodeId,
+        hsnCode: hsnCode,
         standardRate: standardRate,
         isActive: isActive,
       );
@@ -579,6 +595,67 @@ class InventoryController extends ChangeNotifier {
   Future<bool> deleteItem(String id) async {
     try {
       await repository.deleteItem(id);
+      await fetchCurrentTabData();
+      fetchMasters();
+      return true;
+    } catch (e) {
+      _errorMessage = cleanErrorMessage(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // HSN Code CRUD
+  Future<bool> createHsnCode({
+    required String hsnCode,
+    String? description,
+    double gstRate = 5.0,
+    bool isActive = true,
+  }) async {
+    try {
+      await repository.createHsnCode(
+        hsnCode: hsnCode,
+        description: description,
+        gstRate: gstRate,
+        isActive: isActive,
+      );
+      await fetchCurrentTabData();
+      fetchMasters();
+      return true;
+    } catch (e) {
+      _errorMessage = cleanErrorMessage(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateHsnCode(String id, {
+    String? hsnCode,
+    String? description,
+    double? gstRate,
+    bool? isActive,
+  }) async {
+    try {
+      await repository.updateHsnCode(
+        id,
+        hsnCode: hsnCode,
+        description: description,
+        gstRate: gstRate,
+        isActive: isActive,
+      );
+      await fetchCurrentTabData();
+      fetchMasters();
+      return true;
+    } catch (e) {
+      _errorMessage = cleanErrorMessage(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteHsnCode(String id) async {
+    try {
+      await repository.deleteHsnCode(id);
       await fetchCurrentTabData();
       fetchMasters();
       return true;

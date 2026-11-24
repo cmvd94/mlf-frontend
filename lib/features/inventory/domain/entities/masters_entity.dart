@@ -5,6 +5,7 @@ import 'uom_entity.dart';
 import 'per_unit_entity.dart';
 import 'item_group_entity.dart';
 import 'item_entity.dart';
+import 'hsn_code_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/godown_entity.dart';
 
 class MastersEntity {
@@ -16,6 +17,7 @@ class MastersEntity {
   final List<ItemGroupEntity> itemGroups;
   final List<ItemEntity> items;
   final List<GodownEntity> godowns;
+  final List<HsnCodeEntity> hsnCodes;
 
   const MastersEntity({
     this.parties = const [],
@@ -26,5 +28,6 @@ class MastersEntity {
     this.itemGroups = const [],
     this.items = const [],
     this.godowns = const [],
+    this.hsnCodes = const [],
   });
 }

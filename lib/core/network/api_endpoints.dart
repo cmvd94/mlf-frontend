@@ -62,6 +62,11 @@ class ApiEndpoints {
   static String updateItem(String id) => '/admin/account-inventory/item/update/$id';
   static String deleteItem(String id) => '/admin/account-inventory/item/delete/$id';
 
+  static const String createHsnCode = '/admin/account-inventory/hsn-code/create';
+  static const String getHsnCodeList = '/admin/account-inventory/hsn-code/list';
+  static String updateHsnCode(String id) => '/admin/account-inventory/hsn-code/update/$id';
+  static String deleteHsnCode(String id) => '/admin/account-inventory/hsn-code/delete/$id';
+
   // Purchase Entries
   static const String createPurchase = '/admin/purchase/create';
   static const String getPurchaseList = '/admin/purchase/list';

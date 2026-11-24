@@ -10,6 +10,7 @@ import '../widgets/item_group_form_dialog.dart';
 import '../widgets/uom_form_dialog.dart';
 import '../widgets/per_unit_form_dialog.dart';
 import '../widgets/item_form_dialog.dart';
+import '../widgets/hsn_code_form_dialog.dart';
 
 class AccountInventoryPage extends StatefulWidget {
   final InventoryController controller;
@@ -31,6 +32,7 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
     {'title': 'Items', 'icon': Icons.inventory_2},
     {'title': 'Units (UOM)', 'icon': Icons.straighten},
     {'title': 'Per Units', 'icon': Icons.calculate},
+    {'title': 'HSN Codes', 'icon': Icons.tag},
   ];
 
   @override
@@ -106,6 +108,12 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
         showDialog(
           context: context,
           builder: (_) => PerUnitFormDialog(controller: widget.controller),
+        );
+        break;
+      case 7:
+        showDialog(
+          context: context,
+          builder: (_) => HsnCodeFormDialog(controller: widget.controller),
         );
         break;
     }
@@ -344,6 +352,8 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
         return _buildUomTable(ctrl);
       case 6:
         return _buildPerUnitTable(ctrl);
+      case 7:
+        return _buildHsnCodeTable(ctrl);
       default:
         return const SizedBox.shrink();
     }
@@ -631,6 +641,7 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
           columns: const [
             DataColumn(label: Text('Item Code', style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(label: Text('Item Name', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('HSN/SAC', style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(label: Text('Group', style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(label: Text('Default UOM', style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(label: Text('Default Per', style: TextStyle(fontWeight: FontWeight.bold))),
@@ -644,6 +655,7 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
               cells: [
                 DataCell(Text(item.itemCode, style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w600))),
                 DataCell(Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold))),
+                DataCell(Text(item.hsnCode.isNotEmpty ? item.hsnCode : '-', style: const TextStyle(fontFamily: 'monospace'))),
                 DataCell(Text(item.itemGroup?.name ?? '-')),
                 DataCell(Text(item.defaultUom?.symbol ?? item.defaultUom?.name ?? '-')),
                 DataCell(Text(item.defaultPer?.name ?? item.defaultPer?.symbol ?? '-')),
@@ -828,6 +840,72 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
                           );
                           if (confirm == true) {
                             await _safeDelete(context, 'Per Unit "${p.name}"', () => ctrl.deletePerUnit(p.id));
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  // HSN Codes Table
+  Widget _buildHsnCodeTable(InventoryController ctrl) {
+    if (ctrl.hsnCodes.isEmpty) {
+      return _buildEmptyState('No HSN codes found. Click "+ Add HSN Codes" to create one.');
+    }
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('HSN / SAC Code', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('Description', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('GST Rate (%)', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
+          ],
+          rows: ctrl.hsnCodes.map((h) {
+            return DataRow(
+              cells: [
+                DataCell(Text(h.hsnCode, style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'monospace'))),
+                DataCell(Text(h.description.isEmpty ? '-' : h.description)),
+                DataCell(Text('${h.gstRate.toStringAsFixed(1)}%')),
+                DataCell(_buildStatusChip(h.isActive)),
+                DataCell(
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 18, color: AppColors.primary),
+                        tooltip: 'Edit',
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => HsnCodeFormDialog(controller: ctrl, hsnCode: h),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                        tooltip: 'Delete',
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => ConfirmDeleteDialog(
+                              title: 'Delete HSN Code',
+                              content: 'Are you sure you want to delete HSN Code "${h.hsnCode}"?',
+                            ),
+                          );
+                          if (confirm == true) {
+                            await _safeDelete(context, 'HSN Code "${h.hsnCode}"', () => ctrl.deleteHsnCode(h.id));
                           }
                         },
                       ),

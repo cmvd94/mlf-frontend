@@ -7,6 +7,7 @@ import '../models/uom_model.dart';
 import '../models/per_unit_model.dart';
 import '../models/item_group_model.dart';
 import '../models/item_model.dart';
+import '../models/hsn_code_model.dart';
 import '../models/masters_model.dart';
 
 abstract class InventoryRemoteDataSource {
@@ -53,6 +54,12 @@ abstract class InventoryRemoteDataSource {
   Future<ItemModel> createItem(Map<String, dynamic> body, {String? token});
   Future<ItemModel> updateItem(String id, Map<String, dynamic> body, {String? token});
   Future<void> deleteItem(String id, {String? token});
+
+  // HSN Codes
+  Future<List<HsnCodeModel>> getHsnCodes({String? search, bool? isActive, String? token});
+  Future<HsnCodeModel> createHsnCode(Map<String, dynamic> body, {String? token});
+  Future<HsnCodeModel> updateHsnCode(String id, Map<String, dynamic> body, {String? token});
+  Future<void> deleteHsnCode(String id, {String? token});
 }
 
 class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
@@ -267,5 +274,34 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   @override
   Future<void> deleteItem(String id, {String? token}) async {
     await apiClient.delete(ApiEndpoints.deleteItem(id), token: token);
+  }
+
+  // HSN Codes
+  @override
+  Future<List<HsnCodeModel>> getHsnCodes({String? search, bool? isActive, String? token}) async {
+    final queryParams = <String, dynamic>{
+      if (search != null && search.isNotEmpty) 'search': search,
+      if (isActive != null) 'isActive': isActive,
+    };
+    final response = await apiClient.get(ApiEndpoints.getHsnCodeList, queryParams: queryParams, token: token);
+    final list = response['data']?['hsnCodes'] as List? ?? [];
+    return list.map((e) => HsnCodeModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<HsnCodeModel> createHsnCode(Map<String, dynamic> body, {String? token}) async {
+    final response = await apiClient.post(ApiEndpoints.createHsnCode, body: body, token: token);
+    return HsnCodeModel.fromJson(response['data'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<HsnCodeModel> updateHsnCode(String id, Map<String, dynamic> body, {String? token}) async {
+    final response = await apiClient.patch(ApiEndpoints.updateHsnCode(id), body: body, token: token);
+    return HsnCodeModel.fromJson(response['data'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> deleteHsnCode(String id, {String? token}) async {
+    await apiClient.delete(ApiEndpoints.deleteHsnCode(id), token: token);
   }
 }

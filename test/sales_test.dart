@@ -265,6 +265,7 @@ void main() {
       final json = {
         '_id': 'sale_1',
         'salesNumber': 'SAL_0001',
+        'invoiceNo': 'INV-86',
         'date': '2026-11-22T00:00:00.000Z',
         'partyId': {'_id': 'party_1', 'name': 'ABC Textiles', 'partyCode': 'PTY_ABC'},
         'companyGodownId': {'_id': 'gd_01', 'name': 'Main Storage Godown', 'godownId': 'GDN_01'},
@@ -299,6 +300,7 @@ void main() {
 
       expect(model.id, 'sale_1');
       expect(model.salesNumber, 'SAL_0001');
+      expect(model.invoiceNo, 'INV-86');
       expect(model.partyName, 'ABC Textiles');
       expect(model.isGstBill, true);
       expect(model.totalAmount, 16520.0);

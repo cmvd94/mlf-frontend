@@ -15,6 +15,7 @@ class SaleItemModel extends SaleItemEntity {
     super.companyGodownCode,
     super.dcNo,
     super.lotNo,
+    super.hsnCode,
     required super.uomId,
     required super.uomSymbol,
     required super.uomQuantity,
@@ -61,6 +62,8 @@ class SaleItemModel extends SaleItemEntity {
       companyGodownCode: companyGodownData is Map ? companyGodownData['godownId']?.toString() ?? '' : '',
       dcNo: json['dcNo']?.toString() ?? (stockData is Map ? stockData['dcNo']?.toString() ?? '' : ''),
       lotNo: json['lotNo']?.toString() ?? (stockData is Map ? stockData['lotNo']?.toString() ?? '' : ''),
+      hsnCode: json['hsnCode']?.toString() ??
+          (itemData is Map ? itemData['hsnCode']?.toString() ?? '' : ''),
       uomId: uomData is Map ? uomData['_id']?.toString() ?? '' : uomData?.toString() ?? '',
       uomSymbol: uomData is Map
           ? uomData['symbol']?.toString() ?? uomData['name']?.toString() ?? ''
@@ -83,6 +86,7 @@ class SaleModel extends SaleEntity {
   const SaleModel({
     required super.id,
     required super.salesNumber,
+    super.invoiceNo = '',
     required super.date,
     super.salesTypeId,
     super.salesTypeName,
@@ -90,6 +94,9 @@ class SaleModel extends SaleEntity {
     required super.partyId,
     required super.partyName,
     super.partyCode,
+    super.partyAddress,
+    super.partyGstin,
+    super.partyPhone,
     super.dcNo,
     super.companyGodownId,
     super.companyGodownName,
@@ -133,6 +140,7 @@ class SaleModel extends SaleEntity {
     return SaleModel(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
       salesNumber: (json['salesNumber'] ?? '').toString(),
+      invoiceNo: (json['invoiceNo'] ?? '').toString(),
       date: json['date'] != null ? DateTime.tryParse(json['date'].toString()) ?? DateTime.now() : DateTime.now(),
       salesTypeId: salesTypeData is Map ? salesTypeData['_id']?.toString() ?? '' : salesTypeData?.toString() ?? '',
       salesTypeName: salesTypeData is Map ? salesTypeData['name']?.toString() ?? '' : '',
@@ -140,6 +148,9 @@ class SaleModel extends SaleEntity {
       partyId: partyData is Map ? partyData['_id']?.toString() ?? '' : partyData?.toString() ?? '',
       partyName: partyData is Map ? partyData['name']?.toString() ?? '' : '',
       partyCode: partyData is Map ? partyData['partyCode']?.toString() ?? '' : '',
+      partyAddress: partyData is Map ? partyData['address']?.toString() ?? '' : '',
+      partyGstin: partyData is Map ? partyData['gstin']?.toString() ?? '' : '',
+      partyPhone: partyData is Map ? partyData['phoneNumber']?.toString() ?? '' : '',
       dcNo: (json['dcNo'] ?? '').toString(),
       companyGodownId: companyGodownData is Map ? companyGodownData['_id']?.toString() ?? '' : companyGodownData?.toString() ?? '',
       companyGodownName: companyGodownData is Map ? companyGodownData['name']?.toString() ?? '' : '',

@@ -8,6 +8,7 @@ import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/core/utils/responsive_layout.dart';
 import 'package:mlf_frontend/core/utils/validators.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/main_layout_page.dart';
+import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
 import 'package:mlf_frontend/features/auth/presentation/controllers/login_controller.dart';
 import 'package:mlf_frontend/features/auth/presentation/widgets/custom_text_field.dart';
 import 'package:mlf_frontend/features/auth/presentation/widgets/primary_button.dart';
@@ -74,7 +75,15 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Center(
+        child: Stack(
+          children: [
+            // Top action bar: Environment
+            const Positioned(
+              top: 16,
+              right: 16,
+              child: EnvironmentBadge(),
+            ),
+            Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                 child: ResponsiveLayout(
@@ -98,6 +107,8 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
+          ],
+        ),
       ),
     );
   }

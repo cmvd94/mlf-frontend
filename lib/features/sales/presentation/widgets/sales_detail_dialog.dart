@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import '../../domain/entities/sale_entity.dart';
+import 'sales_bill_dialog.dart';
 
 class SalesDetailDialog extends StatelessWidget {
   final SaleEntity sale;
@@ -57,6 +58,16 @@ class SalesDetailDialog extends StatelessWidget {
                     ),
                   ),
                   IconButton(
+                    icon: const Icon(Icons.print_outlined, color: AppColors.primary),
+                    tooltip: 'Print / View Bill',
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => SalesBillDialog(sale: sale),
+                      );
+                    },
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
                   ),
@@ -87,6 +98,8 @@ class SalesDetailDialog extends StatelessWidget {
                               _buildInfoItem('Sales Type', sale.salesTypeName, code: sale.salesTypeCode),
                             if (sale.dcNo.isNotEmpty)
                               _buildInfoItem('DC Number', sale.dcNo),
+                            if (sale.invoiceNo.isNotEmpty)
+                              _buildInfoItem('Invoice Number', sale.invoiceNo),
                             if (sale.companyGodownName.isNotEmpty)
                               _buildInfoItem('Company Godown', sale.companyGodownName, code: sale.companyGodownCode),
                             _buildInfoItem('Invoice Date', dateStr),

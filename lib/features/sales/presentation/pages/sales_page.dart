@@ -7,6 +7,7 @@ import '../../domain/entities/sale_entity.dart';
 import '../controllers/sales_controller.dart';
 import '../widgets/sales_entry_dialog.dart';
 import '../widgets/sales_detail_dialog.dart';
+import '../widgets/sales_bill_dialog.dart';
 
 class SalesPage extends StatefulWidget {
   const SalesPage({super.key});
@@ -66,6 +67,13 @@ class _SalesPageState extends State<SalesPage> {
     showDialog(
       context: context,
       builder: (_) => SalesDetailDialog(sale: sale),
+    );
+  }
+
+  void _openBillDialog(SaleEntity sale) {
+    showDialog(
+      context: context,
+      builder: (_) => SalesBillDialog(sale: sale),
     );
   }
 
@@ -436,9 +444,20 @@ class _SalesPageState extends State<SalesPage> {
                     DataCell(
                       InkWell(
                         onTap: () => _openDetailDialog(sale),
-                        child: Text(
-                          sale.salesNumber,
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              sale.salesNumber,
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+                            ),
+                            if (sale.invoiceNo.isNotEmpty)
+                              Text(
+                                'Inv: ${sale.invoiceNo}',
+                                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                              ),
+                          ],
                         ),
                       ),
                     ),
@@ -497,6 +516,11 @@ class _SalesPageState extends State<SalesPage> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          IconButton(
+                            icon: const Icon(Icons.print_outlined, size: 18, color: Colors.blueGrey),
+                            tooltip: 'Print / View Bill',
+                            onPressed: () => _openBillDialog(sale),
+                          ),
                           IconButton(
                             icon: const Icon(Icons.visibility_outlined, size: 18, color: AppColors.primary),
                             tooltip: 'View Details',

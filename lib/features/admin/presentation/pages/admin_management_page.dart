@@ -7,6 +7,7 @@ import 'package:mlf_frontend/features/admin/presentation/controllers/admin_contr
 import 'package:mlf_frontend/features/admin/presentation/widgets/admin_detail_dialog.dart';
 import 'package:mlf_frontend/features/admin/presentation/widgets/admin_form_dialog.dart';
 import 'package:mlf_frontend/features/admin/presentation/widgets/delete_confirm_dialog.dart';
+import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
 
 class AdminManagementPage extends StatefulWidget {
   final AdminController controller;
@@ -180,6 +181,7 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                       color: AppColors.textPrimary,
                     ),
                   ),
+                  const EnvironmentBadge(),
                 ],
               ),
               const SizedBox(height: 4),

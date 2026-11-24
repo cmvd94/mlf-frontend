@@ -79,7 +79,7 @@ class EnvConfig extends ChangeNotifier {
     if (savedEnv != null) {
       _environment = AppEnvironment.fromString(savedEnv);
     } else {
-      const compileTimeEnv = String.fromEnvironment('ENV', defaultValue: 'dev');
+      const compileTimeEnv = String.fromEnvironment('ENV', defaultValue: 'local');
       _environment = AppEnvironment.fromString(compileTimeEnv);
     }
 

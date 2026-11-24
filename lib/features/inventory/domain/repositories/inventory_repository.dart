@@ -5,6 +5,7 @@ import '../entities/uom_entity.dart';
 import '../entities/per_unit_entity.dart';
 import '../entities/item_group_entity.dart';
 import '../entities/item_entity.dart';
+import '../entities/hsn_code_entity.dart';
 import '../entities/masters_entity.dart';
 
 abstract class InventoryRepository {
@@ -125,6 +126,8 @@ abstract class InventoryRepository {
     String? description,
     required String defaultUomId,
     required String defaultPerId,
+    String? hsnCodeId,
+    String? hsnCode,
     double standardRate = 0.0,
     double openingStock = 0.0,
     bool isActive = true,
@@ -136,8 +139,26 @@ abstract class InventoryRepository {
     String? description,
     String? defaultUomId,
     String? defaultPerId,
+    String? hsnCodeId,
+    String? hsnCode,
     double? standardRate,
     bool? isActive,
   });
   Future<void> deleteItem(String id);
+
+  // HSN Codes
+  Future<List<HsnCodeEntity>> getHsnCodes({String? search, bool? isActive});
+  Future<HsnCodeEntity> createHsnCode({
+    required String hsnCode,
+    String? description,
+    double gstRate = 5.0,
+    bool isActive = true,
+  });
+  Future<HsnCodeEntity> updateHsnCode(String id, {
+    String? hsnCode,
+    String? description,
+    double? gstRate,
+    bool? isActive,
+  });
+  Future<void> deleteHsnCode(String id);
 }

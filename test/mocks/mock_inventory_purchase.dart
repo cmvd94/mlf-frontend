@@ -5,6 +5,7 @@ import 'package:mlf_frontend/features/inventory/domain/entities/uom_entity.dart'
 import 'package:mlf_frontend/features/inventory/domain/entities/per_unit_entity.dart';
 import 'package:mlf_frontend/features/inventory/domain/entities/item_group_entity.dart';
 import 'package:mlf_frontend/features/inventory/domain/entities/item_entity.dart';
+import 'package:mlf_frontend/features/inventory/domain/entities/hsn_code_entity.dart';
 import 'package:mlf_frontend/features/inventory/domain/entities/masters_entity.dart';
 import 'package:mlf_frontend/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:mlf_frontend/features/purchase/domain/entities/purchase_entity.dart';
@@ -65,6 +66,9 @@ class MockInventoryRepository implements InventoryRepository {
       currentStock: 100.0,
     ),
   ];
+  List<HsnCodeEntity> hsnCodes = [
+    const HsnCodeEntity(id: 'h1', hsnCode: '60062300', description: 'Fabrics', gstRate: 5.0),
+  ];
 
   @override
   Future<MastersEntity> getMasters() async {
@@ -77,6 +81,7 @@ class MockInventoryRepository implements InventoryRepository {
       perUnits: perUnits,
       items: items,
       godowns: godowns,
+      hsnCodes: hsnCodes,
     );
   }
 
@@ -406,6 +411,8 @@ class MockInventoryRepository implements InventoryRepository {
     String? description,
     required String defaultUomId,
     required String defaultPerId,
+    String? hsnCodeId,
+    String? hsnCode,
     double standardRate = 0.0,
     double openingStock = 0.0,
     bool isActive = true,
@@ -422,6 +429,8 @@ class MockInventoryRepository implements InventoryRepository {
       description: description ?? '',
       defaultUomId: defaultUomId,
       defaultPerId: defaultPerId,
+      hsnCodeId: hsnCodeId,
+      hsnCode: hsnCode ?? '',
       standardRate: standardRate,
       currentStock: openingStock,
       isActive: isActive,
@@ -438,6 +447,8 @@ class MockInventoryRepository implements InventoryRepository {
     String? description,
     String? defaultUomId,
     String? defaultPerId,
+    String? hsnCodeId,
+    String? hsnCode,
     double? standardRate,
     bool? isActive,
   }) async {
@@ -457,6 +468,8 @@ class MockInventoryRepository implements InventoryRepository {
         description: description ?? old.description,
         defaultUomId: defaultUomId ?? old.defaultUomId,
         defaultPerId: defaultPerId ?? old.defaultPerId,
+        hsnCodeId: hsnCodeId ?? old.hsnCodeId,
+        hsnCode: hsnCode ?? old.hsnCode,
         standardRate: standardRate ?? old.standardRate,
         currentStock: old.currentStock,
         isActive: isActive ?? old.isActive,
@@ -470,6 +483,56 @@ class MockInventoryRepository implements InventoryRepository {
   @override
   Future<void> deleteItem(String id) async {
     items.removeWhere((i) => i.id == id);
+  }
+
+  // HSN Codes
+  @override
+  Future<List<HsnCodeEntity>> getHsnCodes({String? search, bool? isActive}) async => hsnCodes;
+
+  @override
+  Future<HsnCodeEntity> createHsnCode({
+    required String hsnCode,
+    String? description,
+    double gstRate = 5.0,
+    bool isActive = true,
+  }) async {
+    final h = HsnCodeEntity(
+      id: 'h_${DateTime.now().millisecondsSinceEpoch}',
+      hsnCode: hsnCode,
+      description: description ?? '',
+      gstRate: gstRate,
+      isActive: isActive,
+    );
+    hsnCodes.add(h);
+    return h;
+  }
+
+  @override
+  Future<HsnCodeEntity> updateHsnCode(String id, {
+    String? hsnCode,
+    String? description,
+    double? gstRate,
+    bool? isActive,
+  }) async {
+    final index = hsnCodes.indexWhere((h) => h.id == id);
+    if (index >= 0) {
+      final old = hsnCodes[index];
+      final updated = HsnCodeEntity(
+        id: old.id,
+        hsnCode: hsnCode ?? old.hsnCode,
+        description: description ?? old.description,
+        gstRate: gstRate ?? old.gstRate,
+        isActive: isActive ?? old.isActive,
+      );
+      hsnCodes[index] = updated;
+      return updated;
+    }
+    throw Exception('HSN Code not found');
+  }
+
+  @override
+  Future<void> deleteHsnCode(String id) async {
+    hsnCodes.removeWhere((h) => h.id == id);
   }
 }
 

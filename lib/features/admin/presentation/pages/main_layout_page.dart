@@ -10,6 +10,7 @@ import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.d
 import 'package:mlf_frontend/features/auth/presentation/pages/login_page.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
+import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
 import 'package:mlf_frontend/features/admin/presentation/widgets/change_password_dialog.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/admin_management_page.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/godown_management_page.dart';
@@ -137,9 +138,16 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       appBar: isDesktop
           ? null
           : AppBar(
-              title: const Text(
-                'MLF',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              title: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'MLF',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  SizedBox(width: 8),
+                  EnvironmentBadge(),
+                ],
               ),
               backgroundColor: Colors.white,
               foregroundColor: AppColors.textPrimary,
@@ -208,6 +216,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const EnvironmentBadge(),
+              const SizedBox(width: 12),
               CircleAvatar(
                 radius: 16,
                 backgroundColor: AppColors.yellow,
@@ -400,10 +410,51 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       label: 'Credit Note',
                       isDrawer: isDrawer,
                     ),
+                    _buildNavItem(
+                      index: 10,
+                      icon: Icons.tune_outlined,
+                      activeIcon: Icons.tune,
+                      label: 'Environment & Config',
+                      isDrawer: isDrawer,
+                    ),
                   ],
                 ),
               ),
             ),
+
+          // Environment info footer
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF071B47),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.yellow.withOpacity(0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'API BASE URL',
+                  style: TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                AnimatedBuilder(
+                  animation: EnvConfig(),
+                  builder: (context, _) => Text(
+                    EnvConfig().baseUrl,
+                    style: const TextStyle(
+                      color: AppColors.yellow,
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
 
           // Change Password
           ListTile(
@@ -661,6 +712,13 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             icon: Icons.note_alt,
             color: Colors.cyan.shade700,
             onTap: () => setState(() => _selectedTabIndex = 9),
+          ),
+          _buildStatCard(
+            title: 'Environment',
+            subtitle: EnvConfig().environment.displayName,
+            icon: Icons.tune,
+            color: AppColors.yellowDark,
+            onTap: () => setState(() => _selectedTabIndex = 10),
           ),
         ];
 

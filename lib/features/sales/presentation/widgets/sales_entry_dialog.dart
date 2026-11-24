@@ -15,6 +15,7 @@ class _SaleItemRowData {
   String? godownId;
   String? uomId;
   String? perId;
+  String hsnCode = '';
   double maxAvailableStock = 0.0;
 
   final TextEditingController lotNoController;
@@ -29,6 +30,7 @@ class _SaleItemRowData {
     this.godownId,
     this.uomId,
     this.perId,
+    this.hsnCode = '',
     this.maxAvailableStock = 0.0,
     String lotNo = '',
     String uomQty = '1',
@@ -82,6 +84,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
   late DateTime _selectedDate;
   String? _selectedSalesTypeId;
   String? _selectedPartyId;
+  late final TextEditingController _invoiceNoController;
   late final TextEditingController _dcNoController;
 
   bool _isGstBill = false;
@@ -107,6 +110,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
     _selectedDate = DateTime(initialDate.year, initialDate.month, initialDate.day);
     _selectedSalesTypeId = s?.salesTypeId.isNotEmpty ?? false ? s?.salesTypeId : null;
     _selectedPartyId = s?.partyId.isNotEmpty ?? false ? s?.partyId : null;
+    _invoiceNoController = TextEditingController(text: s?.invoiceNo ?? '');
     _dcNoController = TextEditingController(text: s?.dcNo ?? '');
     _notesController = TextEditingController(text: s?.notes.isNotEmpty ?? false ? s!.notes : (s?.narration ?? ''));
 
@@ -123,6 +127,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
           godownId: it.godownId,
           uomId: it.uomId,
           perId: it.perId,
+          hsnCode: it.hsnCode,
           lotNo: it.lotNo,
           uomQty: it.uomQuantity.toString(),
           actualQty: it.actualQuantity.toString(),
@@ -167,6 +172,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
 
   @override
   void dispose() {
+    _invoiceNoController.dispose();
     _dcNoController.dispose();
     _notesController.dispose();
     for (final row in _rows) {
@@ -210,11 +216,14 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
       if (itemId == null || itemId.isEmpty) {
         row.godownStockId = null;
         row.godownId = null;
+        row.hsnCode = '';
         row.maxAvailableStock = 0.0;
         return;
       }
 
-      final itemDoc = _inventoryController.items.where((it) => it.id == itemId).firstOrNull;
+      final itemDoc = _inventoryController.items.where((it) => it.id == itemId).firstOrNull ??
+          _inventoryController.masters.items.where((it) => it.id == itemId).firstOrNull;
+      row.hsnCode = itemDoc?.hsnCode ?? '';
       final stocksForItem = _salesController.availableStocks
           .where((s) => s.itemId == itemId && s.currentStock > 0)
           .toList();
@@ -242,6 +251,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
   void _applyStockToRow(_SaleItemRowData row, AvailableStockEntity stock, dynamic itemDoc) {
     row.godownStockId = stock.godownStockId;
     row.godownId = stock.godownId;
+    row.hsnCode = (itemDoc?.hsnCode ?? '').isNotEmpty ? (itemDoc?.hsnCode ?? '') : row.hsnCode;
     row.maxAvailableStock = stock.currentStock;
     row.lotNoController.text = stock.lotNo;
     row.uomId = stock.uomId.isNotEmpty ? stock.uomId : itemDoc?.defaultUomId;
@@ -349,12 +359,20 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
           return;
         }
 
+        String rowHsn = row.hsnCode;
+        if (rowHsn.isEmpty && row.itemId != null) {
+          final itm = _inventoryController.items.where((it) => it.id == row.itemId).firstOrNull ??
+              _inventoryController.masters.items.where((it) => it.id == row.itemId).firstOrNull;
+          rowHsn = itm?.hsnCode ?? '';
+        }
+
         inputs.add(SaleItemInput(
           godownStockId: row.godownStockId!,
           itemId: row.itemId,
           godownId: row.godownId,
           dcNo: _dcNoController.text.trim(),
           lotNo: row.lotNoController.text.trim(),
+          hsnCode: rowHsn,
           uomId: row.uomId,
           uomQuantity: row.uomQuantity,
           actualQuantity: row.actualQuantity,
@@ -372,6 +390,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
             date: _selectedDate,
             salesTypeId: _selectedSalesTypeId,
             partyId: _selectedPartyId,
+            invoiceNo: _invoiceNoController.text.trim(),
             dcNo: _dcNoController.text.trim(),
             items: inputs,
             isGstBill: _isGstBill,
@@ -386,6 +405,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
             date: _selectedDate,
             salesTypeId: _selectedSalesTypeId!,
             partyId: _selectedPartyId!,
+            invoiceNo: _invoiceNoController.text.trim(),
             dcNo: _dcNoController.text.trim(),
             items: inputs,
             isGstBill: _isGstBill,
@@ -595,16 +615,35 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                   validator: (v) => v == null ? 'Customer required' : null,
                                 ),
                                 const SizedBox(height: 12),
-                                // 4. DC No
-                                TextFormField(
-                                  controller: _dcNoController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'DC No *',
-                                    hintText: 'Enter DC No',
-                                    border: OutlineInputBorder(),
-                                    prefixIcon: Icon(Icons.receipt_long, size: 20),
-                                  ),
-                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'DC No is required' : null,
+                                Row(
+                                  children: [
+                                    // 4. DC No
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _dcNoController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'DC No *',
+                                          hintText: 'Enter DC No',
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.receipt_long, size: 20),
+                                        ),
+                                        validator: (v) => (v == null || v.trim().isEmpty) ? 'DC No is required' : null,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    // 5. Invoice No
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _invoiceNoController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Invoice No',
+                                          hintText: 'e.g. 86',
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.tag, size: 20),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ] else ...[
                                 Row(
@@ -692,6 +731,20 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                           prefixIcon: Icon(Icons.receipt_long, size: 20),
                                         ),
                                         validator: (v) => (v == null || v.trim().isEmpty) ? 'DC No is required' : null,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // 5. Invoice No
+                                    Expanded(
+                                      flex: 2,
+                                      child: TextFormField(
+                                        controller: _invoiceNoController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Invoice No',
+                                          hintText: 'e.g. 86',
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.tag, size: 20),
+                                        ),
                                       ),
                                     ),
                                   ],

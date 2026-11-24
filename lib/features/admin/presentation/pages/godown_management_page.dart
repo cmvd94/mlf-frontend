@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
+import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
 import '../../domain/entities/godown_entity.dart';
 import '../controllers/godown_controller.dart';
 import '../widgets/godown_detail_dialog.dart';
@@ -209,6 +210,7 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
                       color: AppColors.textPrimary,
                     ),
                   ),
+                  const EnvironmentBadge(),
                 ],
               ),
               const SizedBox(height: 4),

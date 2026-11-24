@@ -29,6 +29,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
   String? _selectedItemGroupId;
   String? _selectedUomId;
   String? _selectedPerId;
+  String? _selectedHsnCodeId;
   late bool _isActive;
   bool _isSaving = false;
   bool _isFullScreen = false;
@@ -58,6 +59,12 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
     _selectedItemGroupId = widget.item?.itemGroupId;
     _selectedUomId = widget.item?.defaultUomId;
     _selectedPerId = widget.item?.defaultPerId;
+    _selectedHsnCodeId = widget.item?.hsnCodeId;
+    if (_selectedHsnCodeId == null && widget.item != null && widget.item!.hsnCode.isNotEmpty) {
+      final match = widget.controller.hsnCodes.where((h) => h.hsnCode == widget.item!.hsnCode).firstOrNull ??
+          widget.controller.masters.hsnCodes.where((h) => h.hsnCode == widget.item!.hsnCode).firstOrNull;
+      if (match != null) _selectedHsnCodeId = match.id;
+    }
     _isActive = widget.item?.isActive ?? true;
 
     // Default to first UOM and PerUnit if creating and masters are available
@@ -98,6 +105,13 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
       final rate = double.tryParse(_standardRateController.text.trim()) ?? 0.0;
       final openingStock = double.tryParse(_openingStockController.text.trim()) ?? 0.0;
 
+      String? hsnCodeStr;
+      if (_selectedHsnCodeId != null && _selectedHsnCodeId!.isNotEmpty) {
+        final match = widget.controller.hsnCodes.where((h) => h.id == _selectedHsnCodeId).firstOrNull ??
+            widget.controller.masters.hsnCodes.where((h) => h.id == _selectedHsnCodeId).firstOrNull;
+        hsnCodeStr = match?.hsnCode;
+      }
+
       setState(() => _isSaving = true);
       final success = isEditing
           ? await widget.controller.updateItem(
@@ -108,6 +122,8 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
               description: _descriptionController.text.trim(),
               defaultUomId: _selectedUomId,
               defaultPerId: _selectedPerId,
+              hsnCodeId: _selectedHsnCodeId,
+              hsnCode: hsnCodeStr,
               standardRate: rate,
               isActive: _isActive,
             )
@@ -118,6 +134,8 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
               description: _descriptionController.text.trim(),
               defaultUomId: _selectedUomId!,
               defaultPerId: _selectedPerId!,
+              hsnCodeId: _selectedHsnCodeId,
+              hsnCode: hsnCodeStr,
               standardRate: rate,
               openingStock: openingStock,
               isActive: _isActive,
@@ -156,6 +174,9 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
     final perUnits = widget.controller.perUnits.isNotEmpty
         ? widget.controller.perUnits
         : widget.controller.masters.perUnits;
+    final hsnCodes = widget.controller.hsnCodes.isNotEmpty
+        ? widget.controller.hsnCodes
+        : widget.controller.masters.hsnCodes;
 
     return Dialog(
       insetPadding: _isFullScreen
@@ -265,6 +286,35 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                       }),
                     ],
                     onChanged: (val) => setState(() => _selectedItemGroupId = val),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: hsnCodes.any((h) => h.id == _selectedHsnCodeId) ? _selectedHsnCodeId : null,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'HSN / SAC Code',
+                      hintText: 'Select HSN Code (Optional)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.tag, size: 20),
+                    ),
+                    items: [
+                      const DropdownMenuItem<String>(
+                        value: null,
+                        child: Text('-- None --'),
+                      ),
+                      ...hsnCodes.map((h) {
+                        return DropdownMenuItem<String>(
+                          value: h.id,
+                          child: Text(
+                            h.description.isNotEmpty
+                                ? '${h.hsnCode} - ${h.description} (${h.gstRate}%)'
+                                : '${h.hsnCode} (${h.gstRate}%)',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        );
+                      }),
+                    ],
+                    onChanged: (val) => setState(() => _selectedHsnCodeId = val),
                   ),
                   const SizedBox(height: 16),
                   Row(

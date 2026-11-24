@@ -13,6 +13,8 @@ class ItemEntity {
   final UomEntity? defaultUom;
   final String defaultPerId;
   final PerUnitEntity? defaultPer;
+  final String? hsnCodeId;
+  final String hsnCode;
   final double standardRate;
   final double currentStock; // Reflects stock value updated by purchases
   final bool isActive;
@@ -29,6 +31,8 @@ class ItemEntity {
     this.defaultUom,
     required this.defaultPerId,
     this.defaultPer,
+    this.hsnCodeId,
+    this.hsnCode = '',
     this.standardRate = 0.0,
     this.currentStock = 0.0,
     this.isActive = true,

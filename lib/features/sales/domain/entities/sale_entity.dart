@@ -12,6 +12,7 @@ class SaleItemEntity {
   final String companyGodownCode;
   final String dcNo;
   final String lotNo;
+  final String hsnCode;
   final String uomId;
   final String uomSymbol;
   final double uomQuantity;
@@ -37,6 +38,7 @@ class SaleItemEntity {
     this.companyGodownCode = '',
     this.dcNo = '',
     this.lotNo = '',
+    this.hsnCode = '',
     required this.uomId,
     required this.uomSymbol,
     required this.uomQuantity,
@@ -57,6 +59,7 @@ class SaleItemInput {
   final String? companyGodownId;
   final String dcNo;
   final String lotNo;
+  final String hsnCode;
   final String? uomId;
   final double uomQuantity;
   final double actualQuantity;
@@ -72,6 +75,7 @@ class SaleItemInput {
     this.companyGodownId,
     this.dcNo = '',
     this.lotNo = '',
+    this.hsnCode = '',
     this.uomId,
     this.uomQuantity = 1.0,
     required this.actualQuantity,
@@ -88,6 +92,7 @@ class SaleItemInput {
     if (companyGodownId != null && companyGodownId!.isNotEmpty) 'companyGodownId': companyGodownId,
     if (dcNo.isNotEmpty) 'dcNo': dcNo,
     if (lotNo.isNotEmpty) 'lotNo': lotNo,
+    if (hsnCode.isNotEmpty) 'hsnCode': hsnCode,
     if (uomId != null && uomId!.isNotEmpty) 'uomId': uomId,
     'uomQuantity': uomQuantity,
     'actualQuantity': actualQuantity,
@@ -101,6 +106,7 @@ class SaleItemInput {
 class SaleEntity {
   final String id;
   final String salesNumber;
+  final String invoiceNo; // Custom Invoice Number entered during sales billing
   final DateTime date;
   final String salesTypeId;
   final String salesTypeName;
@@ -108,6 +114,9 @@ class SaleEntity {
   final String partyId;
   final String partyName;
   final String partyCode;
+  final String partyAddress;
+  final String partyGstin;
+  final String partyPhone;
   final String dcNo; // Common DC Number on top
   final String companyGodownId;
   final String companyGodownName;
@@ -129,6 +138,7 @@ class SaleEntity {
   const SaleEntity({
     required this.id,
     required this.salesNumber,
+    this.invoiceNo = '',
     required this.date,
     this.salesTypeId = '',
     this.salesTypeName = '',
@@ -136,6 +146,9 @@ class SaleEntity {
     required this.partyId,
     required this.partyName,
     this.partyCode = '',
+    this.partyAddress = '',
+    this.partyGstin = '',
+    this.partyPhone = '',
     this.dcNo = '',
     this.companyGodownId = '',
     this.companyGodownName = '',
@@ -160,6 +173,7 @@ class SaleCreateInput {
   final DateTime date;
   final String salesTypeId;
   final String partyId;
+  final String? invoiceNo;
   final String? dcNo;
   final String? companyGodownId;
   final List<SaleItemInput> items;
@@ -172,6 +186,7 @@ class SaleCreateInput {
     required this.date,
     required this.salesTypeId,
     required this.partyId,
+    this.invoiceNo,
     this.dcNo,
     this.companyGodownId,
     required this.items,
@@ -185,6 +200,7 @@ class SaleCreateInput {
     'date': date.toIso8601String().split('T').first,
     'salesTypeId': salesTypeId,
     'partyId': partyId,
+    if (invoiceNo != null && invoiceNo!.isNotEmpty) 'invoiceNo': invoiceNo,
     if (dcNo != null && dcNo!.isNotEmpty) 'dcNo': dcNo,
     if (companyGodownId != null && companyGodownId!.isNotEmpty) 'companyGodownId': companyGodownId,
     'items': items.map((i) => i.toJson()).toList(),
@@ -199,6 +215,7 @@ class SaleUpdateInput {
   final DateTime? date;
   final String? salesTypeId;
   final String? partyId;
+  final String? invoiceNo;
   final String? dcNo;
   final String? companyGodownId;
   final List<SaleItemInput>? items;
@@ -211,6 +228,7 @@ class SaleUpdateInput {
     this.date,
     this.salesTypeId,
     this.partyId,
+    this.invoiceNo,
     this.dcNo,
     this.companyGodownId,
     this.items,
@@ -224,6 +242,7 @@ class SaleUpdateInput {
     if (date != null) 'date': date!.toIso8601String().split('T').first,
     if (salesTypeId != null) 'salesTypeId': salesTypeId,
     if (partyId != null) 'partyId': partyId,
+    if (invoiceNo != null) 'invoiceNo': invoiceNo,
     if (dcNo != null) 'dcNo': dcNo,
     if (companyGodownId != null && companyGodownId!.isNotEmpty) 'companyGodownId': companyGodownId,
     if (items != null) 'items': items!.map((i) => i.toJson()).toList(),

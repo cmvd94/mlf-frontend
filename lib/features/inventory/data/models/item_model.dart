@@ -15,6 +15,8 @@ class ItemModel extends ItemEntity {
     super.defaultUom,
     required super.defaultPerId,
     super.defaultPer,
+    super.hsnCodeId,
+    super.hsnCode,
     super.standardRate,
     super.currentStock,
     super.isActive,
@@ -25,6 +27,10 @@ class ItemModel extends ItemEntity {
     final groupData = json['itemGroupId'];
     final uomData = json['defaultUomId'];
     final perData = json['defaultPerId'];
+    final hsnData = json['hsnCodeId'];
+
+    final hsnCodeStr = json['hsnCode']?.toString() ??
+        (hsnData is Map ? hsnData['hsnCode']?.toString() ?? '' : '');
 
     return ItemModel(
       id: json['_id']?.toString() ?? '',
@@ -41,6 +47,8 @@ class ItemModel extends ItemEntity {
       defaultUom: uomData is Map ? UomModel.fromJson(uomData as Map<String, dynamic>) : null,
       defaultPerId: perData is Map ? perData['_id']?.toString() ?? '' : perData?.toString() ?? '',
       defaultPer: perData is Map ? PerUnitModel.fromJson(perData as Map<String, dynamic>) : null,
+      hsnCodeId: hsnData is Map ? hsnData['_id']?.toString() : hsnData?.toString(),
+      hsnCode: hsnCodeStr,
       standardRate: json['standardRate'] != null
           ? (json['standardRate'] as num).toDouble()
           : 0.0,
@@ -62,6 +70,8 @@ class ItemModel extends ItemEntity {
       if (description.isNotEmpty) 'description': description,
       'defaultUomId': defaultUomId,
       'defaultPerId': defaultPerId,
+      if (hsnCodeId != null && hsnCodeId!.isNotEmpty) 'hsnCodeId': hsnCodeId,
+      if (hsnCode.isNotEmpty) 'hsnCode': hsnCode,
       'standardRate': standardRate,
       if (openingStock != null && openingStock > 0) 'openingStock': openingStock,
       'isActive': isActive,
@@ -76,6 +86,8 @@ class ItemModel extends ItemEntity {
       'description': description,
       'defaultUomId': defaultUomId,
       'defaultPerId': defaultPerId,
+      'hsnCodeId': hsnCodeId,
+      'hsnCode': hsnCode,
       'standardRate': standardRate,
       'isActive': isActive,
     };

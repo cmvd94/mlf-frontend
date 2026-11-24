@@ -6,6 +6,7 @@ import '../../domain/entities/uom_entity.dart';
 import '../../domain/entities/per_unit_entity.dart';
 import '../../domain/entities/item_group_entity.dart';
 import '../../domain/entities/item_entity.dart';
+import '../../domain/entities/hsn_code_entity.dart';
 import '../../domain/entities/masters_entity.dart';
 import '../../domain/repositories/inventory_repository.dart';
 import '../datasources/inventory_remote_data_source.dart';
@@ -346,6 +347,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
     String? description,
     required String defaultUomId,
     required String defaultPerId,
+    String? hsnCodeId,
+    String? hsnCode,
     double standardRate = 0.0,
     double openingStock = 0.0,
     bool isActive = true,
@@ -358,6 +361,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
       if (description != null && description.isNotEmpty) 'description': description,
       'defaultUomId': defaultUomId,
       'defaultPerId': defaultPerId,
+      if (hsnCodeId != null && hsnCodeId.isNotEmpty) 'hsnCodeId': hsnCodeId,
+      if (hsnCode != null && hsnCode.isNotEmpty) 'hsnCode': hsnCode,
       'standardRate': standardRate,
       if (openingStock > 0) 'openingStock': openingStock,
       'isActive': isActive,
@@ -373,6 +378,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
     String? description,
     String? defaultUomId,
     String? defaultPerId,
+    String? hsnCodeId,
+    String? hsnCode,
     double? standardRate,
     bool? isActive,
   }) async {
@@ -384,6 +391,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
       if (description != null) 'description': description,
       if (defaultUomId != null) 'defaultUomId': defaultUomId,
       if (defaultPerId != null) 'defaultPerId': defaultPerId,
+      if (hsnCodeId != null) 'hsnCodeId': hsnCodeId,
+      if (hsnCode != null) 'hsnCode': hsnCode,
       if (standardRate != null) 'standardRate': standardRate,
       if (isActive != null) 'isActive': isActive,
     };
@@ -394,5 +403,52 @@ class InventoryRepositoryImpl implements InventoryRepository {
   Future<void> deleteItem(String id) async {
     final token = await _getToken();
     await remoteDataSource.deleteItem(id, token: token);
+  }
+
+  // HSN Codes
+  @override
+  Future<List<HsnCodeEntity>> getHsnCodes({String? search, bool? isActive}) async {
+    final token = await _getToken();
+    return await remoteDataSource.getHsnCodes(search: search, isActive: isActive, token: token);
+  }
+
+  @override
+  Future<HsnCodeEntity> createHsnCode({
+    required String hsnCode,
+    String? description,
+    double gstRate = 5.0,
+    bool isActive = true,
+  }) async {
+    final token = await _getToken();
+    final body = {
+      'hsnCode': hsnCode,
+      if (description != null && description.isNotEmpty) 'description': description,
+      'gstRate': gstRate,
+      'isActive': isActive,
+    };
+    return await remoteDataSource.createHsnCode(body, token: token);
+  }
+
+  @override
+  Future<HsnCodeEntity> updateHsnCode(String id, {
+    String? hsnCode,
+    String? description,
+    double? gstRate,
+    bool? isActive,
+  }) async {
+    final token = await _getToken();
+    final body = <String, dynamic>{
+      if (hsnCode != null) 'hsnCode': hsnCode,
+      if (description != null) 'description': description,
+      if (gstRate != null) 'gstRate': gstRate,
+      if (isActive != null) 'isActive': isActive,
+    };
+    return await remoteDataSource.updateHsnCode(id, body, token: token);
+  }
+
+  @override
+  Future<void> deleteHsnCode(String id) async {
+    final token = await _getToken();
+    await remoteDataSource.deleteHsnCode(id, token: token);
   }
 }
