@@ -1,4 +1,12 @@
 import '../../domain/entities/masters_entity.dart';
+import '../../domain/entities/party_entity.dart';
+import '../../domain/entities/purchase_type_entity.dart';
+import '../../domain/entities/sales_type_entity.dart';
+import '../../domain/entities/uom_entity.dart';
+import '../../domain/entities/per_unit_entity.dart';
+import '../../domain/entities/item_group_entity.dart';
+import '../../domain/entities/item_entity.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/godown_entity.dart';
 import 'party_model.dart';
 import 'purchase_type_model.dart';
 import 'sales_type_model.dart';
@@ -23,28 +31,28 @@ class MastersModel extends MastersEntity {
   factory MastersModel.fromJson(Map<String, dynamic> json) {
     return MastersModel(
       parties: (json['parties'] as List? ?? [])
-          .map((e) => PartyModel.fromJson(e as Map<String, dynamic>))
+          .map<PartyEntity>((e) => PartyModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       purchaseTypes: (json['purchaseTypes'] as List? ?? [])
-          .map((e) => PurchaseTypeModel.fromJson(e as Map<String, dynamic>))
+          .map<PurchaseTypeEntity>((e) => PurchaseTypeModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       salesTypes: (json['salesTypes'] as List? ?? [])
-          .map((e) => SalesTypeModel.fromJson(e as Map<String, dynamic>))
+          .map<SalesTypeEntity>((e) => SalesTypeModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       uoms: (json['uoms'] as List? ?? [])
-          .map((e) => UomModel.fromJson(e as Map<String, dynamic>))
+          .map<UomEntity>((e) => UomModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       perUnits: (json['perUnits'] as List? ?? [])
-          .map((e) => PerUnitModel.fromJson(e as Map<String, dynamic>))
+          .map<PerUnitEntity>((e) => PerUnitModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       itemGroups: (json['itemGroups'] as List? ?? [])
-          .map((e) => ItemGroupModel.fromJson(e as Map<String, dynamic>))
+          .map<ItemGroupEntity>((e) => ItemGroupModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       items: (json['items'] as List? ?? [])
-          .map((e) => ItemModel.fromJson(e as Map<String, dynamic>))
+          .map<ItemEntity>((e) => ItemModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       godowns: (json['godowns'] as List? ?? [])
-          .map((e) => GodownModel.fromJson(e as Map<String, dynamic>))
+          .map<GodownEntity>((e) => GodownModel.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
   }

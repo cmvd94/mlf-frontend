@@ -68,6 +68,18 @@ import '../../features/sales/data/repositories/sales_repository_impl.dart';
 import '../../features/sales/domain/repositories/sales_repository.dart';
 import '../../features/sales/presentation/controllers/sales_controller.dart';
 
+// Debit Note
+import '../../features/debit_note/data/datasources/debit_note_remote_data_source.dart';
+import '../../features/debit_note/data/repositories/debit_note_repository_impl.dart';
+import '../../features/debit_note/domain/repositories/debit_note_repository.dart';
+import '../../features/debit_note/presentation/controllers/debit_note_controller.dart';
+
+// Credit Note
+import '../../features/credit_note/data/datasources/credit_note_remote_data_source.dart';
+import '../../features/credit_note/data/repositories/credit_note_repository_impl.dart';
+import '../../features/credit_note/domain/repositories/credit_note_repository.dart';
+import '../../features/credit_note/presentation/controllers/credit_note_controller.dart';
+
 class ServiceLocator {
   static final ServiceLocator instance = ServiceLocator._internal();
   factory ServiceLocator() => instance;
@@ -287,6 +299,32 @@ class ServiceLocator {
 
     final salesController = SalesController(repository: salesRepository);
     sl._register<SalesController>(salesController);
+
+    // 15. Debit Note Data Sources, Repositories & Controller
+    final debitNoteRemoteDataSource = DebitNoteRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<DebitNoteRemoteDataSource>(debitNoteRemoteDataSource);
+
+    final debitNoteRepository = DebitNoteRepositoryImpl(
+      remoteDataSource: debitNoteRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<DebitNoteRepository>(debitNoteRepository);
+
+    final debitNoteController = DebitNoteController(repository: debitNoteRepository);
+    sl._register<DebitNoteController>(debitNoteController);
+
+    // 16. Credit Note Data Sources, Repositories & Controller
+    final creditNoteRemoteDataSource = CreditNoteRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<CreditNoteRemoteDataSource>(creditNoteRemoteDataSource);
+
+    final creditNoteRepository = CreditNoteRepositoryImpl(
+      remoteDataSource: creditNoteRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<CreditNoteRepository>(creditNoteRepository);
+
+    final creditNoteController = CreditNoteController(repository: creditNoteRepository);
+    sl._register<CreditNoteController>(creditNoteController);
   }
 }
 

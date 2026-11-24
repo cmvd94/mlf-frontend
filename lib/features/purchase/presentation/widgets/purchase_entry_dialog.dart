@@ -184,15 +184,16 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
       final row = _rows[index];
       row.itemId = itemId;
       if (itemId != null) {
-        final item = widget.inventoryController.items.firstWhere(
-          (it) => it.id == itemId,
-          orElse: () => widget.inventoryController.items.first,
-        );
-        // Auto-select default UOM and Per unit based on selected item
-        row.uomId = item.defaultUomId;
-        row.perId = item.defaultPerId;
-        if (item.standardRate > 0 && row.rateController.text.isEmpty) {
-          row.rateController.text = item.standardRate.toString();
+        final item = widget.inventoryController.items
+            .where((it) => it.id == itemId)
+            .firstOrNull;
+        if (item != null) {
+          // Auto-select default UOM and Per unit based on selected item
+          row.uomId = item.defaultUomId;
+          row.perId = item.defaultPerId;
+          if (item.standardRate > 0 && row.rateController.text.isEmpty) {
+            row.rateController.text = item.standardRate.toString();
+          }
         }
       }
     });

@@ -199,9 +199,11 @@ class GodownController extends ChangeNotifier {
     String? description,
     bool? isActive,
     String? godownManagerId,
+    bool clearGodownManager = false,
     List<String>? supervisorId,
     List<String>? assistantId,
     String? billingUserId,
+    bool clearBillingUser = false,
   }) async {
     _isActionLoading = true;
     _errorMessage = null;
@@ -217,9 +219,11 @@ class GodownController extends ChangeNotifier {
         description: description,
         isActive: isActive,
         godownManagerId: godownManagerId,
+        clearGodownManager: clearGodownManager,
         supervisorId: supervisorId,
         assistantId: assistantId,
         billingUserId: billingUserId,
+        clearBillingUser: clearBillingUser,
       );
 
       _successMessage = 'Godown updated successfully!';

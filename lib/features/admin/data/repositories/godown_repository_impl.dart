@@ -99,9 +99,11 @@ class GodownRepositoryImpl implements GodownRepository {
     String? description,
     bool? isActive,
     String? godownManagerId,
+    bool clearGodownManager = false,
     List<String>? supervisorId,
     List<String>? assistantId,
     String? billingUserId,
+    bool clearBillingUser = false,
   }) async {
     final token = await _getToken();
     final body = GodownModel.toUpdatePayload(
@@ -111,9 +113,11 @@ class GodownRepositoryImpl implements GodownRepository {
       description: description,
       isActive: isActive,
       godownManagerId: godownManagerId,
+      clearGodownManager: clearGodownManager,
       supervisorId: supervisorId,
       assistantId: assistantId,
       billingUserId: billingUserId,
+      clearBillingUser: clearBillingUser,
     );
     await remoteDataSource.updateGodown(id, body, token: token);
   }

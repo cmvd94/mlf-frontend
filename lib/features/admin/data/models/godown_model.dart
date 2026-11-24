@@ -182,9 +182,11 @@ class GodownModel extends GodownEntity {
     String? description,
     bool? isActive,
     String? godownManagerId,
+    bool clearGodownManager = false,
     List<String>? supervisorId,
     List<String>? assistantId,
     String? billingUserId,
+    bool clearBillingUser = false,
   }) {
     final map = <String, dynamic>{};
     if (name != null) map['name'] = name.trim();
@@ -200,8 +202,11 @@ class GodownModel extends GodownEntity {
       map['assistantId'] = <String>[];
       map['billingUserId'] = null;
     } else {
-      if (godownManagerId != null) {
-        map['godownManagerId'] = godownManagerId.isEmpty ? null : godownManagerId;
+      if (clearGodownManager) {
+        map['godownManagerId'] = null;
+      } else if (godownManagerId != null) {
+        map['godownManagerId'] =
+            godownManagerId.isEmpty ? null : godownManagerId;
       }
       if (supervisorId != null) {
         map['supervisorId'] = supervisorId;
@@ -209,8 +214,11 @@ class GodownModel extends GodownEntity {
       if (assistantId != null) {
         map['assistantId'] = assistantId;
       }
-      if (billingUserId != null) {
-        map['billingUserId'] = billingUserId.isEmpty ? null : billingUserId;
+      if (clearBillingUser) {
+        map['billingUserId'] = null;
+      } else if (billingUserId != null) {
+        map['billingUserId'] =
+            billingUserId.isEmpty ? null : billingUserId;
       }
     }
 

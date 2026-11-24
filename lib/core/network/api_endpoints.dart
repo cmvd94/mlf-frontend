@@ -88,4 +88,19 @@ class ApiEndpoints {
   static String getSaleById(String id) => '/admin/sale/get-a-sale/$id';
   static String updateSale(String id) => '/admin/sale/update/$id';
   static String deleteSale(String id) => '/admin/sale/delete/$id';
+
+  // Debit Note Entries
+  static const String createDebitNote = '/admin/debit-note/create';
+  static const String getDebitNoteList = '/admin/debit-note/list';
+  static const String availableStockForDebitNote = '/admin/debit-note/available-stock';
+  static String getDebitNoteById(String id) => '/admin/debit-note/get-a-debit-note/$id';
+  static String updateDebitNote(String id) => '/admin/debit-note/update/$id';
+  static String deleteDebitNote(String id) => '/admin/debit-note/delete/$id';
+
+  // Credit Note Entries
+  static const String createCreditNote = '/admin/credit-note/create';
+  static const String getCreditNoteList = '/admin/credit-note/list';
+  static String getCreditNoteById(String id) => '/admin/credit-note/get-a-credit-note/$id';
+  static String updateCreditNote(String id) => '/admin/credit-note/update/$id';
+  static String deleteCreditNote(String id) => '/admin/credit-note/delete/$id';
 }

@@ -113,9 +113,11 @@ class MockGodownRepository implements GodownRepository {
     String? description,
     bool? isActive,
     String? godownManagerId,
+    bool clearGodownManager = false,
     List<String>? supervisorId,
     List<String>? assistantId,
     String? billingUserId,
+    bool clearBillingUser = false,
   }) async {
     final idx = godowns.indexWhere((g) => g.id == id);
     if (idx != -1) {
@@ -131,6 +133,30 @@ class MockGodownRepository implements GodownRepository {
         state: old.state,
         district: old.district,
         pincode: old.pincode,
+        godownManager: clearGodownManager
+            ? null
+            : (godownManagerId != null
+                ? AssignedAdminEntity(
+                    id: godownManagerId,
+                    name: 'Manager',
+                    employeeId: 'EMP_M',
+                    phoneNumber: '',
+                    email: '',
+                    role: 'GODOWN_MANAGER',
+                  )
+                : old.godownManager),
+        billingUser: clearBillingUser
+            ? null
+            : (billingUserId != null
+                ? AssignedAdminEntity(
+                    id: billingUserId,
+                    name: 'Billing',
+                    employeeId: 'EMP_B',
+                    phoneNumber: '',
+                    email: '',
+                    role: 'BILLING_USER',
+                  )
+                : old.billingUser),
         isActive: isActive ?? old.isActive,
       );
     }
@@ -255,6 +281,36 @@ void main() {
       expect(payload['supervisorId'], isEmpty);
       expect(payload['assistantId'], isEmpty);
     });
+
+    test('toUpdatePayload sets godownManagerId and billingUserId to null when clear flags are true or empty strings passed', () {
+      final payloadCleared = GodownModel.toUpdatePayload(
+        name: 'Updated Company Godown',
+        type: GodownType.companyGodown,
+        clearGodownManager: true,
+        clearBillingUser: true,
+      );
+
+      expect(payloadCleared['godownManagerId'], isNull);
+      expect(payloadCleared['billingUserId'], isNull);
+
+      final payloadEmpty = GodownModel.toUpdatePayload(
+        name: 'Updated Company Godown',
+        type: GodownType.companyGodown,
+        godownManagerId: '',
+        billingUserId: '',
+      );
+
+      expect(payloadEmpty['godownManagerId'], isNull);
+      expect(payloadEmpty['billingUserId'], isNull);
+
+      final payloadUntouched = GodownModel.toUpdatePayload(
+        name: 'Only Name Updated',
+        type: GodownType.companyGodown,
+      );
+
+      expect(payloadUntouched.containsKey('godownManagerId'), isFalse);
+      expect(payloadUntouched.containsKey('billingUserId'), isFalse);
+    });
   });
 
   group('GodownController sub-tab and filtering tests', () {
@@ -291,6 +347,39 @@ void main() {
       expect(controller.godowns.length, 1);
       expect(controller.godowns.first.name, 'Jobwork Godown 1');
       expect(controller.godowns.first.type, GodownType.jobworkGodown);
+    });
+
+    test('updateGodown clears manager and billing user when clear flags are set', () async {
+      final id = await repository.createGodown(
+        name: 'Godown With Staff',
+        type: GodownType.companyGodown,
+        country: 'India',
+        zone: 'SouthZone',
+        state: 'TamilNadu',
+        district: 'Coimbatore',
+        pincode: '641001',
+        godownManagerId: 'mgr_1',
+        billingUserId: 'bill_1',
+      );
+
+      await controller.fetchGodowns();
+      final created = controller.godowns.firstWhere((g) => g.id == id);
+      expect(created.godownManager?.id, 'mgr_1');
+      expect(created.billingUser?.id, 'bill_1');
+
+      // Update and clear staff
+      final success = await controller.updateGodown(
+        id: id,
+        name: 'Godown Without Staff',
+        clearGodownManager: true,
+        clearBillingUser: true,
+      );
+
+      expect(success, isTrue);
+      await controller.fetchGodowns();
+      final updated = controller.godowns.firstWhere((g) => g.id == id);
+      expect(updated.godownManager, isNull);
+      expect(updated.billingUser, isNull);
     });
   });
 

@@ -271,10 +271,10 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
     for (final row in _rows) {
       double multiplier = 1.0;
       if (row.perId != null) {
-        try {
-          final perDoc = _inventoryController.perUnits.firstWhere((p) => p.id == row.perId);
-          if (perDoc.multiplier > 0) multiplier = perDoc.multiplier;
-        } catch (_) {}
+        final perDoc = _inventoryController.perUnits
+            .where((p) => p.id == row.perId)
+            .firstOrNull;
+        if (perDoc != null && perDoc.multiplier > 0) multiplier = perDoc.multiplier;
       }
       total += (row.billedQuantity * row.rate) / multiplier;
     }

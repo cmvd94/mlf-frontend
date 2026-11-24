@@ -14,9 +14,11 @@ class UpdateGodownUseCase {
     String? description,
     bool? isActive,
     String? godownManagerId,
+    bool clearGodownManager = false,
     List<String>? supervisorId,
     List<String>? assistantId,
     String? billingUserId,
+    bool clearBillingUser = false,
   }) {
     return _repository.updateGodown(
       id: id,
@@ -26,9 +28,11 @@ class UpdateGodownUseCase {
       description: description,
       isActive: isActive,
       godownManagerId: godownManagerId,
+      clearGodownManager: clearGodownManager,
       supervisorId: supervisorId,
       assistantId: assistantId,
       billingUserId: billingUserId,
+      clearBillingUser: clearBillingUser,
     );
   }
 }

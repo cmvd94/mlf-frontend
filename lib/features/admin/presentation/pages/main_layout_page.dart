@@ -22,6 +22,8 @@ import 'package:mlf_frontend/features/stock_summary/presentation/controllers/sto
 import 'package:mlf_frontend/features/stock_summary/presentation/pages/stock_summary_page.dart';
 import 'package:mlf_frontend/features/stock_transfer/presentation/pages/stock_transfer_page.dart';
 import 'package:mlf_frontend/features/sales/presentation/pages/sales_page.dart';
+import 'package:mlf_frontend/features/debit_note/presentation/pages/debit_note_page.dart';
+import 'package:mlf_frontend/features/credit_note/presentation/pages/credit_note_page.dart';
 
 class MainLayoutPage extends StatefulWidget {
   final UserEntity? currentUser;
@@ -392,6 +394,20 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                     ),
                     _buildNavItem(
                       index: 8,
+                      icon: Icons.receipt_long_outlined,
+                      activeIcon: Icons.receipt_long,
+                      label: 'Debit Note',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 9,
+                      icon: Icons.note_alt_outlined,
+                      activeIcon: Icons.note_alt,
+                      label: 'Credit Note',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 10,
                       icon: Icons.tune_outlined,
                       activeIcon: Icons.tune,
                       label: 'Environment & Config',
@@ -556,6 +572,10 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       case 7:
         return 'Sales Management';
       case 8:
+        return 'Debit Note Management';
+      case 9:
+        return 'Credit Note Management';
+      case 10:
         return 'Environment & Configuration';
       default:
         return 'Portal';
@@ -584,6 +604,10 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       case 7:
         return const SalesPage();
       case 8:
+        return const DebitNotePage();
+      case 9:
+        return const CreditNotePage();
+      case 10:
         return _buildEnvironmentTab();
       default:
         return AdminManagementPage(controller: _adminController);
@@ -653,11 +677,39 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               ),
               const SizedBox(width: 16),
               _buildStatCard(
+                title: 'Sales Management',
+                subtitle: 'Outward sales & stock deduction',
+                icon: Icons.point_of_sale,
+                color: Colors.purple,
+                onTap: () => setState(() => _selectedTabIndex = 7),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildStatCard(
+                title: 'Debit Note',
+                subtitle: 'Outward debit voucher management',
+                icon: Icons.receipt_long,
+                color: Colors.blueGrey,
+                onTap: () => setState(() => _selectedTabIndex = 8),
+              ),
+              const SizedBox(width: 16),
+              _buildStatCard(
+                title: 'Credit Note',
+                subtitle: 'Inward credit voucher & returns',
+                icon: Icons.note_alt,
+                color: Colors.cyan.shade700,
+                onTap: () => setState(() => _selectedTabIndex = 9),
+              ),
+              const SizedBox(width: 16),
+              _buildStatCard(
                 title: 'Environment',
                 subtitle: EnvConfig().environment.displayName,
                 icon: Icons.hub,
                 color: AppColors.yellowDark,
-                onTap: () => setState(() => _selectedTabIndex = 6),
+                onTap: () => setState(() => _selectedTabIndex = 10),
               ),
             ],
           ),

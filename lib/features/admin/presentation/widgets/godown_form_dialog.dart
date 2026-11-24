@@ -212,9 +212,11 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
         description: _descriptionController.text.trim(),
         isActive: _isActive,
         godownManagerId: isJobwork ? null : _selectedManagerId,
+        clearGodownManager: isJobwork || _selectedManagerId == null,
         supervisorId: isJobwork ? null : _selectedSupervisorIds,
         assistantId: isJobwork ? null : _selectedAssistantIds,
         billingUserId: isJobwork ? null : _selectedBillingUserId,
+        clearBillingUser: isJobwork || _selectedBillingUserId == null,
       );
     } else {
       success = await widget.controller.createGodown(

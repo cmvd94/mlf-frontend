@@ -42,9 +42,11 @@ abstract class GodownRepository {
     String? description,
     bool? isActive,
     String? godownManagerId,
+    bool clearGodownManager = false,
     List<String>? supervisorId,
     List<String>? assistantId,
     String? billingUserId,
+    bool clearBillingUser = false,
   });
 
   Future<void> updateGodownIsActive({
