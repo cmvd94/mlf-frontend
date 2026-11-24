@@ -659,106 +659,118 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   }
 
   Widget _buildDashboardTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Welcome, ${widget.currentUser?.name ?? "Administrator"}!',
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 650;
+        final int crossAxisCount = constraints.maxWidth < 650
+            ? 1
+            : (constraints.maxWidth < 1100 ? 2 : 3);
+        const spacing = 16.0;
+        final itemWidth =
+            (constraints.maxWidth - (crossAxisCount - 1) * spacing) / crossAxisCount;
+
+        final cards = [
+          _buildStatCard(
+            title: 'Admin Users',
+            subtitle: 'Manage roles & permissions',
+            icon: Icons.admin_panel_settings,
+            color: AppColors.primary,
+            onTap: () => setState(() => _selectedTabIndex = 1),
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Internal company portal for user management and operations.',
-            style: TextStyle(color: AppColors.textSecondary),
+          _buildStatCard(
+            title: 'Godowns',
+            subtitle: 'Manage branches & jobworks',
+            icon: Icons.warehouse,
+            color: Colors.indigo,
+            onTap: () => setState(() => _selectedTabIndex = 2),
           ),
-          const SizedBox(height: 24),
-          Row(
+          _buildStatCard(
+            title: 'Inventory & Masters',
+            subtitle: 'Parties, Items, UOMs, Per',
+            icon: Icons.account_balance_wallet,
+            color: Colors.teal,
+            onTap: () => setState(() => _selectedTabIndex = 3),
+          ),
+          _buildStatCard(
+            title: 'Purchase Entries',
+            subtitle: 'New purchase & stock updates',
+            icon: Icons.shopping_cart,
+            color: Colors.deepOrange,
+            onTap: () => setState(() => _selectedTabIndex = 4),
+          ),
+          _buildStatCard(
+            title: 'Stock Summary',
+            subtitle: 'Tally group & stock summary',
+            icon: Icons.assessment,
+            color: Colors.green.shade700,
+            onTap: () => setState(() => _selectedTabIndex = 5),
+          ),
+          _buildStatCard(
+            title: 'Stock Transfer',
+            subtitle: 'Material transfer & stock journal',
+            icon: Icons.sync_alt,
+            color: Colors.orange.shade800,
+            onTap: () => setState(() => _selectedTabIndex = 6),
+          ),
+          _buildStatCard(
+            title: 'Sales Management',
+            subtitle: 'Outward sales & stock deduction',
+            icon: Icons.point_of_sale,
+            color: Colors.purple,
+            onTap: () => setState(() => _selectedTabIndex = 7),
+          ),
+          _buildStatCard(
+            title: 'Debit Note',
+            subtitle: 'Outward debit voucher management',
+            icon: Icons.receipt_long,
+            color: Colors.blueGrey,
+            onTap: () => setState(() => _selectedTabIndex = 8),
+          ),
+          _buildStatCard(
+            title: 'Credit Note',
+            subtitle: 'Inward credit voucher & returns',
+            icon: Icons.note_alt,
+            color: Colors.cyan.shade700,
+            onTap: () => setState(() => _selectedTabIndex = 9),
+          ),
+          _buildStatCard(
+            title: 'Environment',
+            subtitle: EnvConfig().environment.displayName,
+            icon: Icons.tune,
+            color: AppColors.yellowDark,
+            onTap: () => setState(() => _selectedTabIndex = 10),
+          ),
+        ];
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(isMobile ? 16 : 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildStatCard(
-                title: 'Admin Users',
-                subtitle: 'Manage roles & permissions',
-                icon: Icons.admin_panel_settings,
-                color: AppColors.primary,
-                onTap: () => setState(() => _selectedTabIndex = 1),
+              Text(
+                'Welcome, ${widget.currentUser?.name ?? "Administrator"}!',
+                style: TextStyle(
+                  fontSize: isMobile ? 20 : 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(width: 16),
-              _buildStatCard(
-                title: 'Godowns',
-                subtitle: 'Manage branches & jobworks',
-                icon: Icons.warehouse,
-                color: Colors.indigo,
-                onTap: () => setState(() => _selectedTabIndex = 2),
+              const SizedBox(height: 8),
+              const Text(
+                'Internal company portal for user management and operations.',
+                style: TextStyle(color: AppColors.textSecondary),
               ),
-              const SizedBox(width: 16),
-              _buildStatCard(
-                title: 'Inventory & Masters',
-                subtitle: 'Parties, Items, UOMs, Per',
-                icon: Icons.account_balance_wallet,
-                color: Colors.teal,
-                onTap: () => setState(() => _selectedTabIndex = 3),
+              const SizedBox(height: 24),
+              Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: cards
+                    .map((card) => SizedBox(width: itemWidth, child: card))
+                    .toList(),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _buildStatCard(
-                title: 'Purchase Entries',
-                subtitle: 'New purchase & stock updates',
-                icon: Icons.shopping_cart,
-                color: Colors.deepOrange,
-                onTap: () => setState(() => _selectedTabIndex = 4),
-              ),
-              const SizedBox(width: 16),
-              _buildStatCard(
-                title: 'Stock Summary',
-                subtitle: 'Tally group & stock summary',
-                icon: Icons.assessment,
-                color: Colors.green.shade700,
-                onTap: () => setState(() => _selectedTabIndex = 5),
-              ),
-              const SizedBox(width: 16),
-              _buildStatCard(
-                title: 'Sales Management',
-                subtitle: 'Outward sales & stock deduction',
-                icon: Icons.point_of_sale,
-                color: Colors.purple,
-                onTap: () => setState(() => _selectedTabIndex = 7),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _buildStatCard(
-                title: 'Debit Note',
-                subtitle: 'Outward debit voucher management',
-                icon: Icons.receipt_long,
-                color: Colors.blueGrey,
-                onTap: () => setState(() => _selectedTabIndex = 8),
-              ),
-              const SizedBox(width: 16),
-              _buildStatCard(
-                title: 'Credit Note',
-                subtitle: 'Inward credit voucher & returns',
-                icon: Icons.note_alt,
-                color: Colors.cyan.shade700,
-                onTap: () => setState(() => _selectedTabIndex = 9),
-              ),
-              const SizedBox(width: 16),
-              _buildStatCard(
-                title: 'Environment',
-                subtitle: EnvConfig().environment.displayName,
-                icon: Icons.hub,
-                color: AppColors.yellowDark,
-                onTap: () => setState(() => _selectedTabIndex = 10),
-              ),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -769,46 +781,44 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: color, size: 28),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
+              child: Icon(icon, color: color, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                ],
               ),
-              const Icon(Icons.chevron_right, color: Colors.grey),
-            ],
-          ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.grey),
+          ],
         ),
       ),
     );

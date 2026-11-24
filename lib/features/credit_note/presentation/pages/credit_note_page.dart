@@ -134,44 +134,73 @@ class _CreditNotePageState extends State<CreditNotePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(isMobile ? 12 : 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Credit Notes',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Manage credit notes, inward stock returns, and voucher alterations',
-                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('New Credit Note'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            if (isMobile)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Credit Notes',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                   ),
-                  onPressed: _openCreateDialog,
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Manage credit notes & inward returns',
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('New Credit Note'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    onPressed: _openCreateDialog,
+                  ),
+                ],
+              )
+            else
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Credit Notes',
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Manage credit notes, inward stock returns, and voucher alterations',
+                        style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('New Credit Note'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    ),
+                    onPressed: _openCreateDialog,
+                  ),
+                ],
+              ),
+            const SizedBox(height: 16),
 
             // Filter Bar
             Card(
@@ -181,18 +210,18 @@ class _CreditNotePageState extends State<CreditNotePage> {
                 side: BorderSide(color: Colors.grey.shade200),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(isMobile ? 12 : 16),
                 child: AnimatedBuilder(
                   animation: Listenable.merge([_creditNoteController, _inventoryController]),
                   builder: (context, _) {
                     return Wrap(
-                      spacing: 16,
-                      runSpacing: 12,
+                      spacing: 12,
+                      runSpacing: 10,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         // Search field
                         SizedBox(
-                          width: 260,
+                          width: isMobile ? double.infinity : 260,
                           child: TextField(
                             controller: _searchController,
                             decoration: InputDecoration(
@@ -217,7 +246,7 @@ class _CreditNotePageState extends State<CreditNotePage> {
 
                         // Party Filter
                         SizedBox(
-                          width: 200,
+                          width: isMobile ? double.infinity : 200,
                           child: DropdownButtonFormField<String>(
                             isExpanded: true,
                             value: _creditNoteController.selectedPartyId,
@@ -332,11 +361,28 @@ class _CreditNotePageState extends State<CreditNotePage> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (isMobile) ...[
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                            child: Row(
+                              children: [
+                                Icon(Icons.swipe, size: 14, color: Colors.grey.shade600),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Swipe horizontally to view all credit note columns',
+                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         Expanded(
-                          child: SingleChildScrollView(
+                          child: Scrollbar(
+                            thumbVisibility: isMobile,
                             child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: DataTable(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: DataTable(
                                 headingRowColor: WidgetStateProperty.all(Colors.grey.shade100),
                                 columnSpacing: 24,
                                 columns: const [
@@ -420,6 +466,7 @@ class _CreditNotePageState extends State<CreditNotePage> {
                             ),
                           ),
                         ),
+                      ),
 
                         // Pagination bar
                         Padding(

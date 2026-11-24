@@ -12,13 +12,20 @@ class CreditNoteDetailDialog extends StatelessWidget {
     final localDate = creditNote.date.toLocal();
     final dateStr =
         '${localDate.day.toString().padLeft(2, '0')}/${localDate.month.toString().padLeft(2, '0')}/${localDate.year}';
+    final isMobile = MediaQuery.of(context).size.width < 700;
 
     return Dialog(
+      insetPadding: isMobile
+          ? const EdgeInsets.symmetric(horizontal: 8, vertical: 12)
+          : const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 960, maxHeight: 780),
+        constraints: BoxConstraints(
+          maxWidth: 960,
+          maxHeight: isMobile ? MediaQuery.of(context).size.height * 0.95 : 780,
+        ),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(isMobile ? 12 : 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,14 +83,29 @@ class CreditNoteDetailDialog extends StatelessWidget {
               const SizedBox(height: 16),
               const Text('Credit Note Items (Inward Stock Created)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
               const SizedBox(height: 8),
+              if (isMobile) ...[
+                Row(
+                  children: [
+                    Icon(Icons.swipe, size: 14, color: Colors.grey.shade600),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Swipe horizontally to view all item details',
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+              ],
 
               // Items Table
               Flexible(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
+                child: Scrollbar(
+                  thumbVisibility: isMobile,
                   child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
                       headingRowColor: WidgetStateProperty.all(Colors.grey.shade100),
                       columnSpacing: 20,
                       columns: const [
@@ -128,49 +150,94 @@ class CreditNoteDetailDialog extends StatelessWidget {
                   ),
                 ),
               ),
+            ),
 
               const Divider(height: 24),
 
               // Bottom Section: Notes & Totals Breakdown
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (creditNote.notes.isNotEmpty) ...[
-                          const Text('Notes / Remarks:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                          const SizedBox(height: 4),
-                          Text(creditNote.notes, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              if (isMobile)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (creditNote.notes.isNotEmpty) ...[
+                      const Text('Notes / Remarks:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      const SizedBox(height: 4),
+                      Text(creditNote.notes, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      const SizedBox(height: 8),
+                    ],
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _totalRow('Sub Total', '₹ ${creditNote.subTotal.toStringAsFixed(2)}'),
+                          if (creditNote.isGstBill) ...[
+                            const SizedBox(height: 4),
+                            _totalRow('GST (${creditNote.gstPercentage.toStringAsFixed(0)}%)', '₹ ${creditNote.gstAmount.toStringAsFixed(2)}'),
+                          ],
+                          const Divider(height: 12),
+                          _totalRow('Grand Total', '₹ ${creditNote.totalAmount.toStringAsFixed(2)}', isBold: true, isHighlight: true),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 24),
-                  Container(
-                    width: 260,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade200),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Close'),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _totalRow('Sub Total', '₹ ${creditNote.subTotal.toStringAsFixed(2)}'),
-                        if (creditNote.isGstBill) ...[
-                          const SizedBox(height: 4),
-                          _totalRow('GST (${creditNote.gstPercentage.toStringAsFixed(0)}%)', '₹ ${creditNote.gstAmount.toStringAsFixed(2)}'),
+                  ],
+                )
+              else
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (creditNote.notes.isNotEmpty) ...[
+                            const Text('Notes / Remarks:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            const SizedBox(height: 4),
+                            Text(creditNote.notes, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                          ],
                         ],
-                        const Divider(height: 12),
-                        _totalRow('Grand Total', '₹ ${creditNote.totalAmount.toStringAsFixed(2)}', isBold: true, isHighlight: true),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 24),
+                    Container(
+                      width: 260,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _totalRow('Sub Total', '₹ ${creditNote.subTotal.toStringAsFixed(2)}'),
+                          if (creditNote.isGstBill) ...[
+                            const SizedBox(height: 4),
+                            _totalRow('GST (${creditNote.gstPercentage.toStringAsFixed(0)}%)', '₹ ${creditNote.gstAmount.toStringAsFixed(2)}'),
+                          ],
+                          const Divider(height: 12),
+                          _totalRow('Grand Total', '₹ ${creditNote.totalAmount.toStringAsFixed(2)}', isBold: true, isHighlight: true),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

@@ -359,11 +359,107 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
     final double liveSubtotal = _calculateSubtotal(perUnits);
     final double liveGstAmount = liveSubtotal * (_selectedGstPercentage / 100);
     final double liveTotal = _calculateTotalAmount(perUnits);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+
+    // Helper builder for Date Picker
+    Widget buildDatePickerField() => InkWell(
+          onTap: _selectDate,
+          borderRadius: BorderRadius.circular(8),
+          child: InputDecorator(
+            decoration: const InputDecoration(
+              labelText: 'Purchase Date *',
+              border: OutlineInputBorder(),
+              suffixIcon: Icon(Icons.calendar_today, size: 20),
+            ),
+            child: Text(
+              '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        );
+
+    // Helper builder for Purchase Type
+    Widget buildPurchaseTypeField() => DropdownButtonFormField<String>(
+          isExpanded: true,
+          value: purchaseTypes.any((t) => t.id == _selectedPurchaseTypeId)
+              ? _selectedPurchaseTypeId
+              : null,
+          decoration: const InputDecoration(
+            labelText: 'Purchase Type *',
+            border: OutlineInputBorder(),
+          ),
+          hint: const Text('Select Type', overflow: TextOverflow.ellipsis),
+          items: purchaseTypes.map((t) {
+            return DropdownMenuItem<String>(
+              value: t.id,
+              child: Text(t.name, overflow: TextOverflow.ellipsis),
+            );
+          }).toList(),
+          onChanged: (val) => setState(() => _selectedPurchaseTypeId = val),
+          validator: (v) => v == null ? 'Required' : null,
+        );
+
+    // Helper builder for Company Godown
+    Widget buildCompanyGodownField() => DropdownButtonFormField<String>(
+          isExpanded: true,
+          value: companyGodowns.any((g) => g.id == _selectedCompanyGodownId)
+              ? _selectedCompanyGodownId
+              : null,
+          decoration: const InputDecoration(
+            labelText: 'Company Godown *',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.business_outlined, size: 20),
+          ),
+          hint: const Text('Select Company Godown', overflow: TextOverflow.ellipsis),
+          items: companyGodowns.map((g) {
+            return DropdownMenuItem<String>(
+              value: g.id,
+              child: Text(
+                '${g.name} (${g.godownId})',
+                overflow: TextOverflow.ellipsis,
+              ),
+            );
+          }).toList(),
+          onChanged: (val) => setState(() {
+            _selectedCompanyGodownId = val;
+            for (final row in _rows) {
+              row.godownId ??= val;
+            }
+          }),
+          validator: (v) => v == null ? 'Company Godown required' : null,
+        );
+
+    // Helper builder for Party / Supplier
+    Widget buildPartyField() => DropdownButtonFormField<String>(
+          isExpanded: true,
+          value: parties.any((p) => p.id == _selectedPartyId) ? _selectedPartyId : null,
+          decoration: const InputDecoration(
+            labelText: 'Party / Supplier Name *',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.person_pin, size: 20),
+          ),
+          hint: const Text('Select Party / Supplier', overflow: TextOverflow.ellipsis),
+          items: parties.map((p) {
+            return DropdownMenuItem<String>(
+              value: p.id,
+              child: Text(
+                '${p.name} ${p.partyCode.isNotEmpty ? "(${p.partyCode})" : ""}',
+                overflow: TextOverflow.ellipsis,
+              ),
+            );
+          }).toList(),
+          onChanged: (val) => setState(() => _selectedPartyId = val),
+          validator: (v) => v == null ? 'Party required' : null,
+        );
 
     return Dialog(
       insetPadding: _isFullScreen
           ? EdgeInsets.zero
-          : const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          : EdgeInsets.symmetric(
+              horizontal: isMobile ? 8 : 20,
+              vertical: isMobile ? 12 : 20,
+            ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(_isFullScreen ? 0 : 16),
       ),
@@ -373,7 +469,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
           maxHeight: _isFullScreen ? double.infinity : 880,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(isMobile ? 12 : 24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -384,7 +480,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -392,10 +488,10 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                       child: Icon(
                         isEditing ? Icons.edit_note : Icons.shopping_cart,
                         color: AppColors.primary,
-                        size: 24,
+                        size: isMobile ? 20 : 24,
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,12 +500,14 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                             isEditing
                                 ? 'Edit Purchase Record (${widget.existingPurchase!.purchaseNumber})'
                                 : 'New Purchase Entry',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: isMobile ? 16 : 18, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
-                            'Assign godown for individual items & record multi-item purchase with actual stock reflection',
-                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          Text(
+                            'Assign godown for items & record actual stock reflection',
+                            style: TextStyle(fontSize: isMobile ? 11 : 12, color: AppColors.textSecondary),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -423,19 +521,20 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                 ? Icons.fullscreen_exit_rounded
                                 : Icons.fullscreen_rounded,
                             color: AppColors.textSecondary,
+                            size: 20,
                           ),
                           tooltip: _isFullScreen ? 'Exit Full Screen' : 'Full Screen View',
                           onPressed: () => setState(() => _isFullScreen = !_isFullScreen),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close),
+                          icon: const Icon(Icons.close, size: 20),
                           onPressed: () => Navigator.pop(context),
                         ),
                       ],
                     ),
                   ],
                 ),
-                const Divider(height: 20),
+                const Divider(height: 18),
 
                 // Scrollable Body
                 Expanded(
@@ -443,116 +542,35 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header Row: Date, Purchase Type, Company Godown, Party Name
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 1. Date Picker Field
-                            Expanded(
-                              flex: 2,
-                              child: InkWell(
-                                onTap: _selectDate,
-                                borderRadius: BorderRadius.circular(8),
-                                child: InputDecorator(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Purchase Date *',
-                                    border: OutlineInputBorder(),
-                                    suffixIcon: Icon(Icons.calendar_today, size: 20),
-                                  ),
-                                  child: Text(
-                                    '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}',
-                                    style: const TextStyle(fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // 2. Purchase Type Dropdown
-                            Expanded(
-                              flex: 2,
-                              child: DropdownButtonFormField<String>(
-                                isExpanded: true,
-                                value: purchaseTypes.any((t) => t.id == _selectedPurchaseTypeId)
-                                    ? _selectedPurchaseTypeId
-                                    : null,
-                                decoration: const InputDecoration(
-                                  labelText: 'Purchase Type *',
-                                  border: OutlineInputBorder(),
-                                ),
-                                hint: const Text('Select Type', overflow: TextOverflow.ellipsis),
-                                items: purchaseTypes.map((t) {
-                                  return DropdownMenuItem<String>(
-                                    value: t.id,
-                                    child: Text(t.name, overflow: TextOverflow.ellipsis),
-                                  );
-                                }).toList(),
-                                onChanged: (val) => setState(() => _selectedPurchaseTypeId = val),
-                                validator: (v) => v == null ? 'Required' : null,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // 3. Company Godown Dropdown (Mandatory)
-                            Expanded(
-                              flex: 3,
-                              child: DropdownButtonFormField<String>(
-                                isExpanded: true,
-                                value: companyGodowns.any((g) => g.id == _selectedCompanyGodownId)
-                                    ? _selectedCompanyGodownId
-                                    : null,
-                                decoration: const InputDecoration(
-                                  labelText: 'Company Godown *',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.business_outlined, size: 20),
-                                ),
-                                hint: const Text('Select Company Godown', overflow: TextOverflow.ellipsis),
-                                items: companyGodowns.map((g) {
-                                  return DropdownMenuItem<String>(
-                                    value: g.id,
-                                    child: Text(
-                                      '${g.name} (${g.godownId})',
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (val) => setState(() {
-                                  _selectedCompanyGodownId = val;
-                                  // Default item row delivered godowns to this company godown if not yet chosen
-                                  for (final row in _rows) {
-                                    row.godownId ??= val;
-                                  }
-                                }),
-                                validator: (v) => v == null ? 'Company Godown required' : null,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // 4. Party / Supplier Name Dropdown
-                            Expanded(
-                              flex: 3,
-                              child: DropdownButtonFormField<String>(
-                                isExpanded: true,
-                                value: parties.any((p) => p.id == _selectedPartyId) ? _selectedPartyId : null,
-                                decoration: const InputDecoration(
-                                  labelText: 'Party / Supplier Name *',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.person_pin, size: 20),
-                                ),
-                                hint: const Text('Select Party / Supplier', overflow: TextOverflow.ellipsis),
-                                items: parties.map((p) {
-                                  return DropdownMenuItem<String>(
-                                    value: p.id,
-                                    child: Text(
-                                      '${p.name} ${p.partyCode.isNotEmpty ? "(${p.partyCode})" : ""}',
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (val) => setState(() => _selectedPartyId = val),
-                                validator: (v) => v == null ? 'Party required' : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
+                        // Header Fields: Responsive Row on Desktop, Column/Stacked on Mobile
+                        if (isMobile) ...[
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: buildDatePickerField()),
+                              const SizedBox(width: 10),
+                              Expanded(child: buildPurchaseTypeField()),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          buildCompanyGodownField(),
+                          const SizedBox(height: 12),
+                          buildPartyField(),
+                        ] else ...[
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(flex: 2, child: buildDatePickerField()),
+                              const SizedBox(width: 12),
+                              Expanded(flex: 2, child: buildPurchaseTypeField()),
+                              const SizedBox(width: 12),
+                              Expanded(flex: 3, child: buildCompanyGodownField()),
+                              const SizedBox(width: 12),
+                              Expanded(flex: 3, child: buildPartyField()),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 18),
 
                         // Multi-Item Rows Container
                         Container(
@@ -594,361 +612,391 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                   ],
                                 ),
                               ),
-                              const Divider(height: 1),
-
-                              // Items Table Column Labels
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                child: Row(
-                                  children: const [
-                                    SizedBox(
-                                      width: 26,
-                                      child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                    ),
-                                    Expanded(
-                                      flex: 3,
-                                      child: Text('Item Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Expanded(
-                                      flex: 3,
-                                      child: Text('Delivered Godown *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text('DC # *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text('Lot #', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text('UOM *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text('UOM Qty', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text('Actual Qty *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.success)),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text('Billed Qty *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text('Rate (₹) *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text('Per *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                    ),
-                                    SizedBox(width: 36),
-                                  ],
-                                ),
-                              ),
-                              const Divider(height: 1),
-
-                              // Item Row Editor List
-                              ...List.generate(_rows.length, (index) {
-                                final row = _rows[index];
-                                final isSelected = row.itemId != null;
-                                final itemInfo = isSelected
-                                    ? items.where((it) => it.id == row.itemId).firstOrNull
-                                    : null;
-
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: index.isOdd ? Colors.grey.shade50 : Colors.white,
-                                    border: index < _rows.length - 1
-                                        ? Border(bottom: BorderSide(color: Colors.grey.shade200))
-                                        : null,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                              if (isMobile)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  color: Colors.blue.shade50,
+                                  child: Row(
                                     children: [
-                                      Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          // Row Number
-                                          SizedBox(
-                                            width: 26,
-                                            height: 40,
-                                            child: Center(
-                                              child: Text(
-                                                '${index + 1}',
-                                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
-                                              ),
-                                            ),
-                                          ),
-                                          // 1. Item Dropdown
-                                          Expanded(
-                                            flex: 3,
-                                            child: DropdownButtonFormField<String>(
-                                              isExpanded: true,
-                                              value: items.any((i) => i.id == row.itemId) ? row.itemId : null,
-                                              decoration: const InputDecoration(
-                                                isDense: true,
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                border: OutlineInputBorder(),
-                                                hintText: 'Select Item',
-                                              ),
-                                              items: items.map((it) {
-                                                return DropdownMenuItem<String>(
-                                                  value: it.id,
-                                                  child: Text(
-                                                    '${it.name} ${it.itemCode.isNotEmpty ? "(${it.itemCode})" : ""}',
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: const TextStyle(fontSize: 13),
-                                                  ),
-                                                );
-                                              }).toList(),
-                                              onChanged: (val) => _onItemChanged(index, val),
-                                              validator: (v) => v == null ? 'Required' : null,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          // 2. Assigned Delivered Godown Dropdown for this item
-                                          Expanded(
-                                            flex: 3,
-                                            child: DropdownButtonFormField<String>(
-                                              isExpanded: true,
-                                              value: godowns.any((g) => g.id == row.godownId) ? row.godownId : null,
-                                              decoration: const InputDecoration(
-                                                isDense: true,
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                border: OutlineInputBorder(),
-                                                hintText: 'Delivered Godown',
-                                              ),
-                                              items: godowns.map((g) {
-                                                return DropdownMenuItem<String>(
-                                                  value: g.id,
-                                                  child: Text(
-                                                    '${g.name} (${g.godownId})',
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: const TextStyle(fontSize: 13),
-                                                  ),
-                                                );
-                                              }).toList(),
-                                              onChanged: (val) => setState(() => row.godownId = val),
-                                              validator: (v) => v == null ? 'Godown required' : null,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          // 3. DC No.
-                                          Expanded(
-                                            flex: 2,
-                                            child: TextFormField(
-                                              controller: row.dcNoController,
-                                              decoration: const InputDecoration(
-                                                isDense: true,
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                border: OutlineInputBorder(),
-                                                hintText: 'DC #',
-                                              ),
-                                              style: const TextStyle(fontSize: 13),
-                                              validator: (v) {
-                                                if (v == null || v.trim().isEmpty) return 'Required';
-                                                return null;
-                                              },
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          // 4. Lot No.
-                                          Expanded(
-                                            flex: 2,
-                                            child: TextFormField(
-                                              controller: row.lotNoController,
-                                              decoration: const InputDecoration(
-                                                isDense: true,
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                border: OutlineInputBorder(),
-                                                hintText: 'Lot #',
-                                              ),
-                                              style: const TextStyle(fontSize: 13),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          // 4. UOM Dropdown
-                                          Expanded(
-                                            flex: 2,
-                                            child: DropdownButtonFormField<String>(
-                                              isExpanded: true,
-                                              value: uoms.any((u) => u.id == row.uomId) ? row.uomId : null,
-                                              decoration: const InputDecoration(
-                                                isDense: true,
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                border: OutlineInputBorder(),
-                                                hintText: 'UOM',
-                                              ),
-                                              items: uoms.map((u) {
-                                                return DropdownMenuItem<String>(
-                                                  value: u.id,
-                                                  child: Text(
-                                                    u.symbol,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: const TextStyle(fontSize: 13),
-                                                  ),
-                                                );
-                                              }).toList(),
-                                              onChanged: (val) => setState(() => row.uomId = val),
-                                              validator: (v) => v == null ? 'Required' : null,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          // 4. UOM Quantity
-                                          Expanded(
-                                            flex: 2,
-                                            child: TextFormField(
-                                              controller: row.uomQtyController,
-                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                              decoration: const InputDecoration(
-                                                isDense: true,
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                border: OutlineInputBorder(),
-                                                hintText: 'UOM Qty',
-                                              ),
-                                              style: const TextStyle(fontSize: 13),
-                                              validator: (v) {
-                                                if (v == null || v.trim().isEmpty) return 'Required';
-                                                final n = double.tryParse(v.trim());
-                                                if (n == null || n <= 0) return '> 0';
-                                                return null;
-                                              },
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          // 5. Actual Quantity (Stock Reflection)
-                                          Expanded(
-                                            flex: 2,
-                                            child: TextFormField(
-                                              controller: row.actualQtyController,
-                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                              decoration: const InputDecoration(
-                                                isDense: true,
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                border: OutlineInputBorder(),
-                                                hintText: 'Actual Qty',
-                                              ),
-                                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.success),
-                                              validator: (v) {
-                                                if (v == null || v.trim().isEmpty) return 'Required';
-                                                final n = double.tryParse(v.trim());
-                                                if (n == null || n <= 0) return '> 0';
-                                                return null;
-                                              },
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          // 6. Billed Quantity
-                                          Expanded(
-                                            flex: 2,
-                                            child: TextFormField(
-                                              controller: row.billedQtyController,
-                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                              decoration: const InputDecoration(
-                                                isDense: true,
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                border: OutlineInputBorder(),
-                                                hintText: 'Billed Qty',
-                                              ),
-                                              style: const TextStyle(fontSize: 13),
-                                              validator: (v) {
-                                                if (v == null || v.trim().isEmpty) return 'Required';
-                                                final n = double.tryParse(v.trim());
-                                                if (n == null || n <= 0) return '> 0';
-                                                return null;
-                                              },
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          // 7. Rate (₹)
-                                          Expanded(
-                                            flex: 2,
-                                            child: TextFormField(
-                                              controller: row.rateController,
-                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                              decoration: const InputDecoration(
-                                                isDense: true,
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                border: OutlineInputBorder(),
-                                                hintText: 'Rate ₹',
-                                              ),
-                                              style: const TextStyle(fontSize: 13),
-                                              validator: (v) {
-                                                if (v == null || v.trim().isEmpty) return 'Required';
-                                                final n = double.tryParse(v.trim());
-                                                if (n == null || n < 0) return '>= 0';
-                                                return null;
-                                              },
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          // 8. Per Unit Dropdown
-                                          Expanded(
-                                            flex: 2,
-                                            child: DropdownButtonFormField<String>(
-                                              isExpanded: true,
-                                              value: perUnits.any((p) => p.id == row.perId) ? row.perId : null,
-                                              decoration: const InputDecoration(
-                                                isDense: true,
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                border: OutlineInputBorder(),
-                                                hintText: 'Per',
-                                              ),
-                                              items: perUnits.map((p) {
-                                                return DropdownMenuItem<String>(
-                                                  value: p.id,
-                                                  child: Text(
-                                                    p.symbol,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: const TextStyle(fontSize: 13),
-                                                  ),
-                                                );
-                                              }).toList(),
-                                              onChanged: (val) => setState(() => row.perId = val),
-                                              validator: (v) => v == null ? 'Required' : null,
-                                            ),
-                                          ),
-                                          // 9. Delete Action
-                                          SizedBox(
-                                            width: 36,
-                                            child: IconButton(
-                                              icon: Icon(
-                                                Icons.delete_outline,
-                                                size: 20,
-                                                color: _rows.length > 1 ? Colors.red.shade400 : Colors.grey.shade300,
-                                              ),
-                                              tooltip: _rows.length > 1 ? 'Remove Row' : 'At least 1 item required',
-                                              onPressed: _rows.length > 1 ? () => _removeRow(index) : null,
-                                            ),
-                                          ),
-                                        ],
+                                      Icon(Icons.swipe_outlined, size: 14, color: Colors.blue.shade700),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Swipe horizontally to view all item columns',
+                                        style: TextStyle(fontSize: 11, color: Colors.blue.shade700, fontWeight: FontWeight.w500),
                                       ),
-                                      if (itemInfo != null)
-                                        Padding(
-                                          padding: const EdgeInsets.only(left: 34, top: 4),
-                                          child: Text(
-                                            'Master Stock: ${itemInfo.currentStock.toStringAsFixed(2)} ${itemInfo.defaultUom?.symbol ?? ""} | Code: ${itemInfo.itemCode}',
-                                            style: TextStyle(fontSize: 11, color: Colors.blue.shade800),
-                                          ),
-                                        ),
                                     ],
                                   ),
-                                );
-                              }),
+                                ),
+                              const Divider(height: 1),
+
+                              // Scrollable Items Table
+                              Scrollbar(
+                                thumbVisibility: isMobile,
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: SizedBox(
+                                    width: 1200,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // Column Labels
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          child: Row(
+                                            children: const [
+                                              SizedBox(
+                                                width: 26,
+                                                child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                              ),
+                                              Expanded(
+                                                flex: 3,
+                                                child: Text('Item Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Expanded(
+                                                flex: 3,
+                                                child: Text('Delivered Godown *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Expanded(
+                                                flex: 2,
+                                                child: Text('DC # *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Expanded(
+                                                flex: 2,
+                                                child: Text('Lot #', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Expanded(
+                                                flex: 2,
+                                                child: Text('UOM *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Expanded(
+                                                flex: 2,
+                                                child: Text('UOM Qty', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Expanded(
+                                                flex: 2,
+                                                child: Text('Actual Qty *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.success)),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Expanded(
+                                                flex: 2,
+                                                child: Text('Billed Qty *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Expanded(
+                                                flex: 2,
+                                                child: Text('Rate (₹) *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Expanded(
+                                                flex: 2,
+                                                child: Text('Per *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                              ),
+                                              SizedBox(width: 36),
+                                            ],
+                                          ),
+                                        ),
+                                        const Divider(height: 1),
+
+                                        // Item Row Editor List
+                                        ...List.generate(_rows.length, (index) {
+                                          final row = _rows[index];
+                                          final isSelected = row.itemId != null;
+                                          final itemInfo = isSelected
+                                              ? items.where((it) => it.id == row.itemId).firstOrNull
+                                              : null;
+
+                                          return Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            decoration: BoxDecoration(
+                                              color: index.isOdd ? Colors.grey.shade50 : Colors.white,
+                                              border: index < _rows.length - 1
+                                                  ? Border(bottom: BorderSide(color: Colors.grey.shade200))
+                                                  : null,
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    // Row Number
+                                                    SizedBox(
+                                                      width: 26,
+                                                      height: 40,
+                                                      child: Center(
+                                                        child: Text(
+                                                          '${index + 1}',
+                                                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    // 1. Item Dropdown
+                                                    Expanded(
+                                                      flex: 3,
+                                                      child: DropdownButtonFormField<String>(
+                                                        isExpanded: true,
+                                                        value: items.any((i) => i.id == row.itemId) ? row.itemId : null,
+                                                        decoration: const InputDecoration(
+                                                          isDense: true,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                          border: OutlineInputBorder(),
+                                                          hintText: 'Select Item',
+                                                        ),
+                                                        items: items.map((it) {
+                                                          return DropdownMenuItem<String>(
+                                                            value: it.id,
+                                                            child: Text(
+                                                              '${it.name} ${it.itemCode.isNotEmpty ? "(${it.itemCode})" : ""}',
+                                                              overflow: TextOverflow.ellipsis,
+                                                              style: const TextStyle(fontSize: 13),
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                        onChanged: (val) => _onItemChanged(index, val),
+                                                        validator: (v) => v == null ? 'Required' : null,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    // 2. Assigned Delivered Godown Dropdown for this item
+                                                    Expanded(
+                                                      flex: 3,
+                                                      child: DropdownButtonFormField<String>(
+                                                        isExpanded: true,
+                                                        value: godowns.any((g) => g.id == row.godownId) ? row.godownId : null,
+                                                        decoration: const InputDecoration(
+                                                          isDense: true,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                          border: OutlineInputBorder(),
+                                                          hintText: 'Delivered Godown',
+                                                        ),
+                                                        items: godowns.map((g) {
+                                                          return DropdownMenuItem<String>(
+                                                            value: g.id,
+                                                            child: Text(
+                                                              '${g.name} (${g.godownId})',
+                                                              overflow: TextOverflow.ellipsis,
+                                                              style: const TextStyle(fontSize: 13),
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                        onChanged: (val) => setState(() => row.godownId = val),
+                                                        validator: (v) => v == null ? 'Godown required' : null,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    // 3. DC No.
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: TextFormField(
+                                                        controller: row.dcNoController,
+                                                        decoration: const InputDecoration(
+                                                          isDense: true,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                          border: OutlineInputBorder(),
+                                                          hintText: 'DC #',
+                                                        ),
+                                                        style: const TextStyle(fontSize: 13),
+                                                        validator: (v) {
+                                                          if (v == null || v.trim().isEmpty) return 'Required';
+                                                          return null;
+                                                        },
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    // 4. Lot No.
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: TextFormField(
+                                                        controller: row.lotNoController,
+                                                        decoration: const InputDecoration(
+                                                          isDense: true,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                          border: OutlineInputBorder(),
+                                                          hintText: 'Lot #',
+                                                        ),
+                                                        style: const TextStyle(fontSize: 13),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    // 4. UOM Dropdown
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: DropdownButtonFormField<String>(
+                                                        isExpanded: true,
+                                                        value: uoms.any((u) => u.id == row.uomId) ? row.uomId : null,
+                                                        decoration: const InputDecoration(
+                                                          isDense: true,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                          border: OutlineInputBorder(),
+                                                          hintText: 'UOM',
+                                                        ),
+                                                        items: uoms.map((u) {
+                                                          return DropdownMenuItem<String>(
+                                                            value: u.id,
+                                                            child: Text(
+                                                              u.symbol,
+                                                              overflow: TextOverflow.ellipsis,
+                                                              style: const TextStyle(fontSize: 13),
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                        onChanged: (val) => setState(() => row.uomId = val),
+                                                        validator: (v) => v == null ? 'Required' : null,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    // 4. UOM Quantity
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: TextFormField(
+                                                        controller: row.uomQtyController,
+                                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                                        decoration: const InputDecoration(
+                                                          isDense: true,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                          border: OutlineInputBorder(),
+                                                          hintText: 'UOM Qty',
+                                                        ),
+                                                        style: const TextStyle(fontSize: 13),
+                                                        validator: (v) {
+                                                          if (v == null || v.trim().isEmpty) return 'Required';
+                                                          final n = double.tryParse(v.trim());
+                                                          if (n == null || n <= 0) return '> 0';
+                                                          return null;
+                                                        },
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    // 5. Actual Quantity (Stock Reflection)
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: TextFormField(
+                                                        controller: row.actualQtyController,
+                                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                                        decoration: const InputDecoration(
+                                                          isDense: true,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                          border: OutlineInputBorder(),
+                                                          hintText: 'Actual Qty',
+                                                        ),
+                                                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.success),
+                                                        validator: (v) {
+                                                          if (v == null || v.trim().isEmpty) return 'Required';
+                                                          final n = double.tryParse(v.trim());
+                                                          if (n == null || n <= 0) return '> 0';
+                                                          return null;
+                                                        },
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    // 6. Billed Quantity
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: TextFormField(
+                                                        controller: row.billedQtyController,
+                                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                                        decoration: const InputDecoration(
+                                                          isDense: true,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                          border: OutlineInputBorder(),
+                                                          hintText: 'Billed Qty',
+                                                        ),
+                                                        style: const TextStyle(fontSize: 13),
+                                                        validator: (v) {
+                                                          if (v == null || v.trim().isEmpty) return 'Required';
+                                                          final n = double.tryParse(v.trim());
+                                                          if (n == null || n <= 0) return '> 0';
+                                                          return null;
+                                                        },
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    // 7. Rate (₹)
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: TextFormField(
+                                                        controller: row.rateController,
+                                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                                        decoration: const InputDecoration(
+                                                          isDense: true,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                          border: OutlineInputBorder(),
+                                                          hintText: 'Rate ₹',
+                                                        ),
+                                                        style: const TextStyle(fontSize: 13),
+                                                        validator: (v) {
+                                                          if (v == null || v.trim().isEmpty) return 'Required';
+                                                          final n = double.tryParse(v.trim());
+                                                          if (n == null || n < 0) return '>= 0';
+                                                          return null;
+                                                        },
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    // 8. Per Unit Dropdown
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: DropdownButtonFormField<String>(
+                                                        isExpanded: true,
+                                                        value: perUnits.any((p) => p.id == row.perId) ? row.perId : null,
+                                                        decoration: const InputDecoration(
+                                                          isDense: true,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                          border: OutlineInputBorder(),
+                                                          hintText: 'Per',
+                                                        ),
+                                                        items: perUnits.map((p) {
+                                                          return DropdownMenuItem<String>(
+                                                            value: p.id,
+                                                            child: Text(
+                                                              p.symbol,
+                                                              overflow: TextOverflow.ellipsis,
+                                                              style: const TextStyle(fontSize: 13),
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                        onChanged: (val) => setState(() => row.perId = val),
+                                                        validator: (v) => v == null ? 'Required' : null,
+                                                      ),
+                                                    ),
+                                                    // 9. Delete Action
+                                                    SizedBox(
+                                                      width: 36,
+                                                      child: IconButton(
+                                                        icon: Icon(
+                                                          Icons.delete_outline,
+                                                          size: 20,
+                                                          color: _rows.length > 1 ? Colors.red.shade400 : Colors.grey.shade300,
+                                                        ),
+                                                        tooltip: _rows.length > 1 ? 'Remove Row' : 'At least 1 item required',
+                                                        onPressed: _rows.length > 1 ? () => _removeRow(index) : null,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                if (itemInfo != null)
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(left: 34, top: 4),
+                                                    child: Text(
+                                                      'Master Stock: ${itemInfo.currentStock.toStringAsFixed(2)} ${itemInfo.defaultUom?.symbol ?? ""} | Code: ${itemInfo.itemCode}',
+                                                      style: TextStyle(fontSize: 11, color: Colors.blue.shade800),
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          );
+                                        }),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -965,52 +1013,64 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: 12,
+                                runSpacing: 8,
                                 children: [
-                                  Checkbox(
-                                    value: _isGstBill,
-                                    activeColor: AppColors.primary,
-                                    onChanged: (val) {
-                                      setState(() {
-                                        _isGstBill = val ?? false;
-                                      });
-                                    },
-                                  ),
-                                  const SizedBox(width: 4),
-                                  const Text(
-                                    'Apply GST / Tax Invoice',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                  ),
-                                  const SizedBox(width: 24),
-                                  if (_isGstBill) ...[
-                                    const Text(
-                                      'GST Slab:',
-                                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    SizedBox(
-                                      width: 130,
-                                      child: DropdownButtonFormField<double>(
-                                        value: AppConstants.availableGstPercentages.contains(_selectedGstPercentage)
-                                            ? _selectedGstPercentage
-                                            : AppConstants.defaultGstPercentage,
-                                        isDense: true,
-                                        decoration: const InputDecoration(
-                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        items: AppConstants.availableGstPercentages.map((pct) {
-                                          return DropdownMenuItem<double>(
-                                            value: pct,
-                                            child: Text('${pct.toStringAsFixed(0)}% GST'),
-                                          );
-                                        }).toList(),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Checkbox(
+                                        value: _isGstBill,
+                                        activeColor: AppColors.primary,
                                         onChanged: (val) {
-                                          if (val != null) {
-                                            setState(() => _selectedGstPercentage = val);
-                                          }
+                                          setState(() {
+                                            _isGstBill = val ?? false;
+                                          });
                                         },
                                       ),
+                                      const SizedBox(width: 4),
+                                      const Text(
+                                        'Apply GST / Tax Invoice',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      ),
+                                    ],
+                                  ),
+                                  if (_isGstBill) ...[
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          'GST Slab: ',
+                                          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        SizedBox(
+                                          width: 130,
+                                          child: DropdownButtonFormField<double>(
+                                            value: AppConstants.availableGstPercentages.contains(_selectedGstPercentage)
+                                                ? _selectedGstPercentage
+                                                : AppConstants.defaultGstPercentage,
+                                            isDense: true,
+                                            decoration: const InputDecoration(
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                              border: OutlineInputBorder(),
+                                            ),
+                                            items: AppConstants.availableGstPercentages.map((pct) {
+                                              return DropdownMenuItem<double>(
+                                                value: pct,
+                                                child: Text('${pct.toStringAsFixed(0)}% GST'),
+                                              );
+                                            }).toList(),
+                                            onChanged: (val) {
+                                              if (val != null) {
+                                                setState(() => _selectedGstPercentage = val);
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ],
@@ -1025,55 +1085,107 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(color: Colors.grey.shade300),
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Items Subtotal',
-                                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                                        ),
-                                        Text(
-                                          '₹${liveSubtotal.toStringAsFixed(2)}',
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                        ),
-                                      ],
-                                    ),
-                                    if (_isGstBill)
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                child: isMobile
+                                    ? Column(
                                         children: [
-                                          Text(
-                                            'GST (${_selectedGstPercentage.toStringAsFixed(0)}%)',
-                                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text(
+                                                'Items Subtotal',
+                                                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                              ),
+                                              Text(
+                                                '₹${liveSubtotal.toStringAsFixed(2)}',
+                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                              ),
+                                            ],
                                           ),
-                                          Text(
-                                            '+ ₹${liveGstAmount.toStringAsFixed(2)}',
-                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.blue),
+                                          if (_isGstBill) ...[
+                                            const SizedBox(height: 6),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  'GST (${_selectedGstPercentage.toStringAsFixed(0)}%)',
+                                                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                                ),
+                                                Text(
+                                                  '+ ₹${liveGstAmount.toStringAsFixed(2)}',
+                                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.blue),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                          const Divider(height: 16),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text(
+                                                'Total Amount',
+                                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                              ),
+                                              Text(
+                                                '₹${liveTotal.toStringAsFixed(2)}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 17,
+                                                  color: AppColors.primary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      )
+                                    : Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              const Text(
+                                                'Items Subtotal',
+                                                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                              ),
+                                              Text(
+                                                '₹${liveSubtotal.toStringAsFixed(2)}',
+                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                              ),
+                                            ],
+                                          ),
+                                          if (_isGstBill)
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'GST (${_selectedGstPercentage.toStringAsFixed(0)}%)',
+                                                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                                ),
+                                                Text(
+                                                  '+ ₹${liveGstAmount.toStringAsFixed(2)}',
+                                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.blue),
+                                                ),
+                                              ],
+                                            ),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.end,
+                                            children: [
+                                              const Text(
+                                                'Total Amount',
+                                                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                              ),
+                                              Text(
+                                                '₹${liveTotal.toStringAsFixed(2)}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                  color: AppColors.primary,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        const Text(
-                                          'Total Amount',
-                                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                                        ),
-                                        Text(
-                                          '₹${liveTotal.toStringAsFixed(2)}',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color: AppColors.primary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
                               ),
                             ],
                           ),
@@ -1132,37 +1244,83 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                   ),
                 ],
 
-                // Dialog Action Buttons
-                Row(
-                  children: [
-                    Text(
-                      '${_rows.length} ${_rows.length == 1 ? "Item" : "Items"} in Purchase',
-                      style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-                    ),
-                    const Spacer(),
-                    OutlinedButton(
-                      onPressed: widget.purchaseController.isSaving ? null : () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      icon: widget.purchaseController.isSaving
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Icon(Icons.check, size: 18),
-                      label: Text(isEditing ? 'Update Purchase Record' : 'Save Purchase Record'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                // Dialog Action Buttons: Responsive for Mobile
+                if (isMobile)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Text(
+                          '${_rows.length} ${_rows.length == 1 ? "Item" : "Items"} in Purchase',
+                          style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textSecondary, fontSize: 13),
+                        ),
                       ),
-                      onPressed: widget.purchaseController.isSaving ? null : _submit,
-                    ),
-                  ],
-                ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: widget.purchaseController.isSaving ? null : () => Navigator.pop(context),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: const Text('Cancel'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              icon: widget.purchaseController.isSaving
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    )
+                                  : const Icon(Icons.check, size: 16),
+                              label: Text(isEditing ? 'Update' : 'Save Purchase'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              onPressed: widget.purchaseController.isSaving ? null : _submit,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                else
+                  Row(
+                    children: [
+                      Text(
+                        '${_rows.length} ${_rows.length == 1 ? "Item" : "Items"} in Purchase',
+                        style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                      ),
+                      const Spacer(),
+                      OutlinedButton(
+                        onPressed: widget.purchaseController.isSaving ? null : () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(
+                        icon: widget.purchaseController.isSaving
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Icon(Icons.check, size: 18),
+                        label: Text(isEditing ? 'Update Purchase Record' : 'Save Purchase Record'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        ),
+                        onPressed: widget.purchaseController.isSaving ? null : _submit,
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),

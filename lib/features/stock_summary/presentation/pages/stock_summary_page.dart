@@ -50,6 +50,8 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 900;
+
     return KeyboardListener(
       focusNode: _keyboardFocusNode,
       autofocus: true,
@@ -62,18 +64,64 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
             body: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildTallyHeaderBar(),
-                _buildControlFilterBar(),
+                _buildTallyHeaderBar(isMobile: isMobile),
+                _buildControlFilterBar(isMobile: isMobile),
+                if (isMobile)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 2),
+                    child: Row(
+                      children: [
+                        Icon(Icons.swipe, size: 14, color: Colors.grey.shade600),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Swipe horizontally to view all stock columns',
+                          style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                        ),
+                      ],
+                    ),
+                  ),
                 Expanded(
-                  child: widget.controller.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : widget.controller.errorMessage != null
-                          ? _buildErrorView()
-                          : widget.controller.isSingleGroupMode
-                              ? _buildSingleGroupView()
-                              : _buildAllGroupsView(),
+                  child: isMobile
+                      ? Scrollbar(
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: SizedBox(
+                              width: 1050,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: widget.controller.isLoading
+                                        ? const Center(child: CircularProgressIndicator())
+                                        : widget.controller.errorMessage != null
+                                            ? _buildErrorView()
+                                            : widget.controller.isSingleGroupMode
+                                                ? _buildSingleGroupView()
+                                                : _buildAllGroupsView(),
+                                  ),
+                                  _buildGrandTotalFooter(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: widget.controller.isLoading
+                                  ? const Center(child: CircularProgressIndicator())
+                                  : widget.controller.errorMessage != null
+                                      ? _buildErrorView()
+                                      : widget.controller.isSingleGroupMode
+                                          ? _buildSingleGroupView()
+                                          : _buildAllGroupsView(),
+                            ),
+                            _buildGrandTotalFooter(),
+                          ],
+                        ),
                 ),
-                _buildGrandTotalFooter(),
               ],
             ),
           );
@@ -82,12 +130,100 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
     );
   }
 
-  Widget _buildTallyHeaderBar() {
+  Widget _buildTallyHeaderBar({bool isMobile = false}) {
     final summary = widget.controller.stockSummary;
     final companyName = summary?.companyName ?? 'ML Fabric';
     final period = summary?.period.formattedPeriod ?? 'Current Period';
     final isSingleGroup = widget.controller.isSingleGroupMode;
     final selectedGroup = widget.controller.selectedGroup;
+
+    if (isMobile) {
+      return Container(
+        color: AppColors.primaryDark,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                if (isSingleGroup) ...[
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                    tooltip: 'Back to All Groups (Esc)',
+                    onPressed: widget.controller.navigateBackToAllGroups,
+                  ),
+                  const SizedBox(width: 4),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isSingleGroup
+                            ? 'Stock Summary > ${selectedGroup?.groupName}'
+                            : 'Stock Summary',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.3,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        '$companyName ($period)',
+                        style: TextStyle(
+                          color: Colors.grey.shade300,
+                          fontSize: 11,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Refresh Stock',
+                  icon: const Icon(Icons.refresh, color: Colors.white70, size: 20),
+                  onPressed: widget.controller.fetchStockSummary,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: widget.controller.isDetailedView
+                    ? AppColors.yellow
+                    : const Color(0xFF1E3A8A),
+                foregroundColor: widget.controller.isDetailedView
+                    ? AppColors.primaryDark
+                    : Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                  side: BorderSide(
+                    color: widget.controller.isDetailedView
+                        ? AppColors.yellowDark
+                        : Colors.white30,
+                  ),
+                ),
+              ),
+              icon: Icon(
+                widget.controller.isDetailedView
+                    ? Icons.unfold_less
+                    : Icons.unfold_more,
+                size: 16,
+              ),
+              label: Text(
+                widget.controller.isDetailedView ? 'Condensed' : 'Detailed',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              onPressed: widget.controller.toggleDetailedView,
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       color: AppColors.primaryDark,
@@ -140,8 +276,8 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                       ? AppColors.yellow
                       : const Color(0xFF1E3A8A),
                   foregroundColor: widget.controller.isDetailedView
-                      ? AppColors.primaryDark
-                      : Colors.white,
+                    ? AppColors.primaryDark
+                    : Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
@@ -177,8 +313,117 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
     );
   }
 
-  Widget _buildControlFilterBar() {
+  Widget _buildControlFilterBar({bool isMobile = false}) {
     final godowns = _godownController.godowns;
+
+    if (isMobile) {
+      return Container(
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 38,
+              child: TextField(
+                controller: _searchController,
+                style: const TextStyle(fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: 'Search group, item, DC, lot...',
+                  prefixIcon: const Icon(Icons.search, size: 18),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 16),
+                          onPressed: () {
+                            _searchController.clear();
+                            widget.controller.setSearch('');
+                          },
+                        )
+                      : null,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                ),
+                onSubmitted: widget.controller.setSearch,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 38,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String?>(
+                        value: (widget.controller.selectedGodownId != null &&
+                                godowns.any((g) => g.id == widget.controller.selectedGodownId))
+                            ? widget.controller.selectedGodownId
+                            : null,
+                        isExpanded: true,
+                        hint: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.warehouse, size: 16, color: Colors.grey),
+                            SizedBox(width: 6),
+                            Text('All Godowns', style: TextStyle(fontSize: 13)),
+                          ],
+                        ),
+                        items: [
+                          const DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text('All Godowns (Accessible)', style: TextStyle(fontSize: 13)),
+                          ),
+                          ...godowns.map(
+                            (g) => DropdownMenuItem<String?>(
+                              value: g.id,
+                              child: Text('${g.name} (${g.godownId})', style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
+                            ),
+                          ),
+                        ],
+                        onChanged: widget.controller.setGodownFilter,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: widget.controller.toggleZeroStock,
+                  borderRadius: BorderRadius.circular(4),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Checkbox(
+                          value: widget.controller.showZeroStock,
+                          onChanged: (_) => widget.controller.toggleZeroStock(),
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          activeColor: AppColors.primary,
+                        ),
+                        const Text(
+                          'Zero Bal',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       color: Colors.white,

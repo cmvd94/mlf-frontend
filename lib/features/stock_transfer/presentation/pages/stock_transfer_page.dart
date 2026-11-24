@@ -134,19 +134,21 @@ class _StockTransferPageState extends State<StockTransferPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
     return AnimatedBuilder(
       animation: Listenable.merge([_controller, _godownController]),
       builder: (context, _) {
         return Scaffold(
           backgroundColor: Colors.grey.shade50,
           body: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(isMobile ? 12.0 : 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildHeader(),
+                _buildHeader(isMobile),
                 const SizedBox(height: 12),
-                _buildFilterBar(),
+                _buildFilterBar(isMobile),
                 const SizedBox(height: 12),
                 if (_controller.errorMessage != null)
                   Container(
@@ -179,7 +181,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
                       ? const Center(child: CircularProgressIndicator())
                       : _controller.transfers.isEmpty
                           ? _buildEmptyState()
-                          : _buildTransfersTable(),
+                          : _buildTransfersTable(isMobile),
                 ),
                 if (_controller.pagination.totalPages > 1) _buildPagination(),
               ],
@@ -190,7 +192,39 @@ class _StockTransferPageState extends State<StockTransferPage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isMobile) {
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Stock Transfer',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Stock Journal • Transfer of Materials (Source ➔ Destination)',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            ),
+            onPressed: _openCreateDialog,
+            icon: const Icon(Icons.add, size: 20),
+            label: const Text('New Stock Transfer', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -230,7 +264,73 @@ class _StockTransferPageState extends State<StockTransferPage> {
     );
   }
 
-  Widget _buildFilterBar() {
+  Widget _buildFilterBar(bool isMobile) {
+    if (isMobile) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          children: [
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search by Voucher, DC, Lot...',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () {
+                          _searchController.clear();
+                          _controller.setSearchQuery(null);
+                        },
+                      )
+                    : null,
+                isDense: true,
+                border: const OutlineInputBorder(),
+              ),
+              onSubmitted: (val) => _controller.setSearchQuery(val.trim().isEmpty ? null : val.trim()),
+            ),
+            if (_godownController.godowns.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String?>(
+                      value: _controller.selectedGodownId,
+                      isDense: true,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Filter by Godown',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      items: [
+                        const DropdownMenuItem(value: null, child: Text('All Godowns', style: TextStyle(fontSize: 13))),
+                        ..._godownController.godowns.map(
+                          (g) => DropdownMenuItem(value: g.id, child: Text(g.name, style: const TextStyle(fontSize: 13))),
+                        ),
+                      ],
+                      onChanged: (val) => _controller.setGodownFilter(val),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'Refresh',
+                    icon: const Icon(Icons.refresh, color: AppColors.primary),
+                    onPressed: () => _controller.fetchStockTransfers(page: 1, reset: true),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -322,17 +422,38 @@ class _StockTransferPageState extends State<StockTransferPage> {
     );
   }
 
-  Widget _buildTransfersTable() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: SingleChildScrollView(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
+  Widget _buildTransfersTable(bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (isMobile) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                Icon(Icons.swipe, size: 14, color: Colors.grey.shade600),
+                const SizedBox(width: 4),
+                Text(
+                  'Swipe horizontally to view all transfer details',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                ),
+              ],
+            ),
+          ),
+        ],
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Scrollbar(
+              thumbVisibility: isMobile,
+              child: SingleChildScrollView(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
             headingRowColor: MaterialStateProperty.all(Colors.grey.shade100),
             columns: const [
               DataColumn(label: Text('Voucher #', style: TextStyle(fontWeight: FontWeight.bold))),
@@ -438,7 +559,11 @@ class _StockTransferPageState extends State<StockTransferPage> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+),
+],
+);
   }
 
   Widget _buildPagination() {

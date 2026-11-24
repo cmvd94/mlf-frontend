@@ -49,46 +49,49 @@ class _PurchaseManagementPageState extends State<PurchaseManagementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 700;
+
     return AnimatedBuilder(
       animation: widget.purchaseController,
       builder: (context, _) {
         final ctrl = widget.purchaseController;
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(isMobile ? 12 : 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
+              // Header: Responsive layout for mobile vs desktop
+              if (isMobile) ...[
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.shopping_cart, color: AppColors.primary, size: 22),
                     ),
-                    child: const Icon(Icons.shopping_cart, color: AppColors.primary, size: 28),
-                  ),
-                  const SizedBox(width: 14),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Purchase Entries',
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Record purchases with dynamic masters & actual stock reflection',
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                        ),
-                      ],
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        'Purchase Entries',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  ),
-                  ElevatedButton.icon(
+                  ],
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Record purchases with dynamic masters & actual stock reflection',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
                     icon: const Icon(Icons.add, size: 18),
                     label: const Text('New Purchase Entry'),
                     style: ElevatedButton.styleFrom(
@@ -98,57 +101,133 @@ class _PurchaseManagementPageState extends State<PurchaseManagementPage> {
                     ),
                     onPressed: _openPurchaseEntryDialog,
                   ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Search Bar & Stats
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search by purchase #, remarks...',
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  ctrl.setSearchQuery('');
-                                },
-                              )
-                            : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+              ] else ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      onChanged: (val) => ctrl.setSearchQuery(val),
+                      child: const Icon(Icons.shopping_cart, color: AppColors.primary, size: 28),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Purchase Entries',
+                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Record purchases with dynamic masters & actual stock reflection',
+                            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('New Purchase Entry'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                      onPressed: _openPurchaseEntryDialog,
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 16),
+
+              // Search Bar & Stats: Stacked on mobile
+              if (isMobile) ...[
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search by purchase #, remarks...',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              ctrl.setSearchQuery('');
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.receipt, size: 18, color: AppColors.primary),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Total Records: ${ctrl.purchases.length}',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   ),
-                ],
-              ),
+                  onChanged: (val) => ctrl.setSearchQuery(val),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.receipt_long, size: 16, color: AppColors.primary),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Total Records: ${ctrl.purchases.length}',
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search by purchase #, remarks...',
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    ctrl.setSearchQuery('');
+                                  },
+                                )
+                              : null,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        ),
+                        onChanged: (val) => ctrl.setSearchQuery(val),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.receipt, size: 18, color: AppColors.primary),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Total Records: ${ctrl.purchases.length}',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 16),
 
               // Error Banner
@@ -200,7 +279,7 @@ class _PurchaseManagementPageState extends State<PurchaseManagementPage> {
                   ),
                 )
               else ...[
-                _buildPurchasesTable(ctrl),
+                _buildPurchasesTable(ctrl, isMobile),
                 const SizedBox(height: 12),
                 _buildPaginationFooter(ctrl),
               ],
@@ -211,12 +290,31 @@ class _PurchaseManagementPageState extends State<PurchaseManagementPage> {
     );
   }
 
-  Widget _buildPurchasesTable(PurchaseController ctrl) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
+  Widget _buildPurchasesTable(PurchaseController ctrl, bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (isMobile)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                Icon(Icons.swipe_outlined, size: 14, color: Colors.grey.shade600),
+                const SizedBox(width: 4),
+                Text(
+                  'Swipe horizontally to view all columns & actions',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                ),
+              ],
+            ),
+          ),
+        Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Scrollbar(
+            thumbVisibility: isMobile,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
           columns: const [
             DataColumn(label: Text('Date', style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(label: Text('Purchase #', style: TextStyle(fontWeight: FontWeight.bold))),
@@ -358,7 +456,10 @@ class _PurchaseManagementPageState extends State<PurchaseManagementPage> {
           }).toList(),
         ),
       ),
-    );
+    ),
+  ),
+],
+);
   }
 
   Widget _buildPaginationFooter(PurchaseController ctrl) {

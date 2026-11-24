@@ -121,26 +121,29 @@ class _SalesPageState extends State<SalesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 700;
+
     return AnimatedBuilder(
       animation: _salesController,
       builder: (context, _) {
         return Scaffold(
           backgroundColor: Colors.grey.shade50,
           body: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(isMobile ? 12 : 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildTopBar(),
+                _buildTopBar(isMobile),
                 const SizedBox(height: 16),
-                _buildFilterBar(),
+                _buildFilterBar(isMobile),
                 const SizedBox(height: 16),
                 Expanded(
                   child: _salesController.isLoading && _salesController.sales.isEmpty
                       ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                       : _salesController.sales.isEmpty
                           ? _buildEmptyState()
-                          : _buildSalesTable(),
+                          : _buildSalesTable(isMobile),
                 ),
                 if (_salesController.sales.isNotEmpty) ...[
                   const SizedBox(height: 12),
@@ -154,7 +157,59 @@ class _SalesPageState extends State<SalesPage> {
     );
   }
 
-  Widget _buildTopBar() {
+  Widget _buildTopBar(bool isMobile) {
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.point_of_sale, color: AppColors.primary, size: 22),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Sales Management',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Sell items directly from Godown stock batches to registered customers',
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _openCreateDialog,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('New Sale Entry', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 1,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -198,7 +253,7 @@ class _SalesPageState extends State<SalesPage> {
     );
   }
 
-  Widget _buildFilterBar() {
+  Widget _buildFilterBar(bool isMobile) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -214,7 +269,7 @@ class _SalesPageState extends State<SalesPage> {
           children: [
             // Search Input
             SizedBox(
-              width: 260,
+              width: isMobile ? double.infinity : 260,
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
@@ -322,19 +377,39 @@ class _SalesPageState extends State<SalesPage> {
     );
   }
 
-  Widget _buildSalesTable() {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            child: DataTable(
+  Widget _buildSalesTable(bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (isMobile)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                Icon(Icons.swipe_outlined, size: 14, color: Colors.grey.shade600),
+                const SizedBox(width: 4),
+                Text(
+                  'Swipe horizontally to view all columns & actions',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                ),
+              ],
+            ),
+          ),
+        Expanded(
+          child: Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: BorderSide(color: Colors.grey.shade200),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Scrollbar(
+                thumbVisibility: isMobile,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SingleChildScrollView(
+                    child: DataTable(
               headingRowColor: MaterialStateProperty.all(Colors.grey.shade100),
               horizontalMargin: 16,
               columnSpacing: 20,
@@ -447,7 +522,11 @@ class _SalesPageState extends State<SalesPage> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+),
+],
+);
   }
 
   Widget _buildPaginationBar() {

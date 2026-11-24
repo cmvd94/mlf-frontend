@@ -20,12 +20,16 @@ class StockTransferDetailDialog extends StatelessWidget {
     final formattedDate =
         '${localDate.day.toString().padLeft(2, '0')}/${localDate.month.toString().padLeft(2, '0')}/${localDate.year}';
     final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final isMobile = MediaQuery.of(context).size.width < 700;
 
     return Dialog(
+      insetPadding: isMobile
+          ? const EdgeInsets.symmetric(horizontal: 8, vertical: 12)
+          : const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
         width: isDesktop ? 960 : double.infinity,
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(isMobile ? 12 : 24),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -35,35 +39,39 @@ class StockTransferDetailDialog extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.sync_alt, color: AppColors.primary, size: 24),
                         ),
-                        child: const Icon(Icons.sync_alt, color: AppColors.primary, size: 24),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Stock Journal: ${transfer.transferNumber}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Stock Journal: ${transfer.transferNumber}',
+                                style: TextStyle(
+                                  fontSize: isMobile ? 16 : 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                'Transfer of Materials • Date: $formattedDate',
+                                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                              ),
+                            ],
                           ),
-                          Text(
-                            'Transfer of Materials • Date: $formattedDate',
-                            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -121,49 +129,97 @@ class StockTransferDetailDialog extends StatelessWidget {
                 const SizedBox(height: 12),
               ],
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    transfer.createdByName.isNotEmpty ? 'Created by: ${transfer.createdByName}' : '',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                  ),
-                  Row(
-                    children: [
-                      if (onEdit != null) ...[
-                        OutlinedButton.icon(
-                          icon: const Icon(Icons.edit, size: 16),
-                          label: const Text('Edit'),
-                          onPressed: () {
-                            Navigator.pop(context);
-                            onEdit!();
-                          },
+              if (isMobile)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (transfer.createdByName.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          'Created by: ${transfer.createdByName}',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                         ),
-                        const SizedBox(width: 8),
-                      ],
-                      if (onDelete != null) ...[
-                        OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.error,
-                            side: const BorderSide(color: AppColors.error),
-                          ),
-                          icon: const Icon(Icons.delete_outline, size: 16),
-                          label: const Text('Delete'),
-                          onPressed: () {
-                            Navigator.pop(context);
-                            onDelete!();
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Close'),
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.end,
+                      children: [
+                        if (onEdit != null)
+                          OutlinedButton.icon(
+                            icon: const Icon(Icons.edit, size: 16),
+                            label: const Text('Edit'),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              onEdit!();
+                            },
+                          ),
+                        if (onDelete != null)
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.error,
+                              side: const BorderSide(color: AppColors.error),
+                            ),
+                            icon: const Icon(Icons.delete_outline, size: 16),
+                            label: const Text('Delete'),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              onDelete!();
+                            },
+                          ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              else
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      transfer.createdByName.isNotEmpty ? 'Created by: ${transfer.createdByName}' : '',
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                    Row(
+                      children: [
+                        if (onEdit != null) ...[
+                          OutlinedButton.icon(
+                            icon: const Icon(Icons.edit, size: 16),
+                            label: const Text('Edit'),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              onEdit!();
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        if (onDelete != null) ...[
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.error,
+                              side: const BorderSide(color: AppColors.error),
+                            ),
+                            icon: const Icon(Icons.delete_outline, size: 16),
+                            label: const Text('Delete'),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              onDelete!();
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

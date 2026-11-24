@@ -12,13 +12,19 @@ class SalesDetailDialog extends StatelessWidget {
     final localDate = sale.date.toLocal();
     final dateStr =
         '${localDate.day.toString().padLeft(2, '0')}/${localDate.month.toString().padLeft(2, '0')}/${localDate.year}';
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 700;
 
     return Dialog(
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 8 : 20,
+        vertical: isMobile ? 12 : 24,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 960, maxHeight: 780),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(isMobile ? 12 : 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,9 +167,9 @@ class SalesDetailDialog extends StatelessWidget {
 
                       // Financial Summary
                       Align(
-                        alignment: Alignment.centerRight,
+                        alignment: isMobile ? Alignment.center : Alignment.centerRight,
                         child: Container(
-                          width: 320,
+                          width: isMobile ? double.infinity : 320,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF6F8FC),
@@ -206,15 +212,19 @@ class SalesDetailDialog extends StatelessWidget {
 
               const SizedBox(height: 12),
               // Footer
-              Align(
-                alignment: Alignment.centerRight,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              SizedBox(
+                width: isMobile ? double.infinity : null,
+                child: Align(
+                  alignment: isMobile ? Alignment.center : Alignment.centerRight,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      minimumSize: isMobile ? const Size(double.infinity, 44) : null,
+                    ),
+                    child: const Text('Close'),
                   ),
-                  child: const Text('Close'),
                 ),
               ),
             ],

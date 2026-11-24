@@ -398,18 +398,90 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
   Widget build(BuildContext context) {
     final dateStr =
         '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}';
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+
+    final dateField = InkWell(
+      onTap: _selectDate,
+      borderRadius: BorderRadius.circular(8),
+      child: InputDecorator(
+        decoration: const InputDecoration(
+          labelText: 'Date *',
+          prefixIcon: Icon(Icons.calendar_today, size: 18),
+          border: OutlineInputBorder(),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        ),
+        child: Text(dateStr, style: const TextStyle(fontSize: 14)),
+      ),
+    );
+
+    final partyField = DropdownButtonFormField<String>(
+      isExpanded: true,
+      value: _inventoryController.parties.any((p) => p.id == _selectedPartyId)
+          ? _selectedPartyId
+          : null,
+      decoration: const InputDecoration(
+        labelText: 'Party (Customer) *',
+        prefixIcon: Icon(Icons.business, size: 18),
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      ),
+      items: _inventoryController.parties
+          .where((p) => p.isActive || p.id == _selectedPartyId)
+          .map((p) => DropdownMenuItem(
+                value: p.id,
+                child: Text(
+                  p.partyCode.isNotEmpty ? '${p.name} (${p.partyCode})' : p.name,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ))
+          .toList(),
+      onChanged: (val) => setState(() => _selectedPartyId = val),
+      validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+    );
+
+    final typeField = DropdownButtonFormField<String>(
+      isExpanded: true,
+      value: _inventoryController.salesTypes.any((st) => st.id == _selectedTypeId)
+          ? _selectedTypeId
+          : null,
+      decoration: const InputDecoration(
+        labelText: 'Debit Note Type',
+        prefixIcon: Icon(Icons.category, size: 18),
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      ),
+      items: _inventoryController.salesTypes
+          .where((st) => st.isActive || st.id == _selectedTypeId)
+          .map((st) => DropdownMenuItem(
+                value: st.id,
+                child: Text(st.name, overflow: TextOverflow.ellipsis),
+              ))
+          .toList(),
+      onChanged: (val) => setState(() => _selectedTypeId = val),
+    );
+
+    final dcNoField = TextFormField(
+      controller: _dcNoController,
+      decoration: const InputDecoration(
+        labelText: 'DC Number (Optional)',
+        prefixIcon: Icon(Icons.tag, size: 18),
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      ),
+    );
 
     return Dialog(
       insetPadding: _isFullScreen
           ? EdgeInsets.zero
-          : const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          : EdgeInsets.symmetric(horizontal: isMobile ? 8 : 24, vertical: isMobile ? 12 : 24),
       shape: _isFullScreen
           ? const RoundedRectangleBorder(borderRadius: BorderRadius.zero)
           : RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         width: _isFullScreen ? MediaQuery.of(context).size.width : 1200,
         height: _isFullScreen ? MediaQuery.of(context).size.height : 850,
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(isMobile ? 12 : 24),
         child: _isInit
             ? const Center(child: CircularProgressIndicator())
             : Form(
@@ -429,7 +501,7 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
                           child: Icon(
                             _isEditMode ? Icons.edit_note : Icons.receipt_long,
                             color: AppColors.primary,
-                            size: 24,
+                            size: isMobile ? 20 : 24,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -441,27 +513,29 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
                                 _isEditMode
                                     ? 'Edit Debit Note: ${widget.debitNoteToEdit!.debitNoteNumber}'
                                     : 'New Debit Note Entry',
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: isMobile ? 16 : 18, fontWeight: FontWeight.bold),
                               ),
-                              const Text(
+                              Text(
                                 'Deducts stock from godown and generates a debit voucher',
-                                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                style: TextStyle(fontSize: isMobile ? 11 : 12, color: AppColors.textSecondary),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
                         IconButton(
                           tooltip: _isFullScreen ? 'Exit Full Screen' : 'Full Screen',
-                          icon: Icon(_isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen),
+                          icon: Icon(_isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen, size: 20),
                           onPressed: () => setState(() => _isFullScreen = !_isFullScreen),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close),
+                          icon: const Icon(Icons.close, size: 20),
                           onPressed: () => Navigator.pop(context),
                         ),
                       ],
                     ),
-                    const Divider(height: 20),
+                    const Divider(height: 18),
 
                     // Error Banner if present
                     if (_formErrorMessage != null) ...[
@@ -492,100 +566,34 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
                       const SizedBox(height: 12),
                     ],
 
-                    // Top Bar Fields
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Date selector
-                        Expanded(
-                          flex: 2,
-                          child: InkWell(
-                            onTap: _selectDate,
-                            borderRadius: BorderRadius.circular(8),
-                            child: InputDecorator(
-                              decoration: const InputDecoration(
-                                labelText: 'Date *',
-                                prefixIcon: Icon(Icons.calendar_today, size: 18),
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                              ),
-                              child: Text(dateStr, style: const TextStyle(fontSize: 14)),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-
-                        // Party Selector
-                        Expanded(
-                          flex: 4,
-                          child: DropdownButtonFormField<String>(
-                            isExpanded: true,
-                            value: _inventoryController.parties.any((p) => p.id == _selectedPartyId)
-                                ? _selectedPartyId
-                                : null,
-                            decoration: const InputDecoration(
-                              labelText: 'Party (Customer) *',
-                              prefixIcon: Icon(Icons.business, size: 18),
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            ),
-                            items: _inventoryController.parties
-                                .where((p) => p.isActive || p.id == _selectedPartyId)
-                                .map((p) => DropdownMenuItem(
-                                      value: p.id,
-                                      child: Text(
-                                        p.partyCode.isNotEmpty ? '${p.name} (${p.partyCode})' : p.name,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ))
-                                .toList(),
-                            onChanged: (val) => setState(() => _selectedPartyId = val),
-                            validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-
-                        // Sales Type Selector
-                        Expanded(
-                          flex: 3,
-                          child: DropdownButtonFormField<String>(
-                            isExpanded: true,
-                            value: _inventoryController.salesTypes.any((st) => st.id == _selectedTypeId)
-                                ? _selectedTypeId
-                                : null,
-                            decoration: const InputDecoration(
-                              labelText: 'Debit Note Type',
-                              prefixIcon: Icon(Icons.category, size: 18),
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            ),
-                            items: _inventoryController.salesTypes
-                                .where((st) => st.isActive || st.id == _selectedTypeId)
-                                .map((st) => DropdownMenuItem(
-                                      value: st.id,
-                                      child: Text(st.name, overflow: TextOverflow.ellipsis),
-                                    ))
-                                .toList(),
-                            onChanged: (val) => setState(() => _selectedTypeId = val),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-
-                        // Common DC No
-                        Expanded(
-                          flex: 3,
-                          child: TextFormField(
-                            controller: _dcNoController,
-                            decoration: const InputDecoration(
-                              labelText: 'DC Number (Optional)',
-                              prefixIcon: Icon(Icons.tag, size: 18),
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    // Top Bar Fields: Responsive on Mobile vs Desktop
+                    if (isMobile) ...[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: dateField),
+                          const SizedBox(width: 10),
+                          Expanded(child: typeField),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      partyField,
+                      const SizedBox(height: 12),
+                      dcNoField,
+                    ] else ...[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 2, child: dateField),
+                          const SizedBox(width: 12),
+                          Expanded(flex: 4, child: partyField),
+                          const SizedBox(width: 12),
+                          Expanded(flex: 3, child: typeField),
+                          const SizedBox(width: 12),
+                          Expanded(flex: 3, child: dcNoField),
+                        ],
+                      ),
+                    ],
 
                     const SizedBox(height: 16),
                     Row(
@@ -650,145 +658,271 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
 
                     const SizedBox(height: 14),
 
-                    // Bottom: GST & Remarks & Grand Total
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Left: GST controls & Notes
-                        Expanded(
-                          flex: 3,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    // Bottom: GST & Remarks & Grand Total - Responsive for Mobile vs Desktop
+                    if (isMobile) ...[
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 12,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Row(
-                                children: [
-                                  Checkbox(
-                                    value: _isGstBill,
-                                    activeColor: AppColors.primary,
-                                    onChanged: (val) => setState(() => _isGstBill = val ?? false),
-                                  ),
-                                  const Text('Enable GST Calculation', style: TextStyle(fontWeight: FontWeight.w600)),
-                                  if (_isGstBill) ...[
-                                    const SizedBox(width: 16),
-                                    DropdownButton<double>(
-                                      value: _selectedGstPercentage,
-                                      underline: const SizedBox(),
-                                      items: _gstOptions.map((pct) => DropdownMenuItem(
-                                            value: pct,
-                                            child: Text('$pct% GST'),
-                                          )).toList(),
-                                      onChanged: (val) {
-                                        if (val != null) setState(() => _selectedGstPercentage = val);
-                                      },
-                                    ),
-                                  ],
-                                ],
+                              Checkbox(
+                                value: _isGstBill,
+                                activeColor: AppColors.primary,
+                                onChanged: (val) => setState(() => _isGstBill = val ?? false),
                               ),
-                              const SizedBox(height: 8),
-                              TextFormField(
-                                controller: _notesController,
-                                maxLines: 2,
-                                decoration: const InputDecoration(
-                                  labelText: 'Notes / Remarks / Narration',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.all(10),
-                                ),
-                              ),
+                              const Text('Enable GST Calculation', style: TextStyle(fontWeight: FontWeight.w600)),
                             ],
                           ),
+                          if (_isGstBill) ...[
+                            DropdownButton<double>(
+                              value: _selectedGstPercentage,
+                              underline: const SizedBox(),
+                              items: _gstOptions.map((pct) => DropdownMenuItem(
+                                    value: pct,
+                                    child: Text('$pct% GST'),
+                                  )).toList(),
+                              onChanged: (val) {
+                                if (val != null) setState(() => _selectedGstPercentage = val);
+                              },
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _notesController,
+                        maxLines: 2,
+                        decoration: const InputDecoration(
+                          labelText: 'Notes / Remarks / Narration',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.all(10),
                         ),
-
-                        const SizedBox(width: 24),
-
-                        // Right: Calculation Summary Box
-                        Container(
-                          width: 280,
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.grey.shade300),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Sub Total:', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                                Text(
+                                  '₹ ${_estimatedSubTotal.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            if (_isGstBill) ...[
+                              const SizedBox(height: 6),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Expanded(
-                                    child: Text('Sub Total:', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                                  ),
+                                  Text('GST (${_selectedGstPercentage.toStringAsFixed(0)}%):',
+                                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
                                   Text(
-                                    '₹ ${_estimatedSubTotal.toStringAsFixed(2)}',
-                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                    '₹ ${((_estimatedSubTotal * _selectedGstPercentage) / 100).toStringAsFixed(2)}',
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                                   ),
                                 ],
                               ),
-                              if (_isGstBill) ...[
-                                const SizedBox(height: 6),
+                            ],
+                            const Divider(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Grand Total:',
+                                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                                Text(
+                                  '₹ ${_estimatedTotalAmount.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ] else ...[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Left: GST controls & Notes
+                          Expanded(
+                            flex: 3,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Checkbox(
+                                      value: _isGstBill,
+                                      activeColor: AppColors.primary,
+                                      onChanged: (val) => setState(() => _isGstBill = val ?? false),
+                                    ),
+                                    const Text('Enable GST Calculation', style: TextStyle(fontWeight: FontWeight.w600)),
+                                    if (_isGstBill) ...[
+                                      const SizedBox(width: 16),
+                                      DropdownButton<double>(
+                                        value: _selectedGstPercentage,
+                                        underline: const SizedBox(),
+                                        items: _gstOptions.map((pct) => DropdownMenuItem(
+                                              value: pct,
+                                              child: Text('$pct% GST'),
+                                            )).toList(),
+                                        onChanged: (val) {
+                                          if (val != null) setState(() => _selectedGstPercentage = val);
+                                        },
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: _notesController,
+                                  maxLines: 2,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Notes / Remarks / Narration',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.all(10),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(width: 24),
+
+                          // Right: Calculation Summary Box
+                          Container(
+                            width: 280,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Expanded(
-                                      child: Text('GST (${_selectedGstPercentage.toStringAsFixed(0)}%):',
-                                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                                    const Expanded(
+                                      child: Text('Sub Total:', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
                                     ),
                                     Text(
-                                      '₹ ${((_estimatedSubTotal * _selectedGstPercentage) / 100).toStringAsFixed(2)}',
-                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                      '₹ ${_estimatedSubTotal.toStringAsFixed(2)}',
+                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                                if (_isGstBill) ...[
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text('GST (${_selectedGstPercentage.toStringAsFixed(0)}%):',
+                                            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                                      ),
+                                      Text(
+                                        '₹ ${((_estimatedSubTotal * _selectedGstPercentage) / 100).toStringAsFixed(2)}',
+                                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                                const Divider(height: 16),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Expanded(
+                                      child: Text('Grand Total:',
+                                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                                    ),
+                                    Text(
+                                      '₹ ${_estimatedTotalAmount.toStringAsFixed(2)}',
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
                                     ),
                                   ],
                                 ),
                               ],
-                              const Divider(height: 16),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Expanded(
-                                    child: Text('Grand Total:',
-                                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                                  ),
-                                  Text(
-                                    '₹ ${_estimatedTotalAmount.toStringAsFixed(2)}',
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
-                                  ),
-                                ],
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
 
                     const SizedBox(height: 16),
 
-                    // Actions Bottom
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        OutlinedButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        const SizedBox(width: 12),
-                        ElevatedButton.icon(
-                          icon: _debitNoteController.isSaving
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Icon(Icons.check, size: 18),
-                          label: Text(_isEditMode ? 'Update Debit Note' : 'Record Debit Note'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    // Actions Bottom: Responsive for Mobile
+                    if (isMobile)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
+                              child: const Text('Cancel'),
+                            ),
                           ),
-                          onPressed: _debitNoteController.isSaving ? null : _handleSubmit,
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              icon: _debitNoteController.isSaving
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    )
+                                  : const Icon(Icons.check, size: 16),
+                              label: Text(_isEditMode ? 'Update' : 'Record Note'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              onPressed: _debitNoteController.isSaving ? null : _handleSubmit,
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            icon: _debitNoteController.isSaving
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Icon(Icons.check, size: 18),
+                            label: Text(_isEditMode ? 'Update Debit Note' : 'Record Debit Note'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                            ),
+                            onPressed: _debitNoteController.isSaving ? null : _handleSubmit,
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),

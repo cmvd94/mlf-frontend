@@ -439,7 +439,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
           maxHeight: _isFullScreen ? double.infinity : 880,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(isMobile ? 12 : 24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -450,7 +450,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -458,10 +458,10 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                       child: Icon(
                         _isEditMode ? Icons.edit_note : Icons.shopping_cart,
                         color: AppColors.primary,
-                        size: 24,
+                        size: isMobile ? 20 : 24,
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -470,12 +470,14 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                             _isEditMode
                                 ? 'Edit Sales Entry (${widget.saleToEdit!.salesNumber})'
                                 : 'New Sales Entry',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: isMobile ? 16 : 18, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
+                          Text(
                             'Select items to pick from available godown stocks and record sales',
-                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                            style: TextStyle(fontSize: isMobile ? 11 : 12, color: AppColors.textSecondary),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -489,19 +491,20 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                 ? Icons.fullscreen_exit_rounded
                                 : Icons.fullscreen_rounded,
                             color: AppColors.textSecondary,
+                            size: 20,
                           ),
                           tooltip: _isFullScreen ? 'Exit Full Screen' : 'Full Screen View',
                           onPressed: () => setState(() => _isFullScreen = !_isFullScreen),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close),
+                          icon: const Icon(Icons.close, size: 20),
                           onPressed: () => Navigator.pop(context),
                         ),
                       ],
                     ),
                   ],
                 ),
-                const Divider(height: 20),
+                const Divider(height: 18),
 
                 // Scrollable Body
                 Expanded(
@@ -520,96 +523,180 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Header Row: Date, Sales Type, Party Name, DC No
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // 1. Sales Date Picker
-                                  Expanded(
-                                    flex: 2,
-                                    child: InkWell(
-                                      onTap: _selectDate,
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: InputDecorator(
-                                        decoration: const InputDecoration(
-                                          labelText: 'Sales Date *',
-                                          border: OutlineInputBorder(),
-                                          suffixIcon: Icon(Icons.calendar_today, size: 20),
-                                        ),
-                                        child: Text(
-                                          '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}',
-                                          style: const TextStyle(fontWeight: FontWeight.w600),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  // 2. Sales Type Dropdown
-                                  Expanded(
-                                    flex: 2,
-                                    child: DropdownButtonFormField<String>(
-                                      isExpanded: true,
-                                      value: salesTypes.any((t) => t.id == _selectedSalesTypeId)
-                                          ? _selectedSalesTypeId
-                                          : null,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Sales Type *',
-                                        border: OutlineInputBorder(),
-                                      ),
-                                      hint: const Text('Select Type', overflow: TextOverflow.ellipsis),
-                                      items: salesTypes.map((t) {
-                                        return DropdownMenuItem<String>(
-                                          value: t.id,
-                                          child: Text(t.name, overflow: TextOverflow.ellipsis),
-                                        );
-                                      }).toList(),
-                                      onChanged: (val) => setState(() => _selectedSalesTypeId = val),
-                                      validator: (v) => v == null ? 'Required' : null,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  // 3. Party / Customer Name Dropdown
-                                  Expanded(
-                                    flex: 3,
-                                    child: DropdownButtonFormField<String>(
-                                      isExpanded: true,
-                                      value: parties.any((p) => p.id == _selectedPartyId) ? _selectedPartyId : null,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Party / Customer Name *',
-                                        border: OutlineInputBorder(),
-                                        prefixIcon: Icon(Icons.person_pin, size: 20),
-                                      ),
-                                      hint: const Text('Select Party / Customer', overflow: TextOverflow.ellipsis),
-                                      items: parties.map((p) {
-                                        return DropdownMenuItem<String>(
-                                          value: p.id,
-                                          child: Text(
-                                            '${p.name} ${p.partyCode.isNotEmpty ? "(${p.partyCode})" : ""}',
-                                            overflow: TextOverflow.ellipsis,
+                              // Header Fields: Responsive Row on Desktop, Stacked on Mobile
+                              if (isMobile) ...[
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // 1. Sales Date Picker
+                                    Expanded(
+                                      child: InkWell(
+                                        onTap: _selectDate,
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: InputDecorator(
+                                          decoration: const InputDecoration(
+                                            labelText: 'Sales Date *',
+                                            border: OutlineInputBorder(),
+                                            suffixIcon: Icon(Icons.calendar_today, size: 20),
                                           ),
-                                        );
-                                      }).toList(),
-                                      onChanged: (val) => setState(() => _selectedPartyId = val),
-                                      validator: (v) => v == null ? 'Customer required' : null,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  // 4. DC No (Common on top)
-                                  Expanded(
-                                    flex: 2,
-                                    child: TextFormField(
-                                      controller: _dcNoController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'DC No *',
-                                        hintText: 'Enter DC No',
-                                        border: OutlineInputBorder(),
-                                        prefixIcon: Icon(Icons.receipt_long, size: 20),
+                                          child: Text(
+                                            '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}',
+                                            style: const TextStyle(fontWeight: FontWeight.w600),
+                                          ),
+                                        ),
                                       ),
-                                      validator: (v) => (v == null || v.trim().isEmpty) ? 'DC No is required' : null,
                                     ),
+                                    const SizedBox(width: 10),
+                                    // 2. Sales Type Dropdown
+                                    Expanded(
+                                      child: DropdownButtonFormField<String>(
+                                        isExpanded: true,
+                                        value: salesTypes.any((t) => t.id == _selectedSalesTypeId)
+                                            ? _selectedSalesTypeId
+                                            : null,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Sales Type *',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        hint: const Text('Select Type', overflow: TextOverflow.ellipsis),
+                                        items: salesTypes.map((t) {
+                                          return DropdownMenuItem<String>(
+                                            value: t.id,
+                                            child: Text(t.name, overflow: TextOverflow.ellipsis),
+                                          );
+                                        }).toList(),
+                                        onChanged: (val) => setState(() => _selectedSalesTypeId = val),
+                                        validator: (v) => v == null ? 'Required' : null,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                // 3. Party / Customer Name Dropdown
+                                DropdownButtonFormField<String>(
+                                  isExpanded: true,
+                                  value: parties.any((p) => p.id == _selectedPartyId) ? _selectedPartyId : null,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Party / Customer Name *',
+                                    border: OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.person_pin, size: 20),
                                   ),
-                                ],
-                              ),
+                                  hint: const Text('Select Party / Customer', overflow: TextOverflow.ellipsis),
+                                  items: parties.map((p) {
+                                    return DropdownMenuItem<String>(
+                                      value: p.id,
+                                      child: Text(
+                                        '${p.name} ${p.partyCode.isNotEmpty ? "(${p.partyCode})" : ""}',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) => setState(() => _selectedPartyId = val),
+                                  validator: (v) => v == null ? 'Customer required' : null,
+                                ),
+                                const SizedBox(height: 12),
+                                // 4. DC No
+                                TextFormField(
+                                  controller: _dcNoController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'DC No *',
+                                    hintText: 'Enter DC No',
+                                    border: OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.receipt_long, size: 20),
+                                  ),
+                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'DC No is required' : null,
+                                ),
+                              ] else ...[
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // 1. Sales Date Picker
+                                    Expanded(
+                                      flex: 2,
+                                      child: InkWell(
+                                        onTap: _selectDate,
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: InputDecorator(
+                                          decoration: const InputDecoration(
+                                            labelText: 'Sales Date *',
+                                            border: OutlineInputBorder(),
+                                            suffixIcon: Icon(Icons.calendar_today, size: 20),
+                                          ),
+                                          child: Text(
+                                            '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}',
+                                            style: const TextStyle(fontWeight: FontWeight.w600),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // 2. Sales Type Dropdown
+                                    Expanded(
+                                      flex: 2,
+                                      child: DropdownButtonFormField<String>(
+                                        isExpanded: true,
+                                        value: salesTypes.any((t) => t.id == _selectedSalesTypeId)
+                                            ? _selectedSalesTypeId
+                                            : null,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Sales Type *',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        hint: const Text('Select Type', overflow: TextOverflow.ellipsis),
+                                        items: salesTypes.map((t) {
+                                          return DropdownMenuItem<String>(
+                                            value: t.id,
+                                            child: Text(t.name, overflow: TextOverflow.ellipsis),
+                                          );
+                                        }).toList(),
+                                        onChanged: (val) => setState(() => _selectedSalesTypeId = val),
+                                        validator: (v) => v == null ? 'Required' : null,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // 3. Party / Customer Name Dropdown
+                                    Expanded(
+                                      flex: 3,
+                                      child: DropdownButtonFormField<String>(
+                                        isExpanded: true,
+                                        value: parties.any((p) => p.id == _selectedPartyId) ? _selectedPartyId : null,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Party / Customer Name *',
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.person_pin, size: 20),
+                                        ),
+                                        hint: const Text('Select Party / Customer', overflow: TextOverflow.ellipsis),
+                                        items: parties.map((p) {
+                                          return DropdownMenuItem<String>(
+                                            value: p.id,
+                                            child: Text(
+                                              '${p.name} ${p.partyCode.isNotEmpty ? "(${p.partyCode})" : ""}',
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          );
+                                        }).toList(),
+                                        onChanged: (val) => setState(() => _selectedPartyId = val),
+                                        validator: (v) => v == null ? 'Customer required' : null,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // 4. DC No (Common on top)
+                                    Expanded(
+                                      flex: 2,
+                                      child: TextFormField(
+                                        controller: _dcNoController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'DC No *',
+                                          hintText: 'Enter DC No',
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.receipt_long, size: 20),
+                                        ),
+                                        validator: (v) => (v == null || v.trim().isEmpty) ? 'DC No is required' : null,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                               const SizedBox(height: 20),
 
                               // Items & Godown Stock Section Container
@@ -652,69 +739,94 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                         ],
                                       ),
                                     ),
-                                    const Divider(height: 1),
-
-                                    // Items Table Column Labels
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                      child: Row(
-                                        children: const [
-                                          SizedBox(
-                                            width: 26,
-                                            child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                          ),
-                                          Expanded(
-                                            flex: 3,
-                                            child: Text('Item Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            flex: 3,
-                                            child: Text('Godown Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text('Lot #', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text('UOM *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text('UOM Qty', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text('Actual Qty *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.success)),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text('Billed Qty *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text('Rate (₹) *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text('Per *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                          ),
-                                          SizedBox(width: 36),
-                                        ],
+                                    if (isMobile)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        color: Colors.blue.shade50,
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.swipe_outlined, size: 14, color: Colors.blue.shade700),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              'Swipe horizontally to view all item columns',
+                                              style: TextStyle(fontSize: 11, color: Colors.blue.shade700, fontWeight: FontWeight.w500),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
                                     const Divider(height: 1),
 
-                                    // Item Rows
-                                    ...List.generate(_rows.length, (index) {
+                                    // Horizontally Scrollable Items Table
+                                    Scrollbar(
+                                      thumbVisibility: isMobile,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: SizedBox(
+                                          width: 1200,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              // Items Table Column Labels
+                                              Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                child: Row(
+                                                  children: const [
+                                                    SizedBox(
+                                                      width: 26,
+                                                      child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                    ),
+                                                    Expanded(
+                                                      flex: 3,
+                                                      child: Text('Item Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Expanded(
+                                                      flex: 3,
+                                                      child: Text('Godown Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: Text('Lot #', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: Text('UOM *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: Text('UOM Qty', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: Text('Actual Qty *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.success)),
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: Text('Billed Qty *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: Text('Rate (₹) *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: Text('Per *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                    ),
+                                                    SizedBox(width: 36),
+                                                  ],
+                                                ),
+                                              ),
+                                              const Divider(height: 1),
+
+                                              // Item Rows
+                                              ...List.generate(_rows.length, (index) {
                                       final row = _rows[index];
                                       final stocksForItem = row.itemId != null
                                           ? _salesController.availableStocks
@@ -1022,7 +1134,12 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 20),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
 
                               // Apply GST / Tax Invoice Section
                               Container(
@@ -1035,41 +1152,53 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(
+                                    Wrap(
+                                      crossAxisAlignment: WrapCrossAlignment.center,
+                                      spacing: 16,
+                                      runSpacing: 8,
                                       children: [
-                                        Checkbox(
-                                          value: _isGstBill,
-                                          activeColor: AppColors.primary,
-                                          onChanged: (val) => setState(() => _isGstBill = val ?? false),
-                                        ),
-                                        const Text(
-                                          'Apply GST / Tax Invoice',
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Checkbox(
+                                              value: _isGstBill,
+                                              activeColor: AppColors.primary,
+                                              onChanged: (val) => setState(() => _isGstBill = val ?? false),
+                                            ),
+                                            const Text(
+                                              'Apply GST / Tax Invoice',
+                                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                            ),
+                                          ],
                                         ),
                                         if (_isGstBill) ...[
-                                          const SizedBox(width: 20),
-                                          const Text('GST Rate: ', style: TextStyle(fontSize: 13)),
-                                          const SizedBox(width: 8),
-                                          SizedBox(
-                                            width: 100,
-                                            height: 38,
-                                            child: DropdownButtonFormField<double>(
-                                              isDense: true,
-                                              decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Text('GST Rate: ', style: TextStyle(fontSize: 13)),
+                                              const SizedBox(width: 8),
+                                              SizedBox(
+                                                width: 100,
+                                                height: 38,
+                                                child: DropdownButtonFormField<double>(
+                                                  isDense: true,
+                                                  decoration: const InputDecoration(
+                                                    border: OutlineInputBorder(),
+                                                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                                  ),
+                                                  value: _selectedGstPercentage,
+                                                  items: _gstOptions.map((g) {
+                                                    return DropdownMenuItem<double>(
+                                                      value: g,
+                                                      child: Text('${g.toStringAsFixed(0)}%'),
+                                                    );
+                                                  }).toList(),
+                                                  onChanged: (val) {
+                                                    if (val != null) setState(() => _selectedGstPercentage = val);
+                                                  },
+                                                ),
                                               ),
-                                              value: _selectedGstPercentage,
-                                              items: _gstOptions.map((g) {
-                                                return DropdownMenuItem<double>(
-                                                  value: g,
-                                                  child: Text('${g.toStringAsFixed(0)}%'),
-                                                );
-                                              }).toList(),
-                                              onChanged: (val) {
-                                                if (val != null) setState(() => _selectedGstPercentage = val);
-                                              },
-                                            ),
+                                            ],
                                           ),
                                         ],
                                       ],
@@ -1085,7 +1214,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                             const SizedBox(height: 2),
                                             Text(
                                               '₹${_estimatedSubTotal.toStringAsFixed(2)}',
-                                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                              style: TextStyle(fontSize: isMobile ? 15 : 18, fontWeight: FontWeight.bold),
                                             ),
                                           ],
                                         ),
@@ -1096,8 +1225,8 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                             const SizedBox(height: 2),
                                             Text(
                                               '₹${_estimatedTotalAmount.toStringAsFixed(2)}',
-                                              style: const TextStyle(
-                                                fontSize: 22,
+                                              style: TextStyle(
+                                                fontSize: isMobile ? 17 : 22,
                                                 fontWeight: FontWeight.bold,
                                                 color: AppColors.primary,
                                               ),
@@ -1160,48 +1289,96 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                           ),
                         ),
                 ),
-                const Divider(height: 24),
+                const Divider(height: 20),
 
-                // Dialog Footer
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${_rows.length} ${_rows.length == 1 ? "Item" : "Items"} in Sale',
-                      style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600),
-                    ),
-                    Row(
-                      children: [
-                        OutlinedButton(
-                          onPressed: _salesController.isLoading ? null : () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: const Text('Cancel'),
+                // Dialog Footer: Responsive for Mobile
+                if (isMobile)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Text(
+                          '${_rows.length} ${_rows.length == 1 ? "Item" : "Items"} in Sale',
+                          style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600, fontSize: 13),
                         ),
-                        const SizedBox(width: 12),
-                        ElevatedButton.icon(
-                          onPressed: _salesController.isLoading ? null : _handleSubmit,
-                          icon: _salesController.isLoading
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Icon(Icons.check, size: 18),
-                          label: Text(_isEditMode ? 'Update Sale Record' : 'Save Sale Record'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: _salesController.isLoading ? null : () => Navigator.pop(context),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: const Text('Cancel'),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: _salesController.isLoading ? null : _handleSubmit,
+                              icon: _salesController.isLoading
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    )
+                                  : const Icon(Icons.check, size: 16),
+                              label: Text(_isEditMode ? 'Update' : 'Save Sale'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                else
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${_rows.length} ${_rows.length == 1 ? "Item" : "Items"} in Sale',
+                        style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                      ),
+                      Row(
+                        children: [
+                          OutlinedButton(
+                            onPressed: _salesController.isLoading ? null : () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const Text('Cancel'),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            onPressed: _salesController.isLoading ? null : _handleSubmit,
+                            icon: _salesController.isLoading
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Icon(Icons.check, size: 18),
+                            label: Text(_isEditMode ? 'Update Sale Record' : 'Save Sale Record'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
