@@ -429,53 +429,6 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               ),
             ),
 
-          // Environment info footer
-          Container(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF071B47),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.yellow.withOpacity(0.3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'API BASE URL',
-                  style: TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                AnimatedBuilder(
-                  animation: EnvConfig(),
-                  builder: (context, _) => Text(
-                    EnvConfig().baseUrl,
-                    style: const TextStyle(
-                      color: AppColors.yellow,
-                      fontSize: 11,
-                      fontFamily: 'monospace',
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Debug Logs
-          ListTile(
-            leading: const Icon(Icons.terminal, color: AppColors.yellow),
-            title: const Text(
-              'Debug Logs',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
-            ),
-            onTap: () {
-              if (isDrawer) Navigator.pop(context);
-              LogViewerDialog.show(context);
-            },
-          ),
-
           // Change Password
           ListTile(
             leading: const Icon(Icons.lock_reset, color: Colors.grey),
