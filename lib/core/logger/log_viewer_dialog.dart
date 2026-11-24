@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
 
 class LogViewerDialog extends StatefulWidget {
   const LogViewerDialog({super.key});
@@ -57,12 +58,9 @@ class _LogViewerDialogState extends State<LogViewerDialog> {
   void _copyAllLogs(BuildContext context) {
     final text = AppLogger().exportLogsText();
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('All logs copied to clipboard! You can now paste it into chat.'),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-      ),
+    AppNotification.showSuccess(
+      context,
+      'All logs copied to clipboard! You can now paste it into chat.',
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/utils/error_utils.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
 import 'package:mlf_frontend/features/auth/domain/usecases/change_password_usecase.dart';
 
@@ -52,7 +53,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _errorMessage = cleanErrorMessage(e);
       });
     } finally {
       if (mounted) {

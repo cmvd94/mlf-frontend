@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
+import 'package:mlf_frontend/core/utils/error_utils.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/access_scope_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_list_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
@@ -27,6 +28,7 @@ class AdminController extends ChangeNotifier {
           'Coimbatore': {'pincodes': []},
           'Tiruppur': {'pincodes': []},
           'Chennai': {'pincodes': []},
+          'Palladam': {'pincodes': []},
         },
         'Kerala': {
           'Thrissur': {'pincodes': []},
@@ -173,7 +175,7 @@ class AdminController extends ChangeNotifier {
       );
     } catch (e, st) {
       AppLogger().e('Failed to fetch admin users: $e', tag: 'AdminCtrl', error: e, stackTrace: st);
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -228,7 +230,7 @@ class AdminController extends ChangeNotifier {
       await fetchUsers();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       return false;
     } finally {
       _isActionLoading = false;
@@ -264,7 +266,7 @@ class AdminController extends ChangeNotifier {
       await fetchUsers();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       return false;
     } finally {
       _isActionLoading = false;
@@ -285,7 +287,7 @@ class AdminController extends ChangeNotifier {
       await fetchUsers();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       notifyListeners();
       return false;
     }
@@ -303,7 +305,7 @@ class AdminController extends ChangeNotifier {
       await fetchUsers();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
       return false;
     } finally {
       _isActionLoading = false;
@@ -319,7 +321,7 @@ class AdminController extends ChangeNotifier {
     try {
       _selectedUser = await getAdminUserDetailsUseCase.execute(id);
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = cleanErrorMessage(e);
     } finally {
       _isActionLoading = false;
       notifyListeners();

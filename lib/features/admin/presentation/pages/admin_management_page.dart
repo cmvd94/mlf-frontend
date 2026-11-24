@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_role.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
@@ -67,12 +68,7 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
 
   void _openEditDialog(AdminUserEntity user) {
     if (!user.canEdit) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cannot edit user of equal or higher role.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppNotification.showError(context, 'Cannot edit user of equal or higher role.');
       return;
     }
     showDialog(
@@ -93,12 +89,7 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
 
   void _openDeleteDialog(AdminUserEntity user) {
     if (!user.canDelete) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cannot delete user of equal or higher role.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppNotification.showError(context, 'Cannot delete user of equal or higher role.');
       return;
     }
     showDialog(
@@ -119,13 +110,7 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
 
         if (ctrl.successMessage != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(ctrl.successMessage!),
-                backgroundColor: AppColors.success,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            AppNotification.showSuccess(context, ctrl.successMessage!);
             ctrl.clearMessages();
           });
         }

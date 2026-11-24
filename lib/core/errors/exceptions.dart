@@ -5,7 +5,7 @@ class ServerException implements Exception {
   ServerException({required this.message, this.statusCode});
 
   @override
-  String toString() => 'ServerException: $message (Status: $statusCode)';
+  String toString() => message;
 }
 
 class NetworkException implements Exception {
@@ -14,7 +14,7 @@ class NetworkException implements Exception {
   NetworkException({this.message = 'Network connection failed'});
 
   @override
-  String toString() => 'NetworkException: $message';
+  String toString() => message;
 }
 
 class CacheException implements Exception {
@@ -23,7 +23,7 @@ class CacheException implements Exception {
   CacheException({this.message = 'Cache operation failed'});
 
   @override
-  String toString() => 'CacheException: $message';
+  String toString() => message;
 }
 
 class AuthException implements Exception {
@@ -32,5 +32,5 @@ class AuthException implements Exception {
   AuthException({required this.message});
 
   @override
-  String toString() => 'AuthException: $message';
+  String toString() => message;
 }

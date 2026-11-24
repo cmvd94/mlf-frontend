@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:mlf_frontend/core/utils/error_utils.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/login_usecase.dart';
@@ -79,7 +80,7 @@ class LoginController extends ChangeNotifier {
       return false;
     } catch (e) {
       _status = LoginStatus.failure;
-      _errorMessage = 'Login failed: ${e.toString()}';
+      _errorMessage = 'Login failed: ${cleanErrorMessage(e)}';
       notifyListeners();
       return false;
     }

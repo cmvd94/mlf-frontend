@@ -24,6 +24,62 @@ import '../../features/admin/domain/usecases/update_admin_is_active_usecase.dart
 import '../../features/admin/domain/usecases/update_admin_user_usecase.dart';
 import '../../features/admin/presentation/controllers/admin_controller.dart';
 
+// Godown
+import '../../features/admin/data/datasources/godown_remote_data_source.dart';
+import '../../features/admin/data/repositories/godown_repository_impl.dart';
+import '../../features/admin/domain/repositories/godown_repository.dart';
+import '../../features/admin/domain/usecases/create_godown_usecase.dart';
+import '../../features/admin/domain/usecases/delete_godown_usecase.dart';
+import '../../features/admin/domain/usecases/get_eligible_godown_admins_usecase.dart';
+import '../../features/admin/domain/usecases/get_godown_by_id_usecase.dart';
+import '../../features/admin/domain/usecases/get_godowns_usecase.dart';
+import '../../features/admin/domain/usecases/update_godown_is_active_usecase.dart';
+import '../../features/admin/domain/usecases/update_godown_usecase.dart';
+import '../../features/admin/presentation/controllers/godown_controller.dart';
+
+// Inventory & Masters
+import '../../features/inventory/data/datasources/inventory_remote_data_source.dart';
+import '../../features/inventory/data/repositories/inventory_repository_impl.dart';
+import '../../features/inventory/domain/repositories/inventory_repository.dart';
+import '../../features/inventory/presentation/controllers/inventory_controller.dart';
+
+// Purchase
+import '../../features/purchase/data/datasources/purchase_remote_data_source.dart';
+import '../../features/purchase/data/repositories/purchase_repository_impl.dart';
+import '../../features/purchase/domain/repositories/purchase_repository.dart';
+import '../../features/purchase/presentation/controllers/purchase_controller.dart';
+
+// Stock Summary (Tally Stock View)
+import '../../features/stock_summary/data/datasources/stock_summary_remote_data_source.dart';
+import '../../features/stock_summary/data/repositories/stock_summary_repository_impl.dart';
+import '../../features/stock_summary/domain/repositories/stock_summary_repository.dart';
+import '../../features/stock_summary/domain/usecases/get_stock_summary_usecase.dart';
+import '../../features/stock_summary/presentation/controllers/stock_summary_controller.dart';
+
+// Stock Transfer / Inventory Transfer
+import '../../features/stock_transfer/data/datasources/stock_transfer_remote_data_source.dart';
+import '../../features/stock_transfer/data/repositories/stock_transfer_repository_impl.dart';
+import '../../features/stock_transfer/domain/repositories/stock_transfer_repository.dart';
+import '../../features/stock_transfer/presentation/controllers/stock_transfer_controller.dart';
+
+// Sales
+import '../../features/sales/data/datasources/sales_remote_data_source.dart';
+import '../../features/sales/data/repositories/sales_repository_impl.dart';
+import '../../features/sales/domain/repositories/sales_repository.dart';
+import '../../features/sales/presentation/controllers/sales_controller.dart';
+
+// Debit Note
+import '../../features/debit_note/data/datasources/debit_note_remote_data_source.dart';
+import '../../features/debit_note/data/repositories/debit_note_repository_impl.dart';
+import '../../features/debit_note/domain/repositories/debit_note_repository.dart';
+import '../../features/debit_note/presentation/controllers/debit_note_controller.dart';
+
+// Credit Note
+import '../../features/credit_note/data/datasources/credit_note_remote_data_source.dart';
+import '../../features/credit_note/data/repositories/credit_note_repository_impl.dart';
+import '../../features/credit_note/domain/repositories/credit_note_repository.dart';
+import '../../features/credit_note/presentation/controllers/credit_note_controller.dart';
+
 class ServiceLocator {
   static final ServiceLocator instance = ServiceLocator._internal();
   factory ServiceLocator() => instance;
@@ -131,6 +187,144 @@ class ServiceLocator {
       getAdminStaticDataUseCase: getAdminStaticDataUseCase,
     );
     sl._register<AdminController>(adminController);
+
+    // 7. Godown Data Source & Repository
+    final godownRemoteDataSource = GodownRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<GodownRemoteDataSource>(godownRemoteDataSource);
+
+    final godownRepository = GodownRepositoryImpl(
+      remoteDataSource: godownRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<GodownRepository>(godownRepository);
+
+    // 8. Godown Use Cases
+    final getGodownsUseCase = GetGodownsUseCase(godownRepository);
+    sl._register<GetGodownsUseCase>(getGodownsUseCase);
+
+    final getGodownByIdUseCase = GetGodownByIdUseCase(godownRepository);
+    sl._register<GetGodownByIdUseCase>(getGodownByIdUseCase);
+
+    final createGodownUseCase = CreateGodownUseCase(godownRepository);
+    sl._register<CreateGodownUseCase>(createGodownUseCase);
+
+    final updateGodownUseCase = UpdateGodownUseCase(godownRepository);
+    sl._register<UpdateGodownUseCase>(updateGodownUseCase);
+
+    final updateGodownIsActiveUseCase = UpdateGodownIsActiveUseCase(godownRepository);
+    sl._register<UpdateGodownIsActiveUseCase>(updateGodownIsActiveUseCase);
+
+    final deleteGodownUseCase = DeleteGodownUseCase(godownRepository);
+    sl._register<DeleteGodownUseCase>(deleteGodownUseCase);
+
+    final getEligibleGodownAdminsUseCase = GetEligibleGodownAdminsUseCase(godownRepository);
+    sl._register<GetEligibleGodownAdminsUseCase>(getEligibleGodownAdminsUseCase);
+
+    // 9. Godown Controller
+    final godownController = GodownController(
+      getGodownsUseCase: getGodownsUseCase,
+      getGodownByIdUseCase: getGodownByIdUseCase,
+      createGodownUseCase: createGodownUseCase,
+      updateGodownUseCase: updateGodownUseCase,
+      updateGodownIsActiveUseCase: updateGodownIsActiveUseCase,
+      deleteGodownUseCase: deleteGodownUseCase,
+      getEligibleGodownAdminsUseCase: getEligibleGodownAdminsUseCase,
+    );
+    sl._register<GodownController>(godownController);
+
+    // 10. Inventory Data Sources, Repositories & Controller
+    final inventoryRemoteDataSource = InventoryRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<InventoryRemoteDataSource>(inventoryRemoteDataSource);
+
+    final inventoryRepository = InventoryRepositoryImpl(
+      remoteDataSource: inventoryRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<InventoryRepository>(inventoryRepository);
+
+    final inventoryController = InventoryController(repository: inventoryRepository);
+    sl._register<InventoryController>(inventoryController);
+
+    // 11. Purchase Data Sources, Repositories & Controller
+    final purchaseRemoteDataSource = PurchaseRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<PurchaseRemoteDataSource>(purchaseRemoteDataSource);
+
+    final purchaseRepository = PurchaseRepositoryImpl(
+      remoteDataSource: purchaseRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<PurchaseRepository>(purchaseRepository);
+
+    final purchaseController = PurchaseController(repository: purchaseRepository);
+    sl._register<PurchaseController>(purchaseController);
+
+    // 12. Stock Summary Data Sources, Repositories, Use Cases & Controller
+    final stockSummaryRemoteDataSource = StockSummaryRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<StockSummaryRemoteDataSource>(stockSummaryRemoteDataSource);
+
+    final stockSummaryRepository = StockSummaryRepositoryImpl(
+      remoteDataSource: stockSummaryRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<StockSummaryRepository>(stockSummaryRepository);
+
+    final getStockSummaryUseCase = GetStockSummaryUseCase(stockSummaryRepository);
+    sl._register<GetStockSummaryUseCase>(getStockSummaryUseCase);
+
+    final stockSummaryController = StockSummaryController(getStockSummaryUseCase: getStockSummaryUseCase);
+    sl._register<StockSummaryController>(stockSummaryController);
+
+    // 13. Stock Transfer Data Sources, Repositories & Controller
+    final stockTransferRemoteDataSource = StockTransferRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<StockTransferRemoteDataSource>(stockTransferRemoteDataSource);
+
+    final stockTransferRepository = StockTransferRepositoryImpl(
+      remoteDataSource: stockTransferRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<StockTransferRepository>(stockTransferRepository);
+
+    final stockTransferController = StockTransferController(repository: stockTransferRepository);
+    sl._register<StockTransferController>(stockTransferController);
+
+    // 14. Sales Data Sources, Repositories & Controller
+    final salesRemoteDataSource = SalesRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<SalesRemoteDataSource>(salesRemoteDataSource);
+
+    final salesRepository = SalesRepositoryImpl(
+      remoteDataSource: salesRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<SalesRepository>(salesRepository);
+
+    final salesController = SalesController(repository: salesRepository);
+    sl._register<SalesController>(salesController);
+
+    // 15. Debit Note Data Sources, Repositories & Controller
+    final debitNoteRemoteDataSource = DebitNoteRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<DebitNoteRemoteDataSource>(debitNoteRemoteDataSource);
+
+    final debitNoteRepository = DebitNoteRepositoryImpl(
+      remoteDataSource: debitNoteRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<DebitNoteRepository>(debitNoteRepository);
+
+    final debitNoteController = DebitNoteController(repository: debitNoteRepository);
+    sl._register<DebitNoteController>(debitNoteController);
+
+    // 16. Credit Note Data Sources, Repositories & Controller
+    final creditNoteRemoteDataSource = CreditNoteRemoteDataSourceImpl(apiClient: apiClient);
+    sl._register<CreditNoteRemoteDataSource>(creditNoteRemoteDataSource);
+
+    final creditNoteRepository = CreditNoteRepositoryImpl(
+      remoteDataSource: creditNoteRemoteDataSource,
+      localDataSource: authLocalDataSource,
+    );
+    sl._register<CreditNoteRepository>(creditNoteRepository);
+
+    final creditNoteController = CreditNoteController(repository: creditNoteRepository);
+    sl._register<CreditNoteController>(creditNoteController);
   }
 }
 

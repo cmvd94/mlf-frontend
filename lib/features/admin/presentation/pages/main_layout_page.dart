@@ -2,15 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/config/env_config.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
+import 'package:mlf_frontend/core/utils/error_boundary.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/core/logger/log_viewer_dialog.dart';
 import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
 import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mlf_frontend/features/auth/presentation/pages/login_page.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
+import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
 import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
 import 'package:mlf_frontend/features/admin/presentation/widgets/change_password_dialog.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/admin_management_page.dart';
+import 'package:mlf_frontend/features/admin/presentation/pages/godown_management_page.dart';
+import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
+import 'package:mlf_frontend/features/inventory/presentation/pages/account_inventory_page.dart';
+import 'package:mlf_frontend/features/purchase/presentation/controllers/purchase_controller.dart';
+import 'package:mlf_frontend/features/purchase/presentation/pages/purchase_management_page.dart';
+import 'package:mlf_frontend/features/stock_summary/presentation/controllers/stock_summary_controller.dart';
+import 'package:mlf_frontend/features/stock_summary/presentation/pages/stock_summary_page.dart';
+import 'package:mlf_frontend/features/stock_transfer/presentation/pages/stock_transfer_page.dart';
+import 'package:mlf_frontend/features/sales/presentation/pages/sales_page.dart';
+import 'package:mlf_frontend/features/debit_note/presentation/pages/debit_note_page.dart';
+import 'package:mlf_frontend/features/credit_note/presentation/pages/credit_note_page.dart';
 
 class MainLayoutPage extends StatefulWidget {
   final UserEntity? currentUser;
@@ -22,13 +36,22 @@ class MainLayoutPage extends StatefulWidget {
 }
 
 class _MainLayoutPageState extends State<MainLayoutPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedTabIndex = 1; // Default to Admin Management tab as requested
   late final AdminController _adminController;
+  late final GodownController _godownController;
+  late final InventoryController _inventoryController;
+  late final PurchaseController _purchaseController;
+  late final StockSummaryController _stockSummaryController;
 
   @override
   void initState() {
     super.initState();
     _adminController = sl<AdminController>();
+    _godownController = sl<GodownController>();
+    _inventoryController = sl<InventoryController>();
+    _purchaseController = sl<PurchaseController>();
+    _stockSummaryController = sl<StockSummaryController>();
     AppLogger().i(
       'MainLayoutPage mounted successfully for user: ${widget.currentUser?.name ?? "Admin"} (phone: ${widget.currentUser?.phoneNumber ?? "N/A"})',
       tag: 'PortalUI',
@@ -37,53 +60,72 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
 
   Future<void> _logout() async {
     AppLogger().i('User opened logout confirmation dialog', tag: 'PortalUI');
-    final confirmed = await showDialog<bool>(
+    final action = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirm Logout'),
-        content: const Text('Are you sure you want to log out of your session?'),
+        content: const Text(
+          'Do you want to log out from this device or all active sessions across all devices?',
+        ),
         actions: [
           OutlinedButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => Navigator.pop(ctx, null),
             child: const Text('Cancel'),
+          ),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.error,
+              side: const BorderSide(color: AppColors.error),
+            ),
+            onPressed: () => Navigator.pop(ctx, 'all'),
+            child: const Text('Logout All Devices'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
             ),
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => Navigator.pop(ctx, 'current'),
             child: const Text('Logout'),
           ),
         ],
       ),
     );
 
-    if (confirmed == true) {
-      await sl<AuthRepository>().logout();
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-          (route) => false,
-        );
+    if (action != null) {
+      try {
+        if (action == 'all') {
+          await sl<AuthRepository>().logoutAll();
+        } else {
+          await sl<AuthRepository>().logout();
+        }
+      } catch (e, st) {
+        AppLogger().e('Error logging out from server: $e', tag: 'PortalUI', error: e, stackTrace: st);
+      } finally {
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginPage()),
+            (route) => false,
+          );
+        }
       }
     }
   }
 
   void _openChangePasswordDialog() async {
-    final changed = await showDialog<bool>(
-      context: context,
-      builder: (_) => const ChangePasswordDialog(),
-    );
-
-    if (changed == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password changed successfully!'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
+    try {
+      final changed = await showDialog<bool>(
+        context: context,
+        builder: (_) => const ChangePasswordDialog(),
       );
+
+      if (changed == true && mounted) {
+        AppNotification.showSuccess(context, 'Password changed successfully!');
+      }
+    } catch (e) {
+      if (mounted) {
+        AppNotification.showError(context, 'Failed to open change password dialog: $e');
+      }
     }
   }
 
@@ -92,7 +134,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
-      drawerEnableOpenDragGesture: !isDesktop,
+      key: _scaffoldKey,
+      drawerEnableOpenDragGesture: true,
       appBar: isDesktop
           ? null
           : AppBar(
@@ -111,23 +154,15 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               foregroundColor: AppColors.textPrimary,
               elevation: 1,
             ),
-      drawer: isDesktop ? null : _buildSidebar(isDrawer: true),
-      body: Row(
+      drawer: _buildSidebar(isDrawer: true),
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (isDesktop) _buildSidebar(isDrawer: false),
+          if (isDesktop) _buildTopBar(),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (isDesktop) _buildTopBar(),
-                Expanded(
-                  child: Container(
-                    color: Colors.grey.shade50,
-                    child: _buildTabContent(),
-                  ),
-                ),
-              ],
+            child: Container(
+              color: Colors.grey.shade50,
+              child: _buildTabContent(),
             ),
           ),
         ],
@@ -141,7 +176,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
 
     return Container(
       height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
@@ -152,6 +187,18 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           Expanded(
             child: Row(
               children: [
+                IconButton(
+                  tooltip: 'Menu',
+                  icon: const Icon(Icons.menu, color: AppColors.primaryDark),
+                  onPressed: () {
+                    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+                      Navigator.pop(context);
+                    } else {
+                      _scaffoldKey.currentState?.openDrawer();
+                    }
+                  },
+                ),
+                const SizedBox(width: 8),
                 Flexible(
                   child: Text(
                     _getTabTitle(),
@@ -233,7 +280,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     return Material(
       color: AppColors.primaryDark,
       child: Container(
-        width: 250,
+        width: 260,
         decoration: BoxDecoration(
           border: Border(right: BorderSide(color: AppColors.primary.withOpacity(0.3))),
         ),
@@ -241,7 +288,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           children: [
             // Branding Header
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               alignment: Alignment.centerLeft,
               child: Row(
                 children: [
@@ -283,37 +330,104 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       ],
                     ),
                   ),
+                  if (isDrawer)
+                    IconButton(
+                      tooltip: 'Hide Menu',
+                      icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
                 ],
               ),
             ),
             Divider(color: AppColors.primary.withOpacity(0.3), height: 1),
             const SizedBox(height: 12),
 
-          // Nav Items
-          _buildNavItem(
-            index: 0,
-            icon: Icons.dashboard_outlined,
-            activeIcon: Icons.dashboard,
-            label: 'Dashboard',
-            isDrawer: isDrawer,
-          ),
-          _buildNavItem(
-            index: 1,
-            icon: Icons.admin_panel_settings_outlined,
-            activeIcon: Icons.admin_panel_settings,
-            label: 'Admin Users',
-            badge: 'CRUD',
-            isDrawer: isDrawer,
-          ),
-          _buildNavItem(
-            index: 2,
-            icon: Icons.tune_outlined,
-            activeIcon: Icons.tune,
-            label: 'Environment & Config',
-            isDrawer: isDrawer,
-          ),
-
-          const Spacer(),
+            // Scrollable Nav Items
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildNavItem(
+                      index: 0,
+                      icon: Icons.dashboard_outlined,
+                      activeIcon: Icons.dashboard,
+                      label: 'Dashboard',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 1,
+                      icon: Icons.admin_panel_settings_outlined,
+                      activeIcon: Icons.admin_panel_settings,
+                      label: 'Admin Users',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 2,
+                      icon: Icons.warehouse_outlined,
+                      activeIcon: Icons.warehouse,
+                      label: 'Godowns',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 3,
+                      icon: Icons.account_balance_wallet_outlined,
+                      activeIcon: Icons.account_balance_wallet,
+                      label: 'Account & Inventory Info',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 4,
+                      icon: Icons.shopping_cart_outlined,
+                      activeIcon: Icons.shopping_cart,
+                      label: 'Purchase',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 5,
+                      icon: Icons.assessment_outlined,
+                      activeIcon: Icons.assessment,
+                      label: 'Stock Summary',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 6,
+                      icon: Icons.sync_alt_outlined,
+                      activeIcon: Icons.sync_alt,
+                      label: 'Stock Transfer',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 7,
+                      icon: Icons.point_of_sale_outlined,
+                      activeIcon: Icons.point_of_sale,
+                      label: 'Sales',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 8,
+                      icon: Icons.receipt_long_outlined,
+                      activeIcon: Icons.receipt_long,
+                      label: 'Debit Note',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 9,
+                      icon: Icons.note_alt_outlined,
+                      activeIcon: Icons.note_alt,
+                      label: 'Credit Note',
+                      isDrawer: isDrawer,
+                    ),
+                    _buildNavItem(
+                      index: 10,
+                      icon: Icons.tune_outlined,
+                      activeIcon: Icons.tune,
+                      label: 'Environment & Config',
+                      isDrawer: isDrawer,
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // Environment info footer
           Container(
@@ -382,7 +496,10 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               'Logout',
               style: TextStyle(color: Colors.redAccent, fontSize: 14),
             ),
-            onTap: _logout,
+            onTap: () {
+              if (isDrawer) Navigator.pop(context);
+              _logout();
+            },
           ),
           const SizedBox(height: 12),
         ],
@@ -454,6 +571,22 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       case 1:
         return 'Admin Users Management';
       case 2:
+        return 'Godown Management';
+      case 3:
+        return 'Account & Inventory Info';
+      case 4:
+        return 'Purchase Entries & Stock Management';
+      case 5:
+        return 'Stock Summary';
+      case 6:
+        return 'Stock Transfer / Inventory Transfer';
+      case 7:
+        return 'Sales Management';
+      case 8:
+        return 'Debit Note Management';
+      case 9:
+        return 'Credit Note Management';
+      case 10:
         return 'Environment & Configuration';
       default:
         return 'Portal';
@@ -461,16 +594,68 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   }
 
   Widget _buildTabContent() {
+    Widget content;
+    String sectionName;
+
     switch (_selectedTabIndex) {
       case 0:
-        return _buildDashboardTab();
+        sectionName = 'Dashboard';
+        content = _buildDashboardTab();
+        break;
       case 1:
-        return AdminManagementPage(controller: _adminController);
+        sectionName = 'Admin Management';
+        content = AdminManagementPage(controller: _adminController);
+        break;
       case 2:
-        return _buildEnvironmentTab();
+        sectionName = 'Godown Management';
+        content = GodownManagementPage(controller: _godownController);
+        break;
+      case 3:
+        sectionName = 'Account & Inventory';
+        content = AccountInventoryPage(controller: _inventoryController);
+        break;
+      case 4:
+        sectionName = 'Purchase Management';
+        content = PurchaseManagementPage(
+          purchaseController: _purchaseController,
+          inventoryController: _inventoryController,
+        );
+        break;
+      case 5:
+        sectionName = 'Stock Summary';
+        content = StockSummaryPage(controller: _stockSummaryController);
+        break;
+      case 6:
+        sectionName = 'Stock Transfer';
+        content = const StockTransferPage();
+        break;
+      case 7:
+        sectionName = 'Sales Management';
+        content = const SalesPage();
+        break;
+      case 8:
+        sectionName = 'Debit Note';
+        content = const DebitNotePage();
+        break;
+      case 9:
+        sectionName = 'Credit Note';
+        content = const CreditNotePage();
+        break;
+      case 10:
+        sectionName = 'Environment Settings';
+        content = _buildEnvironmentTab();
+        break;
       default:
-        return AdminManagementPage(controller: _adminController);
+        sectionName = 'Admin Management';
+        content = AdminManagementPage(controller: _adminController);
+        break;
     }
+
+    return AppErrorBoundary(
+      key: ValueKey('tab_boundary_$_selectedTabIndex'),
+      sectionName: sectionName,
+      child: content,
+    );
   }
 
   Widget _buildDashboardTab() {
@@ -500,11 +685,75 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               ),
               const SizedBox(width: 16),
               _buildStatCard(
+                title: 'Godowns',
+                subtitle: 'Manage branches & jobworks',
+                icon: Icons.warehouse,
+                color: Colors.indigo,
+                onTap: () => setState(() => _selectedTabIndex = 2),
+              ),
+              const SizedBox(width: 16),
+              _buildStatCard(
+                title: 'Inventory & Masters',
+                subtitle: 'Parties, Items, UOMs, Per',
+                icon: Icons.account_balance_wallet,
+                color: Colors.teal,
+                onTap: () => setState(() => _selectedTabIndex = 3),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildStatCard(
+                title: 'Purchase Entries',
+                subtitle: 'New purchase & stock updates',
+                icon: Icons.shopping_cart,
+                color: Colors.deepOrange,
+                onTap: () => setState(() => _selectedTabIndex = 4),
+              ),
+              const SizedBox(width: 16),
+              _buildStatCard(
+                title: 'Stock Summary',
+                subtitle: 'Tally group & stock summary',
+                icon: Icons.assessment,
+                color: Colors.green.shade700,
+                onTap: () => setState(() => _selectedTabIndex = 5),
+              ),
+              const SizedBox(width: 16),
+              _buildStatCard(
+                title: 'Sales Management',
+                subtitle: 'Outward sales & stock deduction',
+                icon: Icons.point_of_sale,
+                color: Colors.purple,
+                onTap: () => setState(() => _selectedTabIndex = 7),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildStatCard(
+                title: 'Debit Note',
+                subtitle: 'Outward debit voucher management',
+                icon: Icons.receipt_long,
+                color: Colors.blueGrey,
+                onTap: () => setState(() => _selectedTabIndex = 8),
+              ),
+              const SizedBox(width: 16),
+              _buildStatCard(
+                title: 'Credit Note',
+                subtitle: 'Inward credit voucher & returns',
+                icon: Icons.note_alt,
+                color: Colors.cyan.shade700,
+                onTap: () => setState(() => _selectedTabIndex = 9),
+              ),
+              const SizedBox(width: 16),
+              _buildStatCard(
                 title: 'Environment',
                 subtitle: EnvConfig().environment.displayName,
                 icon: Icons.hub,
                 color: AppColors.yellowDark,
-                onTap: () => setState(() => _selectedTabIndex = 2),
+                onTap: () => setState(() => _selectedTabIndex = 10),
               ),
             ],
           ),

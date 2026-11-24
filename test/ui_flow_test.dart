@@ -17,6 +17,23 @@ import 'package:mlf_frontend/features/admin/presentation/pages/main_layout_page.
 import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
 import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mlf_frontend/features/auth/domain/usecases/change_password_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/create_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/delete_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_eligible_godown_admins_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_godown_by_id_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_godowns_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_is_active_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
+import 'godown_test.dart';
+import 'mocks/mock_inventory_purchase.dart';
+import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
+import 'package:mlf_frontend/features/purchase/presentation/controllers/purchase_controller.dart';
+import 'package:mlf_frontend/features/stock_transfer/presentation/controllers/stock_transfer_controller.dart';
+import 'package:mlf_frontend/features/stock_summary/domain/usecases/get_stock_summary_usecase.dart';
+import 'package:mlf_frontend/features/stock_summary/presentation/controllers/stock_summary_controller.dart';
+import 'package:mlf_frontend/features/stock_summary/domain/entities/stock_summary_entity.dart';
+import 'package:mlf_frontend/features/stock_summary/presentation/pages/stock_summary_page.dart';
 
 class FakeAuthRepository implements AuthRepository {
   @override
@@ -56,6 +73,9 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> logout() async {}
+
+  @override
+  Future<void> logoutAll() async {}
 }
 
 class FakeAdminRepository implements AdminRepository {
@@ -164,10 +184,35 @@ void main() {
       deleteAdminUserUseCase: deleteAdminUserUseCase,
     );
     sl.register<AdminController>(adminCtrl);
+
+    final godownRepo = MockGodownRepository();
+    final godownCtrl = GodownController(
+      getGodownsUseCase: GetGodownsUseCase(godownRepo),
+      getGodownByIdUseCase: GetGodownByIdUseCase(godownRepo),
+      createGodownUseCase: CreateGodownUseCase(godownRepo),
+      updateGodownUseCase: UpdateGodownUseCase(godownRepo),
+      updateGodownIsActiveUseCase: UpdateGodownIsActiveUseCase(godownRepo),
+      deleteGodownUseCase: DeleteGodownUseCase(godownRepo),
+      getEligibleGodownAdminsUseCase: GetEligibleGodownAdminsUseCase(godownRepo),
+    );
+    sl.register<GodownController>(godownCtrl);
+
+    final invRepo = MockInventoryRepository();
+    sl.register<InventoryController>(InventoryController(repository: invRepo));
+
+    final purchaseRepo = MockPurchaseRepository();
+    sl.register<PurchaseController>(PurchaseController(repository: purchaseRepo));
+
+    final transferRepo = MockStockTransferRepository();
+    sl.register<StockTransferController>(StockTransferController(repository: transferRepo));
+
+    final stockSummaryRepo = MockStockSummaryRepository();
+    final getStockSummaryUseCase = GetStockSummaryUseCase(stockSummaryRepo);
+    sl.register<StockSummaryController>(StockSummaryController(getStockSummaryUseCase: getStockSummaryUseCase));
   });
 
   testWidgets('MainLayoutPage renders Admin Management and responds to user clicks', (tester) async {
-    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.physicalSize = const Size(1440, 1024);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
       tester.view.resetPhysicalSize();
@@ -213,16 +258,128 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
 
+    // Open popup sidebar drawer via Menu button
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+
     // Test switching tabs to Dashboard
-    await tester.tap(find.text('Dashboard'));
+    await tester.tap(find.widgetWithText(ListTile, 'Dashboard'));
     await tester.pumpAndSettle();
 
     // Verify Dashboard is rendered
     expect(find.text('Welcome, Vishnudas!'), findsOneWidget);
 
+    // Open popup sidebar drawer via Menu button again
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+
     // Test switching back to Admin Users via sidebar
     await tester.tap(find.widgetWithText(ListTile, 'Admin Users'));
     await tester.pumpAndSettle();
     expect(find.text('Admin Management'), findsOneWidget);
+  });
+
+  testWidgets('StockSummaryPage displays Date column and entry creation date instead of Value tab', (tester) async {
+    tester.view.physicalSize = const Size(1440, 1024);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final stockSummaryRepo = MockStockSummaryRepository();
+    stockSummaryRepo.summary = const StockSummaryEntity(
+      companyName: 'ML Fabric',
+      period: StockSummaryPeriodEntity(formattedPeriod: '1-Apr-2026 to 31-Mar-2027'),
+      godownFilter: StockSummaryFilterEntity(),
+      groups: [
+        StockSummaryGroupEntity(
+          groupId: 'grp_yarn',
+          groupName: 'Yarn Group',
+          uom: 'kg',
+          totalQuantity: 150.0,
+          averageRate: 250.0,
+          totalValue: 37500.0,
+          formattedQuantity: '150.000 kg',
+          formattedRate: '250.00',
+          formattedValue: '37,500.00',
+          itemsCount: 1,
+          items: [
+            StockSummaryItemEntity(
+              itemId: 'itm_cotton',
+              itemName: 'Cotton Yarn 30s',
+              itemCode: 'YRN_30',
+              groupId: 'grp_yarn',
+              groupName: 'Yarn Group',
+              uom: 'kg',
+              quantity: 150.0,
+              averageRate: 250.0,
+              totalValue: 37500.0,
+              formattedQuantity: '150.000 kg',
+              formattedRate: '250.00',
+              formattedValue: '37,500.00',
+              batchesCount: 1,
+              batches: [
+                StockSummaryBatchEntity(
+                  dcNo: 'Dc174/7-10-26',
+                  lotNo: '',
+                  batchNo: 'Dc174/7-10-26',
+                  godownId: 'gd_01',
+                  godownName: 'Main Storage Godown',
+                  particulars: 'Dc174/7-10-26 Main Storage Godown',
+                  quantity: 150.0,
+                  rate: 250.0,
+                  value: 37500.0,
+                  formattedQuantity: '150.000 kg',
+                  formattedRate: '250.00',
+                  formattedValue: '37,500.00',
+                  uom: 'kg',
+                  date: '2026-11-21T10:00:00.000Z',
+                  formattedDate: '21/11/2026',
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+      grandTotal: StockSummaryGrandTotalEntity(
+        totalQuantity: 150.0,
+        averageRate: 250.0,
+        totalValue: 37500.0,
+        formattedQuantity: '150.000 kg',
+        formattedRate: '250.00',
+        formattedValue: '37,500.00',
+        groupsCount: 1,
+        itemsCount: 1,
+      ),
+    );
+
+    final ctrl = StockSummaryController(getStockSummaryUseCase: GetStockSummaryUseCase(stockSummaryRepo));
+    await ctrl.fetchStockSummary();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: StockSummaryPage(controller: ctrl),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify table header contains 'Date' and NOT 'Value'
+    expect(find.text('Particulars'), findsOneWidget);
+    expect(find.text('Quantity'), findsOneWidget);
+    expect(find.text('Rate'), findsOneWidget);
+    expect(find.text('Date'), findsOneWidget);
+    expect(find.text('Value'), findsNothing);
+
+    // Drill down to group (View 3: single group detail)
+    await tester.tap(find.text('Yarn Group'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cotton Yarn 30s'), findsOneWidget);
+
+    // In single group view, batches are detailed by default to display item inward lines
+    expect(find.text('Main Storage Godown'), findsOneWidget);
+    expect(find.text('Dc174/7-10-26'), findsOneWidget);
+    expect(find.text('21/11/2026'), findsOneWidget);
   });
 }

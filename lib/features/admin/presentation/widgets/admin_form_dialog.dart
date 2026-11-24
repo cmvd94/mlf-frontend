@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/access_scope_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_role.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
@@ -23,6 +24,7 @@ class AdminFormDialog extends StatefulWidget {
 
 class _AdminFormDialogState extends State<AdminFormDialog> {
   final _formKey = GlobalKey<FormState>();
+  bool _isFullScreen = false;
 
   late final TextEditingController _nameController;
   late final TextEditingController _employeeIdController;
@@ -149,39 +151,47 @@ class _AdminFormDialogState extends State<AdminFormDialog> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    try {
+      if (!_formKey.currentState!.validate()) return;
 
-    final name = _nameController.text.trim();
-    final employeeId = _employeeIdController.text.trim();
-    final email = _emailController.text.trim();
-    final phone = _phoneController.text.trim();
-    final password = _passwordController.text.trim();
-    final accessScope = _buildAccessScopeForRole();
+      final name = _nameController.text.trim();
+      final employeeId = _employeeIdController.text.trim();
+      final email = _emailController.text.trim();
+      final phone = _phoneController.text.trim();
+      final password = _passwordController.text.trim();
+      final accessScope = _buildAccessScopeForRole();
 
-    bool success;
-    if (widget.isEditing) {
-      success = await widget.controller.updateUser(
-        id: widget.userToEdit!.id,
-        name: name,
-        employeeId: employeeId.isNotEmpty ? employeeId : null,
-        email: email,
-        role: _selectedRole.value,
-        accessScope: accessScope,
-      );
-    } else {
-      success = await widget.controller.createUser(
-        name: name,
-        employeeId: employeeId.isNotEmpty ? employeeId : null,
-        phoneNumber: phone,
-        email: email,
-        password: password.isNotEmpty ? password : null,
-        role: _selectedRole.value,
-        accessScope: accessScope,
-      );
-    }
+      bool success;
+      if (widget.isEditing) {
+        success = await widget.controller.updateUser(
+          id: widget.userToEdit!.id,
+          name: name,
+          employeeId: employeeId.isNotEmpty ? employeeId : null,
+          email: email,
+          role: _selectedRole.value,
+          accessScope: accessScope,
+        );
+      } else {
+        success = await widget.controller.createUser(
+          name: name,
+          employeeId: employeeId.isNotEmpty ? employeeId : null,
+          phoneNumber: phone,
+          email: email,
+          password: password.isNotEmpty ? password : null,
+          role: _selectedRole.value,
+          accessScope: accessScope,
+        );
+      }
 
-    if (success && mounted) {
-      Navigator.of(context).pop(true);
+      if (success && mounted) {
+        Navigator.of(context).pop(true);
+      } else if (mounted && widget.controller.errorMessage != null) {
+        AppNotification.showError(context, widget.controller.errorMessage!);
+      }
+    } catch (e) {
+      if (mounted) {
+        AppNotification.showError(context, 'Failed to save admin user: $e');
+      }
     }
   }
 
@@ -386,9 +396,17 @@ class _AdminFormDialogState extends State<AdminFormDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: _isFullScreen
+          ? EdgeInsets.zero
+          : const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_isFullScreen ? 0 : 16),
+      ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 540),
+        constraints: BoxConstraints(
+          maxWidth: _isFullScreen ? double.infinity : 540,
+          maxHeight: _isFullScreen ? double.infinity : double.infinity,
+        ),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Form(
@@ -423,6 +441,16 @@ class _AdminFormDialogState extends State<AdminFormDialog> {
                             color: AppColors.textPrimary,
                           ),
                         ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          _isFullScreen
+                              ? Icons.fullscreen_exit_rounded
+                              : Icons.fullscreen_rounded,
+                          color: Colors.grey,
+                        ),
+                        tooltip: _isFullScreen ? 'Exit Full Screen' : 'Full Screen View',
+                        onPressed: () => setState(() => _isFullScreen = !_isFullScreen),
                       ),
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),

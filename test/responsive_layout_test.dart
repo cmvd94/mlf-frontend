@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/features/admin/domain/entities/access_scope_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_list_entity.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_role.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
@@ -14,6 +15,21 @@ import 'package:mlf_frontend/features/admin/domain/usecases/update_admin_user_us
 import 'package:mlf_frontend/core/theme/app_theme.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/main_layout_page.dart';
+import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/create_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/delete_godown_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_eligible_godown_admins_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_godown_by_id_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/get_godowns_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_is_active_usecase.dart';
+import 'package:mlf_frontend/features/admin/domain/usecases/update_godown_usecase.dart';
+import 'godown_test.dart';
+import 'mocks/mock_inventory_purchase.dart';
+import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
+import 'package:mlf_frontend/features/purchase/presentation/controllers/purchase_controller.dart';
+import 'package:mlf_frontend/features/stock_transfer/presentation/controllers/stock_transfer_controller.dart';
+import 'package:mlf_frontend/features/stock_summary/domain/usecases/get_stock_summary_usecase.dart';
+import 'package:mlf_frontend/features/stock_summary/presentation/controllers/stock_summary_controller.dart';
 import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
 import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mlf_frontend/features/auth/domain/usecases/change_password_usecase.dart';
@@ -44,9 +60,15 @@ class MockAuthRepo implements AuthRepository {
   }
   @override
   Future<void> logout() async {}
+
+  @override
+  Future<void> logoutAll() async {}
 }
 
 class MockAdminRepo implements AdminRepository {
+  @override
+  Future<Map<String, dynamic>> getStaticData() async => {};
+
   @override
   Future<AdminListEntity> getAdminUsers({int page = 1, int limit = 10, String? role, bool? isActive, String? search}) async {
     return const AdminListEntity(
@@ -72,11 +94,11 @@ class MockAdminRepo implements AdminRepository {
   @override
   Future<AdminUserEntity> getAdminUserById(String id) async => throw UnimplementedError();
   @override
-  Future<void> createAdminUser({required String name, required String email, required String phoneNumber, String? password, required String role, String? employeeId, String? language}) async {}
+  Future<void> createAdminUser({required String name, required String email, required String phoneNumber, String? password, required String role, AccessScopeEntity? accessScope, String? employeeId, String? language}) async {}
   @override
   Future<void> deleteAdminUser(String id) async {}
   @override
-  Future<void> updateAdminUser({required String id, String? name, String? email, String? role, String? employeeId, String? language}) async {}
+  Future<void> updateAdminUser({required String id, String? name, String? email, String? role, AccessScopeEntity? accessScope, String? employeeId, String? language}) async {}
   @override
   Future<void> updateAdminUserIsActive({required String id, required bool isActive}) async {}
 }
@@ -100,6 +122,30 @@ void main() {
       updateAdminIsActiveUseCase: UpdateAdminIsActiveUseCase(adminRepo),
       deleteAdminUserUseCase: DeleteAdminUserUseCase(adminRepo),
     ));
+
+    final godownRepo = MockGodownRepository();
+    sl.register<GodownController>(GodownController(
+      getGodownsUseCase: GetGodownsUseCase(godownRepo),
+      getGodownByIdUseCase: GetGodownByIdUseCase(godownRepo),
+      createGodownUseCase: CreateGodownUseCase(godownRepo),
+      updateGodownUseCase: UpdateGodownUseCase(godownRepo),
+      updateGodownIsActiveUseCase: UpdateGodownIsActiveUseCase(godownRepo),
+      deleteGodownUseCase: DeleteGodownUseCase(godownRepo),
+      getEligibleGodownAdminsUseCase: GetEligibleGodownAdminsUseCase(godownRepo),
+    ));
+
+    final invRepo = MockInventoryRepository();
+    sl.register<InventoryController>(InventoryController(repository: invRepo));
+
+    final purchaseRepo = MockPurchaseRepository();
+    sl.register<PurchaseController>(PurchaseController(repository: purchaseRepo));
+
+    final transferRepo = MockStockTransferRepository();
+    sl.register<StockTransferController>(StockTransferController(repository: transferRepo));
+
+    final stockSummaryRepo = MockStockSummaryRepository();
+    final getStockSummaryUseCase = GetStockSummaryUseCase(stockSummaryRepo);
+    sl.register<StockSummaryController>(StockSummaryController(getStockSummaryUseCase: getStockSummaryUseCase));
   });
 
   testWidgets('Login and transition flow at 1440x900', (tester) async {
