@@ -10,7 +10,6 @@ import 'package:mlf_frontend/features/auth/domain/repositories/auth_repository.d
 import 'package:mlf_frontend/features/auth/presentation/pages/login_page.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
-import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
 import 'package:mlf_frontend/features/admin/presentation/widgets/change_password_dialog.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/admin_management_page.dart';
 import 'package:mlf_frontend/features/admin/presentation/pages/godown_management_page.dart';
@@ -138,16 +137,9 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       appBar: isDesktop
           ? null
           : AppBar(
-              title: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'MLF',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                  SizedBox(width: 8),
-                  EnvironmentBadge(),
-                ],
+              title: const Text(
+                'MLF',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
               backgroundColor: Colors.white,
               foregroundColor: AppColors.textPrimary,
@@ -209,9 +201,6 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 12),
-                const EnvironmentBadge(),
-
               ],
             ),
           ),
@@ -409,13 +398,6 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       icon: Icons.note_alt_outlined,
                       activeIcon: Icons.note_alt,
                       label: 'Credit Note',
-                      isDrawer: isDrawer,
-                    ),
-                    _buildNavItem(
-                      index: 10,
-                      icon: Icons.tune_outlined,
-                      activeIcon: Icons.tune,
-                      label: 'Environment & Config',
                       isDrawer: isDrawer,
                     ),
                   ],
@@ -679,13 +661,6 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             icon: Icons.note_alt,
             color: Colors.cyan.shade700,
             onTap: () => setState(() => _selectedTabIndex = 9),
-          ),
-          _buildStatCard(
-            title: 'Environment',
-            subtitle: EnvConfig().environment.displayName,
-            icon: Icons.tune,
-            color: AppColors.yellowDark,
-            onTap: () => setState(() => _selectedTabIndex = 10),
           ),
         ];
 
