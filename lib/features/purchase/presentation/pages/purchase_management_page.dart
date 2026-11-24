@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/core/utils/confirm_delete_dialog.dart';
 import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
 import '../controllers/purchase_controller.dart';
@@ -331,9 +332,20 @@ class _PurchaseManagementPageState extends State<PurchaseManagementPage> {
                             ),
                           );
                           if (confirmed == true) {
-                            final success = await ctrl.deletePurchase(purchase.id);
-                            if (context.mounted && success) {
-                              widget.inventoryController.fetchCurrentTabData();
+                            try {
+                              final success = await ctrl.deletePurchase(purchase.id);
+                              if (context.mounted) {
+                                if (success) {
+                                  widget.inventoryController.fetchCurrentTabData();
+                                  AppNotification.showSuccess(context, 'Purchase entry deleted and stock reverted.');
+                                } else if (ctrl.errorMessage != null) {
+                                  AppNotification.showError(context, ctrl.errorMessage!);
+                                }
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                AppNotification.showError(context, 'Failed to delete purchase: $e');
+                              }
                             }
                           }
                         },

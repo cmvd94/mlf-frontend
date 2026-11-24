@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/constants/app_constants.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
 import 'package:mlf_frontend/features/stock_transfer/domain/entities/available_stock_entity.dart';
@@ -142,20 +143,24 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
 
   Future<void> _loadInitialData() async {
     setState(() => _isInit = true);
-    await Future.wait([
-      _inventoryController.fetchMasters(),
-      _debitNoteController.fetchAvailableStocks(),
-    ]);
+    try {
+      await Future.wait([
+        _inventoryController.fetchMasters(),
+        _debitNoteController.fetchAvailableStocks(),
+      ]);
 
-    if (_selectedTypeId == null && _inventoryController.salesTypes.isNotEmpty) {
-      final active = _inventoryController.salesTypes.where((st) => st.isActive).firstOrNull;
-      if (active != null) {
-        _selectedTypeId = active.id;
+      if (_selectedTypeId == null && _inventoryController.salesTypes.isNotEmpty) {
+        final active = _inventoryController.salesTypes.where((st) => st.isActive).firstOrNull;
+        if (active != null) {
+          _selectedTypeId = active.id;
+        }
       }
-    }
-
-    if (mounted) {
-      setState(() => _isInit = false);
+    } catch (e) {
+      AppLogger().e('Error in _loadInitialData: $e', tag: 'DebitNoteEntry');
+    } finally {
+      if (mounted) {
+        setState(() => _isInit = false);
+      }
     }
   }
 
@@ -287,98 +292,104 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
   Future<void> _handleSubmit() async {
     setState(() => _formErrorMessage = null);
 
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (_selectedPartyId == null || _selectedPartyId!.isEmpty) {
-      setState(() => _formErrorMessage = 'Please select a Party.');
-      return;
-    }
-
-    final itemsPayload = <DebitNoteItemInput>[];
-    for (int i = 0; i < _rows.length; i++) {
-      final row = _rows[i];
-      if (row.itemId == null || row.itemId!.isEmpty) {
-        setState(() => _formErrorMessage = 'Row ${i + 1}: Please select an Item.');
-        return;
-      }
-      if (row.godownStockId == null || row.godownStockId!.isEmpty) {
-        setState(() => _formErrorMessage = 'Row ${i + 1}: Please select an available Stock Batch.');
-        return;
-      }
-      if (row.actualQuantity <= 0) {
-        setState(() => _formErrorMessage = 'Row ${i + 1}: Actual Quantity must be greater than 0.');
-        return;
-      }
-      if (!_isEditMode && row.actualQuantity > row.maxAvailableStock) {
-        setState(() => _formErrorMessage =
-            'Row ${i + 1}: Quantity (${row.actualQuantity}) exceeds available stock (${row.maxAvailableStock}).');
-        return;
-      }
-      if (row.uomId == null || row.uomId!.isEmpty) {
-        setState(() => _formErrorMessage = 'Row ${i + 1}: Please select a Unit (UOM).');
-        return;
-      }
-      if (row.perId == null || row.perId!.isEmpty) {
-        setState(() => _formErrorMessage = 'Row ${i + 1}: Please select Per Unit.');
+    try {
+      if (!_formKey.currentState!.validate()) {
         return;
       }
 
-      itemsPayload.add(DebitNoteItemInput(
-        godownStockId: row.godownStockId!,
-        itemId: row.itemId,
-        godownId: row.godownId,
-        dcNo: _dcNoController.text.trim(),
-        lotNo: row.lotNoController.text.trim(),
-        uomId: row.uomId,
-        uomQuantity: row.uomQuantity,
-        actualQuantity: row.actualQuantity,
-        billedQuantity: row.billedQuantity,
-        rate: row.rate,
-        perId: row.perId,
-      ));
-    }
+      if (_selectedPartyId == null || _selectedPartyId!.isEmpty) {
+        setState(() => _formErrorMessage = 'Please select a Party.');
+        return;
+      }
 
-    bool success;
-    if (_isEditMode) {
-      final input = DebitNoteUpdateInput(
-        date: _selectedDate,
-        salesTypeId: _selectedTypeId,
-        partyId: _selectedPartyId,
-        dcNo: _dcNoController.text.trim(),
-        items: itemsPayload,
-        isGstBill: _isGstBill,
-        gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
-        notes: _notesController.text.trim(),
-        narration: _notesController.text.trim(),
-      );
-      success = await _debitNoteController.updateDebitNote(widget.debitNoteToEdit!.id, input);
-    } else {
-      final input = DebitNoteCreateInput(
-        date: _selectedDate,
-        salesTypeId: _selectedTypeId,
-        partyId: _selectedPartyId!,
-        dcNo: _dcNoController.text.trim(),
-        items: itemsPayload,
-        isGstBill: _isGstBill,
-        gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
-        notes: _notesController.text.trim(),
-        narration: _notesController.text.trim(),
-      );
-      success = await _debitNoteController.createDebitNote(input);
-    }
+      final itemsPayload = <DebitNoteItemInput>[];
+      for (int i = 0; i < _rows.length; i++) {
+        final row = _rows[i];
+        if (row.itemId == null || row.itemId!.isEmpty) {
+          setState(() => _formErrorMessage = 'Row ${i + 1}: Please select an Item.');
+          return;
+        }
+        if (row.godownStockId == null || row.godownStockId!.isEmpty) {
+          setState(() => _formErrorMessage = 'Row ${i + 1}: Please select an available Stock Batch.');
+          return;
+        }
+        if (row.actualQuantity <= 0) {
+          setState(() => _formErrorMessage = 'Row ${i + 1}: Actual Quantity must be greater than 0.');
+          return;
+        }
+        if (!_isEditMode && row.actualQuantity > row.maxAvailableStock) {
+          setState(() => _formErrorMessage =
+              'Row ${i + 1}: Quantity (${row.actualQuantity}) exceeds available stock (${row.maxAvailableStock}).');
+          return;
+        }
+        if (row.uomId == null || row.uomId!.isEmpty) {
+          setState(() => _formErrorMessage = 'Row ${i + 1}: Please select a Unit (UOM).');
+          return;
+        }
+        if (row.perId == null || row.perId!.isEmpty) {
+          setState(() => _formErrorMessage = 'Row ${i + 1}: Please select Per Unit.');
+          return;
+        }
 
-    if (mounted) {
-      if (success) {
-        AppNotification.showSuccess(
-          context,
-          _isEditMode ? 'Debit note updated successfully!' : 'Debit note created successfully!',
+        itemsPayload.add(DebitNoteItemInput(
+          godownStockId: row.godownStockId!,
+          itemId: row.itemId,
+          godownId: row.godownId,
+          dcNo: _dcNoController.text.trim(),
+          lotNo: row.lotNoController.text.trim(),
+          uomId: row.uomId,
+          uomQuantity: row.uomQuantity,
+          actualQuantity: row.actualQuantity,
+          billedQuantity: row.billedQuantity,
+          rate: row.rate,
+          perId: row.perId,
+        ));
+      }
+
+      bool success;
+      if (_isEditMode) {
+        final input = DebitNoteUpdateInput(
+          date: _selectedDate,
+          salesTypeId: _selectedTypeId,
+          partyId: _selectedPartyId,
+          dcNo: _dcNoController.text.trim(),
+          items: itemsPayload,
+          isGstBill: _isGstBill,
+          gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
+          notes: _notesController.text.trim(),
+          narration: _notesController.text.trim(),
         );
-        Navigator.pop(context, true);
+        success = await _debitNoteController.updateDebitNote(widget.debitNoteToEdit!.id, input);
       } else {
-        final err = _debitNoteController.errorMessage ?? 'Failed to save debit note.';
-        setState(() => _formErrorMessage = err);
+        final input = DebitNoteCreateInput(
+          date: _selectedDate,
+          salesTypeId: _selectedTypeId,
+          partyId: _selectedPartyId!,
+          dcNo: _dcNoController.text.trim(),
+          items: itemsPayload,
+          isGstBill: _isGstBill,
+          gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
+          notes: _notesController.text.trim(),
+          narration: _notesController.text.trim(),
+        );
+        success = await _debitNoteController.createDebitNote(input);
+      }
+
+      if (mounted) {
+        if (success) {
+          AppNotification.showSuccess(
+            context,
+            _isEditMode ? 'Debit note updated successfully!' : 'Debit note created successfully!',
+          );
+          Navigator.pop(context, true);
+        } else {
+          final err = _debitNoteController.errorMessage ?? 'Failed to save debit note.';
+          setState(() => _formErrorMessage = err);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _formErrorMessage = 'An unexpected error occurred: $e');
       }
     }
   }

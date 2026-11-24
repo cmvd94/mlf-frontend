@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/core/utils/confirm_delete_dialog.dart';
 import '../controllers/inventory_controller.dart';
 import '../widgets/party_form_dialog.dart';
@@ -43,6 +44,23 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _safeDelete(BuildContext context, String entityName, Future<bool> Function() action) async {
+    try {
+      final success = await action();
+      if (context.mounted) {
+        if (success) {
+          AppNotification.showSuccess(context, '$entityName deleted successfully.');
+        } else if (widget.controller.errorMessage != null) {
+          AppNotification.showError(context, widget.controller.errorMessage!);
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        AppNotification.showError(context, 'Failed to delete $entityName: $e');
+      }
+    }
   }
 
   void _openCreateDialog() {
@@ -338,7 +356,7 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
                             ),
                           );
                           if (confirm == true) {
-                            await ctrl.deleteParty(p.id);
+                            await _safeDelete(context, 'Party "${p.name}"', () => ctrl.deleteParty(p.id));
                           }
                         },
                       ),
@@ -404,7 +422,7 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
                             ),
                           );
                           if (confirm == true) {
-                            await ctrl.deletePurchaseType(t.id);
+                            await _safeDelete(context, 'Purchase Type "${t.name}"', () => ctrl.deletePurchaseType(t.id));
                           }
                         },
                       ),
@@ -470,7 +488,7 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
                             ),
                           );
                           if (confirm == true) {
-                            await ctrl.deleteSalesType(t.id);
+                            await _safeDelete(context, 'Sales Type "${t.name}"', () => ctrl.deleteSalesType(t.id));
                           }
                         },
                       ),
@@ -536,7 +554,7 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
                             ),
                           );
                           if (confirm == true) {
-                            await ctrl.deleteItemGroup(g.id);
+                            await _safeDelete(context, 'Item Group "${g.name}"', () => ctrl.deleteItemGroup(g.id));
                           }
                         },
                       ),
@@ -627,7 +645,7 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
                             ),
                           );
                           if (confirm == true) {
-                            await ctrl.deleteItem(item.id);
+                            await _safeDelete(context, 'Item "${item.name}"', () => ctrl.deleteItem(item.id));
                           }
                         },
                       ),
@@ -693,7 +711,7 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
                             ),
                           );
                           if (confirm == true) {
-                            await ctrl.deleteUom(u.id);
+                            await _safeDelete(context, 'UOM "${u.symbol}"', () => ctrl.deleteUom(u.id));
                           }
                         },
                       ),
@@ -761,7 +779,7 @@ class _AccountInventoryPageState extends State<AccountInventoryPage> {
                             ),
                           );
                           if (confirm == true) {
-                            await ctrl.deletePerUnit(p.id);
+                            await _safeDelete(context, 'Per Unit "${p.name}"', () => ctrl.deletePerUnit(p.id));
                           }
                         },
                       ),

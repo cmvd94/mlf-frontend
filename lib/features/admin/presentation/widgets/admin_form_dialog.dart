@@ -151,41 +151,47 @@ class _AdminFormDialogState extends State<AdminFormDialog> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    try {
+      if (!_formKey.currentState!.validate()) return;
 
-    final name = _nameController.text.trim();
-    final employeeId = _employeeIdController.text.trim();
-    final email = _emailController.text.trim();
-    final phone = _phoneController.text.trim();
-    final password = _passwordController.text.trim();
-    final accessScope = _buildAccessScopeForRole();
+      final name = _nameController.text.trim();
+      final employeeId = _employeeIdController.text.trim();
+      final email = _emailController.text.trim();
+      final phone = _phoneController.text.trim();
+      final password = _passwordController.text.trim();
+      final accessScope = _buildAccessScopeForRole();
 
-    bool success;
-    if (widget.isEditing) {
-      success = await widget.controller.updateUser(
-        id: widget.userToEdit!.id,
-        name: name,
-        employeeId: employeeId.isNotEmpty ? employeeId : null,
-        email: email,
-        role: _selectedRole.value,
-        accessScope: accessScope,
-      );
-    } else {
-      success = await widget.controller.createUser(
-        name: name,
-        employeeId: employeeId.isNotEmpty ? employeeId : null,
-        phoneNumber: phone,
-        email: email,
-        password: password.isNotEmpty ? password : null,
-        role: _selectedRole.value,
-        accessScope: accessScope,
-      );
-    }
+      bool success;
+      if (widget.isEditing) {
+        success = await widget.controller.updateUser(
+          id: widget.userToEdit!.id,
+          name: name,
+          employeeId: employeeId.isNotEmpty ? employeeId : null,
+          email: email,
+          role: _selectedRole.value,
+          accessScope: accessScope,
+        );
+      } else {
+        success = await widget.controller.createUser(
+          name: name,
+          employeeId: employeeId.isNotEmpty ? employeeId : null,
+          phoneNumber: phone,
+          email: email,
+          password: password.isNotEmpty ? password : null,
+          role: _selectedRole.value,
+          accessScope: accessScope,
+        );
+      }
 
-    if (success && mounted) {
-      Navigator.of(context).pop(true);
-    } else if (mounted && widget.controller.errorMessage != null) {
-      AppNotification.showError(context, widget.controller.errorMessage!);
+      if (success && mounted) {
+        Navigator.of(context).pop(true);
+      } else if (mounted && widget.controller.errorMessage != null) {
+        AppNotification.showError(context, widget.controller.errorMessage!);
+      }
+    } catch (e) {
+      if (mounted) {
+        AppNotification.showError(context, 'Failed to save admin user: $e');
+      }
     }
   }
 

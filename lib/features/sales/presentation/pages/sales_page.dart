@@ -98,13 +98,23 @@ class _SalesPageState extends State<SalesPage> {
       ),
     );
 
-    if (confirmed == true) {
-      final success = await _salesController.deleteSale(sale.id);
-      if (success && mounted) {
-        AppNotification.showSuccess(
-          context,
-          _salesController.successMessage ?? 'Sale voucher deleted successfully!',
-        );
+    if (confirmed == true && mounted) {
+      try {
+        final success = await _salesController.deleteSale(sale.id);
+        if (mounted) {
+          if (success) {
+            AppNotification.showSuccess(
+              context,
+              _salesController.successMessage ?? 'Sale voucher deleted successfully!',
+            );
+          } else if (_salesController.errorMessage != null) {
+            AppNotification.showError(context, _salesController.errorMessage!);
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          AppNotification.showError(context, 'Failed to delete sale: $e');
+        }
       }
     }
   }

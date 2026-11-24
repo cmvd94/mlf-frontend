@@ -225,103 +225,110 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
 
   Future<void> _submit() async {
     setState(() => _formErrorMessage = null);
-    if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedPartyId == null || _selectedPartyId!.isEmpty) {
-      _showError('Please select a Party Name from master');
-      return;
-    }
-    if (_selectedPurchaseTypeId == null || _selectedPurchaseTypeId!.isEmpty) {
-      _showError('Please select a Purchase Type from master');
-      return;
-    }
-    if (_selectedCompanyGodownId == null || _selectedCompanyGodownId!.isEmpty) {
-      _showError('Please select a Company Godown for this purchase');
-      return;
-    }
+    try {
+      if (!_formKey.currentState!.validate()) return;
 
-    // Verify all item rows have required masters and assigned godowns
-    for (int i = 0; i < _rows.length; i++) {
-      final row = _rows[i];
-      if (row.itemId == null || row.itemId!.isEmpty) {
-        _showError('Please select an Item for row #${i + 1}');
+      if (_selectedPartyId == null || _selectedPartyId!.isEmpty) {
+        _showError('Please select a Party Name from master');
         return;
       }
-      if (row.godownId == null || row.godownId!.isEmpty) {
-        _showError('Please assign a Delivered Godown for row #${i + 1}');
+      if (_selectedPurchaseTypeId == null || _selectedPurchaseTypeId!.isEmpty) {
+        _showError('Please select a Purchase Type from master');
         return;
       }
-      if (row.dcNoController.text.trim().isEmpty) {
-        _showError('Please enter DC # for row #${i + 1}');
+      if (_selectedCompanyGodownId == null || _selectedCompanyGodownId!.isEmpty) {
+        _showError('Please select a Company Godown for this purchase');
         return;
       }
-      if (row.uomId == null || row.uomId!.isEmpty) {
-        _showError('Please select a UOM for row #${i + 1}');
-        return;
-      }
-      if (row.perId == null || row.perId!.isEmpty) {
-        _showError('Please select a Per Unit for row #${i + 1}');
-        return;
-      }
-    }
 
-    // Build raw item inputs with individual assigned godown
-    final itemsInput = _rows.map((row) {
-      return PurchaseItemInput(
-        godownStockId: row.godownStockId,
-        itemId: row.itemId!,
-        godownId: row.godownId!,
-        companyGodownId: _selectedCompanyGodownId,
-        dcNo: row.dcNoController.text.trim(),
-        lotNo: row.lotNoController.text.trim(),
-        batchNo: row.dcNoController.text.trim(),
-        uomId: row.uomId!,
-        uomQuantity: double.tryParse(row.uomQtyController.text.trim()) ?? 1.0,
-        actualQuantity: double.tryParse(row.actualQtyController.text.trim()) ?? 0.0,
-        billedQuantity: double.tryParse(row.billedQtyController.text.trim()) ?? 0.0,
-        rate: double.tryParse(row.rateController.text.trim()) ?? 0.0,
-        perId: row.perId!,
-      );
-    }).toList();
+      // Verify all item rows have required masters and assigned godowns
+      for (int i = 0; i < _rows.length; i++) {
+        final row = _rows[i];
+        if (row.itemId == null || row.itemId!.isEmpty) {
+          _showError('Please select an Item for row #${i + 1}');
+          return;
+        }
+        if (row.godownId == null || row.godownId!.isEmpty) {
+          _showError('Please assign a Delivered Godown for row #${i + 1}');
+          return;
+        }
+        if (row.dcNoController.text.trim().isEmpty) {
+          _showError('Please enter DC # for row #${i + 1}');
+          return;
+        }
+        if (row.uomId == null || row.uomId!.isEmpty) {
+          _showError('Please select a UOM for row #${i + 1}');
+          return;
+        }
+        if (row.perId == null || row.perId!.isEmpty) {
+          _showError('Please select a Per Unit for row #${i + 1}');
+          return;
+        }
+      }
 
-    final bool success;
-    if (isEditing) {
-      success = await widget.purchaseController.updatePurchase(
-        id: widget.existingPurchase!.id,
-        date: _selectedDate,
-        partyId: _selectedPartyId,
-        purchaseTypeId: _selectedPurchaseTypeId,
-        companyGodownId: _selectedCompanyGodownId,
-        items: itemsInput,
-        isGstBill: _isGstBill,
-        gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
-        notes: _notesController.text.trim(),
-      );
-    } else {
-      success = await widget.purchaseController.createPurchase(
-        date: _selectedDate,
-        partyId: _selectedPartyId!,
-        purchaseTypeId: _selectedPurchaseTypeId!,
-        companyGodownId: _selectedCompanyGodownId!,
-        items: itemsInput,
-        isGstBill: _isGstBill,
-        gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
-        notes: _notesController.text.trim(),
-      );
-    }
+      // Build raw item inputs with individual assigned godown
+      final itemsInput = _rows.map((row) {
+        return PurchaseItemInput(
+          godownStockId: row.godownStockId,
+          itemId: row.itemId!,
+          godownId: row.godownId!,
+          companyGodownId: _selectedCompanyGodownId,
+          dcNo: row.dcNoController.text.trim(),
+          lotNo: row.lotNoController.text.trim(),
+          batchNo: row.dcNoController.text.trim(),
+          uomId: row.uomId!,
+          uomQuantity: double.tryParse(row.uomQtyController.text.trim()) ?? 1.0,
+          actualQuantity: double.tryParse(row.actualQtyController.text.trim()) ?? 0.0,
+          billedQuantity: double.tryParse(row.billedQtyController.text.trim()) ?? 0.0,
+          rate: double.tryParse(row.rateController.text.trim()) ?? 0.0,
+          perId: row.perId!,
+        );
+      }).toList();
 
-    if (mounted) {
-      if (success) {
-        widget.inventoryController.fetchCurrentTabData();
-        Navigator.pop(context, true);
-        AppNotification.showSuccess(
-          context,
-          isEditing
-              ? 'Purchase entry updated successfully and stock adjusted!'
-              : 'Purchase entry saved successfully and stock updated in respective godowns!',
+      final bool success;
+      if (isEditing) {
+        success = await widget.purchaseController.updatePurchase(
+          id: widget.existingPurchase!.id,
+          date: _selectedDate,
+          partyId: _selectedPartyId,
+          purchaseTypeId: _selectedPurchaseTypeId,
+          companyGodownId: _selectedCompanyGodownId,
+          items: itemsInput,
+          isGstBill: _isGstBill,
+          gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
+          notes: _notesController.text.trim(),
         );
       } else {
-        _showError(widget.purchaseController.errorMessage ?? 'Failed to save purchase');
+        success = await widget.purchaseController.createPurchase(
+          date: _selectedDate,
+          partyId: _selectedPartyId!,
+          purchaseTypeId: _selectedPurchaseTypeId!,
+          companyGodownId: _selectedCompanyGodownId!,
+          items: itemsInput,
+          isGstBill: _isGstBill,
+          gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
+          notes: _notesController.text.trim(),
+        );
+      }
+
+      if (mounted) {
+        if (success) {
+          widget.inventoryController.fetchCurrentTabData();
+          Navigator.pop(context, true);
+          AppNotification.showSuccess(
+            context,
+            isEditing
+                ? 'Purchase entry updated successfully and stock adjusted!'
+                : 'Purchase entry saved successfully and stock updated in respective godowns!',
+          );
+        } else {
+          _showError(widget.purchaseController.errorMessage ?? 'Failed to save purchase');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('An unexpected error occurred: $e');
       }
     }
   }

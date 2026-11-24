@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
 import '../../domain/entities/godown_entity.dart';
@@ -156,18 +157,25 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
       return;
     }
     setState(() => _isLoadingAdmins = true);
-    final admins = await widget.controller.fetchEligibleAdmins(
-      country: _selectedCountry,
-      zone: _selectedZone,
-      state: _selectedState,
-      district: _selectedDistrict,
-    );
+    try {
+      final admins = await widget.controller.fetchEligibleAdmins(
+        country: _selectedCountry,
+        zone: _selectedZone,
+        state: _selectedState,
+        district: _selectedDistrict,
+      );
 
-    if (mounted) {
-      setState(() {
-        _eligibleAdmins = admins;
-        _isLoadingAdmins = false;
-      });
+      if (mounted) {
+        setState(() {
+          _eligibleAdmins = admins;
+        });
+      }
+    } catch (e) {
+      AppLogger().e('Error loading eligible admins: $e', tag: 'GodownForm');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingAdmins = false);
+      }
     }
   }
 
@@ -189,60 +197,67 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
 
   Future<void> _submit() async {
     setState(() => _formErrorMessage = null);
-    if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedCountry == null ||
-        _selectedZone == null ||
-        _selectedState == null ||
-        _selectedDistrict == null) {
-      _showError('Please select all regional scope fields (Country, Zone, State, District)');
-      return;
-    }
+    try {
+      if (!_formKey.currentState!.validate()) return;
 
-    final bool isJobwork = _selectedType == GodownType.jobworkGodown;
-    bool success = false;
-    if (widget.isEditing) {
-      success = await widget.controller.updateGodown(
-        id: widget.godownToEdit!.id,
-        name: _nameController.text.trim(),
-        godownId: _godownIdController.text.trim().isNotEmpty
-            ? _godownIdController.text.trim()
-            : null,
-        type: _selectedType,
-        description: _descriptionController.text.trim(),
-        isActive: _isActive,
-        godownManagerId: isJobwork ? null : _selectedManagerId,
-        clearGodownManager: isJobwork || _selectedManagerId == null,
-        supervisorId: isJobwork ? null : _selectedSupervisorIds,
-        assistantId: isJobwork ? null : _selectedAssistantIds,
-        billingUserId: isJobwork ? null : _selectedBillingUserId,
-        clearBillingUser: isJobwork || _selectedBillingUserId == null,
-      );
-    } else {
-      success = await widget.controller.createGodown(
-        name: _nameController.text.trim(),
-        godownId: _godownIdController.text.trim().isNotEmpty
-            ? _godownIdController.text.trim()
-            : null,
-        type: _selectedType,
-        description: _descriptionController.text.trim(),
-        country: _selectedCountry!,
-        zone: _selectedZone!,
-        state: _selectedState!,
-        district: _selectedDistrict!,
-        pincode: _pincodeController.text.trim(),
-        godownManagerId: isJobwork ? null : _selectedManagerId,
-        supervisorId: isJobwork ? null : _selectedSupervisorIds,
-        assistantId: isJobwork ? null : _selectedAssistantIds,
-        billingUserId: isJobwork ? null : _selectedBillingUserId,
-        isActive: _isActive,
-      );
-    }
+      if (_selectedCountry == null ||
+          _selectedZone == null ||
+          _selectedState == null ||
+          _selectedDistrict == null) {
+        _showError('Please select all regional scope fields (Country, Zone, State, District)');
+        return;
+      }
 
-    if (success && mounted) {
-      Navigator.pop(context, true);
-    } else if (mounted && widget.controller.errorMessage != null) {
-      _showError(widget.controller.errorMessage!);
+      final bool isJobwork = _selectedType == GodownType.jobworkGodown;
+      bool success = false;
+      if (widget.isEditing) {
+        success = await widget.controller.updateGodown(
+          id: widget.godownToEdit!.id,
+          name: _nameController.text.trim(),
+          godownId: _godownIdController.text.trim().isNotEmpty
+              ? _godownIdController.text.trim()
+              : null,
+          type: _selectedType,
+          description: _descriptionController.text.trim(),
+          isActive: _isActive,
+          godownManagerId: isJobwork ? null : _selectedManagerId,
+          clearGodownManager: isJobwork || _selectedManagerId == null,
+          supervisorId: isJobwork ? null : _selectedSupervisorIds,
+          assistantId: isJobwork ? null : _selectedAssistantIds,
+          billingUserId: isJobwork ? null : _selectedBillingUserId,
+          clearBillingUser: isJobwork || _selectedBillingUserId == null,
+        );
+      } else {
+        success = await widget.controller.createGodown(
+          name: _nameController.text.trim(),
+          godownId: _godownIdController.text.trim().isNotEmpty
+              ? _godownIdController.text.trim()
+              : null,
+          type: _selectedType,
+          description: _descriptionController.text.trim(),
+          country: _selectedCountry!,
+          zone: _selectedZone!,
+          state: _selectedState!,
+          district: _selectedDistrict!,
+          pincode: _pincodeController.text.trim(),
+          godownManagerId: isJobwork ? null : _selectedManagerId,
+          supervisorId: isJobwork ? null : _selectedSupervisorIds,
+          assistantId: isJobwork ? null : _selectedAssistantIds,
+          billingUserId: isJobwork ? null : _selectedBillingUserId,
+          isActive: _isActive,
+        );
+      }
+
+      if (success && mounted) {
+        Navigator.pop(context, true);
+      } else if (mounted && widget.controller.errorMessage != null) {
+        _showError(widget.controller.errorMessage!);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('An unexpected error occurred: $e');
+      }
     }
   }
 

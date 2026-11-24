@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/godown_entity.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
@@ -103,81 +104,89 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
   }
 
   Future<void> _loadData() async {
-    _godownController.setTypeFilter(null);
-    _godownController.setSearch(null);
-    await Future.wait([
-      _transferController.fetchAvailableStocks(),
-      _inventoryController.fetchMasters(),
-      _godownController.fetchGodowns(),
-    ]);
+    try {
+      _godownController.setTypeFilter(null);
+      _godownController.setSearch(null);
+      await Future.wait([
+        _transferController.fetchAvailableStocks(),
+        _inventoryController.fetchMasters(),
+        _godownController.fetchGodowns(),
+      ]);
 
-    if (mounted && _isEditMode) {
-      if (_sourceRows.isEmpty) {
-        for (final src in widget.transferToEdit!.sourceItems) {
-          AvailableStockEntity matched;
-          final existing = _transferController.availableStocks.where((s) => s.godownStockId == src.godownStockId);
-          if (existing.isNotEmpty) {
-            matched = existing.first;
-          } else {
-            matched = AvailableStockEntity(
-              godownStockId: src.godownStockId,
-              godownId: src.godownId,
-              godownName: src.godownName,
-              itemId: src.itemId,
-              itemName: src.itemName,
-              dcNo: src.dcNo,
-              lotNo: src.lotNo,
-              batchNo: src.batchNo,
-              currentStock: src.quantity,
-              rate: src.rate,
-              amount: src.amount,
-              uomSymbol: src.uomSymbol,
-            );
+      if (mounted && _isEditMode) {
+        if (_sourceRows.isEmpty) {
+          for (final src in widget.transferToEdit!.sourceItems) {
+            AvailableStockEntity matched;
+            final existing = _transferController.availableStocks.where((s) => s.godownStockId == src.godownStockId);
+            if (existing.isNotEmpty) {
+              matched = existing.first;
+            } else {
+              matched = AvailableStockEntity(
+                godownStockId: src.godownStockId,
+                godownId: src.godownId,
+                godownName: src.godownName,
+                itemId: src.itemId,
+                itemName: src.itemName,
+                dcNo: src.dcNo,
+                lotNo: src.lotNo,
+                batchNo: src.batchNo,
+                currentStock: src.quantity,
+                rate: src.rate,
+                amount: src.amount,
+                uomSymbol: src.uomSymbol,
+              );
+            }
+
+            final row = _SourceItemRow();
+            row.selectedStock = matched;
+            row.uomId = src.uomId.isNotEmpty ? src.uomId : (matched.uomId.isNotEmpty ? matched.uomId : null);
+            row.perId = src.perId.isNotEmpty ? src.perId : (matched.perId.isNotEmpty ? matched.perId : null);
+            row.uomQtyController.text = '${src.uomQuantity}';
+            row.quantityController.text = '${src.quantity}';
+            row.uomQtyController.addListener(() => setState(() {}));
+            row.quantityController.addListener(() => setState(() {}));
+            _sourceRows.add(row);
           }
+        }
 
-          final row = _SourceItemRow();
-          row.selectedStock = matched;
-          row.uomId = src.uomId.isNotEmpty ? src.uomId : (matched.uomId.isNotEmpty ? matched.uomId : null);
-          row.perId = src.perId.isNotEmpty ? src.perId : (matched.perId.isNotEmpty ? matched.perId : null);
-          row.uomQtyController.text = '${src.uomQuantity}';
-          row.quantityController.text = '${src.quantity}';
-          row.uomQtyController.addListener(() => setState(() {}));
-          row.quantityController.addListener(() => setState(() {}));
-          _sourceRows.add(row);
+        if (_destRows.isEmpty) {
+          for (final dest in widget.transferToEdit!.destinationItems) {
+            final row = _DestinationItemRow();
+            row.itemId = dest.itemId.isNotEmpty ? dest.itemId : null;
+            row.godownId = dest.godownId.isNotEmpty ? dest.godownId : null;
+            row.dcNoController.text = dest.dcNo.isNotEmpty ? dest.dcNo : dest.batchNo;
+            row.lotNoController.text = dest.lotNo;
+            row.uomId = dest.uomId.isNotEmpty ? dest.uomId : null;
+            row.perId = dest.perId.isNotEmpty ? dest.perId : null;
+            row.uomQtyController.text = '${dest.uomQuantity}';
+            row.quantityController.text = '${dest.quantity}';
+            row.uomQtyController.addListener(() => setState(() {}));
+            row.quantityController.addListener(() => setState(() {}));
+            _destRows.add(row);
+          }
         }
       }
 
-      if (_destRows.isEmpty) {
-        for (final dest in widget.transferToEdit!.destinationItems) {
-          final row = _DestinationItemRow();
-          row.itemId = dest.itemId.isNotEmpty ? dest.itemId : null;
-          row.godownId = dest.godownId.isNotEmpty ? dest.godownId : null;
-          row.dcNoController.text = dest.dcNo.isNotEmpty ? dest.dcNo : dest.batchNo;
-          row.lotNoController.text = dest.lotNo;
-          row.uomId = dest.uomId.isNotEmpty ? dest.uomId : null;
-          row.perId = dest.perId.isNotEmpty ? dest.perId : null;
-          row.uomQtyController.text = '${dest.uomQuantity}';
-          row.quantityController.text = '${dest.quantity}';
-          row.uomQtyController.addListener(() => setState(() {}));
-          row.quantityController.addListener(() => setState(() {}));
-          _destRows.add(row);
-        }
+      if (mounted && _sourceRows.isEmpty) {
+        _addSourceRow();
       }
-    }
-
-    if (mounted && _sourceRows.isEmpty) {
-      _addSourceRow();
-    }
-    if (mounted && _destRows.isEmpty) {
-      _addDestinationRow();
-    }
-    if (mounted) {
-      for (final row in _destRows) {
-        if (row.godownId == null && _allGodowns.isNotEmpty) {
-          row.godownId = _allGodowns.first.id;
-        }
+      if (mounted && _destRows.isEmpty) {
+        _addDestinationRow();
       }
-      setState(() => _isInit = false);
+      if (mounted) {
+        for (final row in _destRows) {
+          if (row.godownId == null && _allGodowns.isNotEmpty) {
+            row.godownId = _allGodowns.first.id;
+          }
+        }
+        setState(() => _isInit = false);
+      }
+    } catch (e) {
+      AppLogger().e('Error loading stock transfer data: $e', tag: 'StockTransferEntry');
+      if (mounted) {
+        setState(() => _isInit = false);
+        _showError('Failed to load stock data: $e');
+      }
     }
   }
 
@@ -258,97 +267,104 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
 
   Future<void> _submit() async {
     setState(() => _formErrorMessage = null);
-    // Basic UI input validations before submitting to backend
-    for (int i = 0; i < _sourceRows.length; i++) {
-      final r = _sourceRows[i];
-      if (r.selectedStock == null) {
-        _showError('Please select a source stock batch for line ${i + 1}');
-        return;
+
+    try {
+      // Basic UI input validations before submitting to backend
+      for (int i = 0; i < _sourceRows.length; i++) {
+        final r = _sourceRows[i];
+        if (r.selectedStock == null) {
+          _showError('Please select a source stock batch for line ${i + 1}');
+          return;
+        }
+        if (r.quantity <= 0) {
+          _showError('Source quantity for line ${i + 1} must be greater than 0');
+          return;
+        }
+        if (r.quantity > r.selectedStock!.currentStock) {
+          _showError(
+            'Quantity for batch "${r.selectedStock!.batchNo}" exceeds available stock (${r.selectedStock!.currentStock})',
+          );
+          return;
+        }
+        if (r.selectedStock != null && r.selectedStock!.uomQuantity > 0 && r.uomQuantity > r.selectedStock!.uomQuantity) {
+          _showError(
+            'UOM quantity for DC "${r.selectedStock!.dcNo}" exceeds available stock (${r.selectedStock!.uomQuantity})',
+          );
+          return;
+        }
       }
-      if (r.quantity <= 0) {
-        _showError('Source quantity for line ${i + 1} must be greater than 0');
-        return;
+
+      for (int i = 0; i < _destRows.length; i++) {
+        final r = _destRows[i];
+        if (r.itemId == null || r.itemId!.isEmpty) {
+          _showError('Please select a destination item for line ${i + 1}');
+          return;
+        }
+        if (r.godownId == null || r.godownId!.isEmpty) {
+          _showError('Please select a destination godown for line ${i + 1}');
+          return;
+        }
+        if (r.dcNoController.text.trim().isEmpty) {
+          _showError('Please enter a destination DC number for line ${i + 1}');
+          return;
+        }
+        if (r.quantity <= 0) {
+          _showError('Destination quantity for line ${i + 1} must be greater than 0');
+          return;
+        }
       }
-      if (r.quantity > r.selectedStock!.currentStock) {
-        _showError(
-          'Quantity for batch "${r.selectedStock!.batchNo}" exceeds available stock (${r.selectedStock!.currentStock})',
+
+      final sourceInputs = _sourceRows
+          .map((r) => CreateStockTransferSourceInput(
+                godownStockId: r.selectedStock!.godownStockId,
+                uomId: r.uomId,
+                uomQuantity: r.uomQuantity,
+                quantity: r.quantity,
+                perId: r.perId,
+              ))
+          .toList();
+
+      final destInputs = _destRows
+          .map((r) => CreateStockTransferDestinationInput(
+                itemId: r.itemId!,
+                godownId: r.godownId!,
+                dcNo: r.dcNoController.text.trim(),
+                lotNo: r.lotNoController.text.trim(),
+                batchNo: r.dcNoController.text.trim(),
+                uomId: r.uomId,
+                uomQuantity: r.uomQuantity,
+                quantity: r.quantity,
+                perId: r.perId,
+              ))
+          .toList();
+
+      final bool success;
+      if (_isEditMode) {
+        success = await _transferController.updateStockTransfer(
+          id: widget.transferToEdit!.id,
+          date: _selectedDate,
+          sourceItems: sourceInputs,
+          destinationItems: destInputs,
+          narration: _narrationController.text.trim(),
         );
-        return;
-      }
-      if (r.selectedStock != null && r.selectedStock!.uomQuantity > 0 && r.uomQuantity > r.selectedStock!.uomQuantity) {
-        _showError(
-          'UOM quantity for DC "${r.selectedStock!.dcNo}" exceeds available stock (${r.selectedStock!.uomQuantity})',
+      } else {
+        success = await _transferController.createStockTransfer(
+          date: _selectedDate,
+          sourceItems: sourceInputs,
+          destinationItems: destInputs,
+          narration: _narrationController.text.trim(),
         );
-        return;
       }
-    }
 
-    for (int i = 0; i < _destRows.length; i++) {
-      final r = _destRows[i];
-      if (r.itemId == null || r.itemId!.isEmpty) {
-        _showError('Please select a destination item for line ${i + 1}');
-        return;
+      if (success && mounted) {
+        Navigator.pop(context, true);
+      } else if (mounted && _transferController.errorMessage != null) {
+        _showError(_transferController.errorMessage!);
       }
-      if (r.godownId == null || r.godownId!.isEmpty) {
-        _showError('Please select a destination godown for line ${i + 1}');
-        return;
+    } catch (e) {
+      if (mounted) {
+        _showError('An unexpected error occurred: $e');
       }
-      if (r.dcNoController.text.trim().isEmpty) {
-        _showError('Please enter a destination DC number for line ${i + 1}');
-        return;
-      }
-      if (r.quantity <= 0) {
-        _showError('Destination quantity for line ${i + 1} must be greater than 0');
-        return;
-      }
-    }
-
-    final sourceInputs = _sourceRows
-        .map((r) => CreateStockTransferSourceInput(
-              godownStockId: r.selectedStock!.godownStockId,
-              uomId: r.uomId,
-              uomQuantity: r.uomQuantity,
-              quantity: r.quantity,
-              perId: r.perId,
-            ))
-        .toList();
-
-    final destInputs = _destRows
-        .map((r) => CreateStockTransferDestinationInput(
-              itemId: r.itemId!,
-              godownId: r.godownId!,
-              dcNo: r.dcNoController.text.trim(),
-              lotNo: r.lotNoController.text.trim(),
-              batchNo: r.dcNoController.text.trim(),
-              uomId: r.uomId,
-              uomQuantity: r.uomQuantity,
-              quantity: r.quantity,
-              perId: r.perId,
-            ))
-        .toList();
-
-    final bool success;
-    if (_isEditMode) {
-      success = await _transferController.updateStockTransfer(
-        id: widget.transferToEdit!.id,
-        date: _selectedDate,
-        sourceItems: sourceInputs,
-        destinationItems: destInputs,
-        narration: _narrationController.text.trim(),
-      );
-    } else {
-      success = await _transferController.createStockTransfer(
-        date: _selectedDate,
-        sourceItems: sourceInputs,
-        destinationItems: destInputs,
-        narration: _narrationController.text.trim(),
-      );
-    }
-
-    if (success && mounted) {
-      Navigator.pop(context, true);
-    } else if (mounted && _transferController.errorMessage != null) {
-      _showError(_transferController.errorMessage!);
     }
   }
 

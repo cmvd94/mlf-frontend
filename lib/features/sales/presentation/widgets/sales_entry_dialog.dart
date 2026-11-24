@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/constants/app_constants.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
+import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
 import 'package:mlf_frontend/features/stock_transfer/domain/entities/available_stock_entity.dart';
@@ -142,21 +143,25 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
 
   Future<void> _loadInitialData() async {
     setState(() => _isInit = true);
-    await Future.wait([
-      _inventoryController.fetchMasters(),
-      _salesController.fetchAvailableStocks(),
-    ]);
+    try {
+      await Future.wait([
+        _inventoryController.fetchMasters(),
+        _salesController.fetchAvailableStocks(),
+      ]);
 
-    // If sales types loaded and none selected, auto-select first active sales type
-    if (_selectedSalesTypeId == null && _inventoryController.salesTypes.isNotEmpty) {
-      final active = _inventoryController.salesTypes.where((st) => st.isActive).firstOrNull;
-      if (active != null) {
-        _selectedSalesTypeId = active.id;
+      // If sales types loaded and none selected, auto-select first active sales type
+      if (_selectedSalesTypeId == null && _inventoryController.salesTypes.isNotEmpty) {
+        final active = _inventoryController.salesTypes.where((st) => st.isActive).firstOrNull;
+        if (active != null) {
+          _selectedSalesTypeId = active.id;
+        }
       }
-    }
-
-    if (mounted) {
-      setState(() => _isInit = false);
+    } catch (e) {
+      AppLogger().e('Error in _loadInitialData: $e', tag: 'SalesEntry');
+    } finally {
+      if (mounted) {
+        setState(() => _isInit = false);
+      }
     }
   }
 
@@ -290,114 +295,120 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
   Future<void> _handleSubmit() async {
     setState(() => _formErrorMessage = null);
 
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (_selectedSalesTypeId == null || _selectedSalesTypeId!.isEmpty) {
-      setState(() => _formErrorMessage = 'Please select a Sales Type.');
-      return;
-    }
-
-    if (_selectedPartyId == null || _selectedPartyId!.isEmpty) {
-      setState(() => _formErrorMessage = 'Please select a Party / Customer.');
-      return;
-    }
-
-    if (_dcNoController.text.trim().isEmpty) {
-      setState(() => _formErrorMessage = 'Please enter a DC Number.');
-      return;
-    }
-
-    if (_rows.isEmpty) {
-      setState(() => _formErrorMessage = 'At least one item is required for sale.');
-      return;
-    }
-
-    final List<SaleItemInput> inputs = [];
-    for (int i = 0; i < _rows.length; i++) {
-      final row = _rows[i];
-      if (row.itemId == null || row.itemId!.isEmpty) {
-        setState(() => _formErrorMessage = 'Please select Item for Line #${i + 1}.');
-        return;
-      }
-      if (row.godownStockId == null || row.godownStockId!.isEmpty) {
-        setState(() => _formErrorMessage = 'No available stock batch selected for Line #${i + 1}.');
-        return;
-      }
-      if (row.actualQuantity <= 0) {
-        setState(() => _formErrorMessage = 'Actual quantity must be greater than 0 for Line #${i + 1}.');
-        return;
-      }
-      if (row.billedQuantity <= 0) {
-        setState(() => _formErrorMessage = 'Billed quantity must be greater than 0 for Line #${i + 1}.');
-        return;
-      }
-      if (!_isEditMode && row.maxAvailableStock > 0 && row.actualQuantity > row.maxAvailableStock) {
-        setState(() => _formErrorMessage =
-            'Actual quantity for Line #${i + 1} (${row.actualQuantity}) exceeds available stock (${row.maxAvailableStock}).');
-        return;
-      }
-      if (row.rate < 0) {
-        setState(() => _formErrorMessage = 'Rate cannot be negative for Line #${i + 1}.');
+    try {
+      if (!_formKey.currentState!.validate()) {
         return;
       }
 
-      inputs.add(SaleItemInput(
-        godownStockId: row.godownStockId!,
-        itemId: row.itemId,
-        godownId: row.godownId,
-        dcNo: _dcNoController.text.trim(),
-        lotNo: row.lotNoController.text.trim(),
-        uomId: row.uomId,
-        uomQuantity: row.uomQuantity,
-        actualQuantity: row.actualQuantity,
-        billedQuantity: row.billedQuantity,
-        rate: row.rate,
-        perId: row.perId,
-      ));
-    }
+      if (_selectedSalesTypeId == null || _selectedSalesTypeId!.isEmpty) {
+        setState(() => _formErrorMessage = 'Please select a Sales Type.');
+        return;
+      }
 
-    bool success = false;
-    if (_isEditMode) {
-      success = await _salesController.updateSale(
-        widget.saleToEdit!.id,
-        SaleUpdateInput(
-          date: _selectedDate,
-          salesTypeId: _selectedSalesTypeId,
-          partyId: _selectedPartyId,
+      if (_selectedPartyId == null || _selectedPartyId!.isEmpty) {
+        setState(() => _formErrorMessage = 'Please select a Party / Customer.');
+        return;
+      }
+
+      if (_dcNoController.text.trim().isEmpty) {
+        setState(() => _formErrorMessage = 'Please enter a DC Number.');
+        return;
+      }
+
+      if (_rows.isEmpty) {
+        setState(() => _formErrorMessage = 'At least one item is required for sale.');
+        return;
+      }
+
+      final List<SaleItemInput> inputs = [];
+      for (int i = 0; i < _rows.length; i++) {
+        final row = _rows[i];
+        if (row.itemId == null || row.itemId!.isEmpty) {
+          setState(() => _formErrorMessage = 'Please select Item for Line #${i + 1}.');
+          return;
+        }
+        if (row.godownStockId == null || row.godownStockId!.isEmpty) {
+          setState(() => _formErrorMessage = 'No available stock batch selected for Line #${i + 1}.');
+          return;
+        }
+        if (row.actualQuantity <= 0) {
+          setState(() => _formErrorMessage = 'Actual quantity must be greater than 0 for Line #${i + 1}.');
+          return;
+        }
+        if (row.billedQuantity <= 0) {
+          setState(() => _formErrorMessage = 'Billed quantity must be greater than 0 for Line #${i + 1}.');
+          return;
+        }
+        if (!_isEditMode && row.maxAvailableStock > 0 && row.actualQuantity > row.maxAvailableStock) {
+          setState(() => _formErrorMessage =
+              'Actual quantity for Line #${i + 1} (${row.actualQuantity}) exceeds available stock (${row.maxAvailableStock}).');
+          return;
+        }
+        if (row.rate < 0) {
+          setState(() => _formErrorMessage = 'Rate cannot be negative for Line #${i + 1}.');
+          return;
+        }
+
+        inputs.add(SaleItemInput(
+          godownStockId: row.godownStockId!,
+          itemId: row.itemId,
+          godownId: row.godownId,
           dcNo: _dcNoController.text.trim(),
-          items: inputs,
-          isGstBill: _isGstBill,
-          gstPercentage: _isGstBill ? _selectedGstPercentage : 0,
-          notes: _notesController.text.trim(),
-          narration: _notesController.text.trim(),
-        ),
-      );
-    } else {
-      success = await _salesController.createSale(
-        SaleCreateInput(
-          date: _selectedDate,
-          salesTypeId: _selectedSalesTypeId!,
-          partyId: _selectedPartyId!,
-          dcNo: _dcNoController.text.trim(),
-          items: inputs,
-          isGstBill: _isGstBill,
-          gstPercentage: _isGstBill ? _selectedGstPercentage : 0,
-          notes: _notesController.text.trim(),
-          narration: _notesController.text.trim(),
-        ),
-      );
-    }
+          lotNo: row.lotNoController.text.trim(),
+          uomId: row.uomId,
+          uomQuantity: row.uomQuantity,
+          actualQuantity: row.actualQuantity,
+          billedQuantity: row.billedQuantity,
+          rate: row.rate,
+          perId: row.perId,
+        ));
+      }
 
-    if (success && mounted) {
-      AppNotification.showSuccess(
-        context,
-        _isEditMode ? 'Sale record updated successfully!' : 'Sale record created successfully!',
-      );
-      Navigator.of(context).pop(true);
-    } else if (mounted && _salesController.errorMessage != null) {
-      setState(() => _formErrorMessage = _salesController.errorMessage);
+      bool success = false;
+      if (_isEditMode) {
+        success = await _salesController.updateSale(
+          widget.saleToEdit!.id,
+          SaleUpdateInput(
+            date: _selectedDate,
+            salesTypeId: _selectedSalesTypeId,
+            partyId: _selectedPartyId,
+            dcNo: _dcNoController.text.trim(),
+            items: inputs,
+            isGstBill: _isGstBill,
+            gstPercentage: _isGstBill ? _selectedGstPercentage : 0,
+            notes: _notesController.text.trim(),
+            narration: _notesController.text.trim(),
+          ),
+        );
+      } else {
+        success = await _salesController.createSale(
+          SaleCreateInput(
+            date: _selectedDate,
+            salesTypeId: _selectedSalesTypeId!,
+            partyId: _selectedPartyId!,
+            dcNo: _dcNoController.text.trim(),
+            items: inputs,
+            isGstBill: _isGstBill,
+            gstPercentage: _isGstBill ? _selectedGstPercentage : 0,
+            notes: _notesController.text.trim(),
+            narration: _notesController.text.trim(),
+          ),
+        );
+      }
+
+      if (success && mounted) {
+        AppNotification.showSuccess(
+          context,
+          _isEditMode ? 'Sale record updated successfully!' : 'Sale record created successfully!',
+        );
+        Navigator.of(context).pop(true);
+      } else if (mounted && _salesController.errorMessage != null) {
+        setState(() => _formErrorMessage = _salesController.errorMessage);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _formErrorMessage = 'An unexpected error occurred: $e');
+      }
     }
   }
 

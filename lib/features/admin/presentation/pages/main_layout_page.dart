@@ -3,6 +3,7 @@ import 'package:mlf_frontend/core/config/env_config.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
+import 'package:mlf_frontend/core/utils/error_boundary.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/core/logger/log_viewer_dialog.dart';
 import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
@@ -92,29 +93,39 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     );
 
     if (action != null) {
-      if (action == 'all') {
-        await sl<AuthRepository>().logoutAll();
-      } else {
-        await sl<AuthRepository>().logout();
-      }
-
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-          (route) => false,
-        );
+      try {
+        if (action == 'all') {
+          await sl<AuthRepository>().logoutAll();
+        } else {
+          await sl<AuthRepository>().logout();
+        }
+      } catch (e, st) {
+        AppLogger().e('Error logging out from server: $e', tag: 'PortalUI', error: e, stackTrace: st);
+      } finally {
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginPage()),
+            (route) => false,
+          );
+        }
       }
     }
   }
 
   void _openChangePasswordDialog() async {
-    final changed = await showDialog<bool>(
-      context: context,
-      builder: (_) => const ChangePasswordDialog(),
-    );
+    try {
+      final changed = await showDialog<bool>(
+        context: context,
+        builder: (_) => const ChangePasswordDialog(),
+      );
 
-    if (changed == true && mounted) {
-      AppNotification.showSuccess(context, 'Password changed successfully!');
+      if (changed == true && mounted) {
+        AppNotification.showSuccess(context, 'Password changed successfully!');
+      }
+    } catch (e) {
+      if (mounted) {
+        AppNotification.showError(context, 'Failed to open change password dialog: $e');
+      }
     }
   }
 
@@ -583,35 +594,68 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   }
 
   Widget _buildTabContent() {
+    Widget content;
+    String sectionName;
+
     switch (_selectedTabIndex) {
       case 0:
-        return _buildDashboardTab();
+        sectionName = 'Dashboard';
+        content = _buildDashboardTab();
+        break;
       case 1:
-        return AdminManagementPage(controller: _adminController);
+        sectionName = 'Admin Management';
+        content = AdminManagementPage(controller: _adminController);
+        break;
       case 2:
-        return GodownManagementPage(controller: _godownController);
+        sectionName = 'Godown Management';
+        content = GodownManagementPage(controller: _godownController);
+        break;
       case 3:
-        return AccountInventoryPage(controller: _inventoryController);
+        sectionName = 'Account & Inventory';
+        content = AccountInventoryPage(controller: _inventoryController);
+        break;
       case 4:
-        return PurchaseManagementPage(
+        sectionName = 'Purchase Management';
+        content = PurchaseManagementPage(
           purchaseController: _purchaseController,
           inventoryController: _inventoryController,
         );
+        break;
       case 5:
-        return StockSummaryPage(controller: _stockSummaryController);
+        sectionName = 'Stock Summary';
+        content = StockSummaryPage(controller: _stockSummaryController);
+        break;
       case 6:
-        return const StockTransferPage();
+        sectionName = 'Stock Transfer';
+        content = const StockTransferPage();
+        break;
       case 7:
-        return const SalesPage();
+        sectionName = 'Sales Management';
+        content = const SalesPage();
+        break;
       case 8:
-        return const DebitNotePage();
+        sectionName = 'Debit Note';
+        content = const DebitNotePage();
+        break;
       case 9:
-        return const CreditNotePage();
+        sectionName = 'Credit Note';
+        content = const CreditNotePage();
+        break;
       case 10:
-        return _buildEnvironmentTab();
+        sectionName = 'Environment Settings';
+        content = _buildEnvironmentTab();
+        break;
       default:
-        return AdminManagementPage(controller: _adminController);
+        sectionName = 'Admin Management';
+        content = AdminManagementPage(controller: _adminController);
+        break;
     }
+
+    return AppErrorBoundary(
+      key: ValueKey('tab_boundary_$_selectedTabIndex'),
+      sectionName: sectionName,
+      child: content,
+    );
   }
 
   Widget _buildDashboardTab() {

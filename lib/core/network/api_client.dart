@@ -30,20 +30,24 @@ class ApiClient {
   }
 
   Uri _buildUri(String endpoint, [Map<String, dynamic>? queryParams]) {
-    final baseUri = Uri.parse('$baseUrl$endpoint');
-    if (queryParams == null || queryParams.isEmpty) {
-      return baseUri;
-    }
-
-    // Filter out null values and convert to string map
-    final cleanParams = <String, String>{};
-    queryParams.forEach((key, value) {
-      if (value != null) {
-        cleanParams[key] = value.toString();
+    try {
+      final baseUri = Uri.parse('$baseUrl$endpoint');
+      if (queryParams == null || queryParams.isEmpty) {
+        return baseUri;
       }
-    });
 
-    return baseUri.replace(queryParameters: cleanParams);
+      // Filter out null values and convert to string map
+      final cleanParams = <String, String>{};
+      queryParams.forEach((key, value) {
+        if (value != null) {
+          cleanParams[key] = value.toString();
+        }
+      });
+
+      return baseUri.replace(queryParameters: cleanParams);
+    } catch (e) {
+      throw NetworkException(message: 'Invalid URL or parameters for endpoint: $endpoint ($e)');
+    }
   }
 
   Future<dynamic> get(

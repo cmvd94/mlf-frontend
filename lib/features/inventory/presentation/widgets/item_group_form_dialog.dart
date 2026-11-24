@@ -55,34 +55,43 @@ class _ItemGroupFormDialogState extends State<ItemGroupFormDialog> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    try {
+      if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isSaving = true);
-    final success = isEditing
-        ? await widget.controller.updateItemGroup(
-            widget.itemGroup!.id,
-            name: _nameController.text.trim(),
-            code: _codeController.text.trim().isEmpty ? null : _codeController.text.trim(),
-            description: _descriptionController.text.trim(),
-            isActive: _isActive,
-          )
-        : await widget.controller.createItemGroup(
-            name: _nameController.text.trim(),
-            code: _codeController.text.trim().isEmpty ? null : _codeController.text.trim(),
-            description: _descriptionController.text.trim(),
-            isActive: _isActive,
+      setState(() => _isSaving = true);
+      final success = isEditing
+          ? await widget.controller.updateItemGroup(
+              widget.itemGroup!.id,
+              name: _nameController.text.trim(),
+              code: _codeController.text.trim().isEmpty ? null : _codeController.text.trim(),
+              description: _descriptionController.text.trim(),
+              isActive: _isActive,
+            )
+          : await widget.controller.createItemGroup(
+              name: _nameController.text.trim(),
+              code: _codeController.text.trim().isEmpty ? null : _codeController.text.trim(),
+              description: _descriptionController.text.trim(),
+              isActive: _isActive,
+            );
+
+      if (mounted) {
+        if (success) {
+          Navigator.pop(context, true);
+          AppNotification.showSuccess(
+            context,
+            isEditing ? 'Item group updated successfully' : 'Item group created successfully',
           );
-
-    if (mounted) {
-      setState(() => _isSaving = false);
-      if (success) {
-        Navigator.pop(context, true);
-        AppNotification.showSuccess(
-          context,
-          isEditing ? 'Item group updated successfully' : 'Item group created successfully',
-        );
-      } else {
-        _showError(widget.controller.errorMessage ?? 'Failed to save item group');
+        } else {
+          _showError(widget.controller.errorMessage ?? 'Failed to save item group');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Failed to save item group: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
       }
     }
   }

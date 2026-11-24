@@ -60,38 +60,47 @@ class _PerUnitFormDialogState extends State<PerUnitFormDialog> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    try {
+      if (!_formKey.currentState!.validate()) return;
 
-    final multiplier = double.tryParse(_multiplierController.text.trim()) ?? 1.0;
+      final multiplier = double.tryParse(_multiplierController.text.trim()) ?? 1.0;
 
-    setState(() => _isSaving = true);
-    final success = isEditing
-        ? await widget.controller.updatePerUnit(
-            widget.perUnit!.id,
-            name: _nameController.text.trim(),
-            symbol: _symbolController.text.trim(),
-            multiplier: multiplier,
-            description: _descriptionController.text.trim(),
-            isActive: _isActive,
-          )
-        : await widget.controller.createPerUnit(
-            name: _nameController.text.trim(),
-            symbol: _symbolController.text.trim(),
-            multiplier: multiplier,
-            description: _descriptionController.text.trim(),
-            isActive: _isActive,
+      setState(() => _isSaving = true);
+      final success = isEditing
+          ? await widget.controller.updatePerUnit(
+              widget.perUnit!.id,
+              name: _nameController.text.trim(),
+              symbol: _symbolController.text.trim(),
+              multiplier: multiplier,
+              description: _descriptionController.text.trim(),
+              isActive: _isActive,
+            )
+          : await widget.controller.createPerUnit(
+              name: _nameController.text.trim(),
+              symbol: _symbolController.text.trim(),
+              multiplier: multiplier,
+              description: _descriptionController.text.trim(),
+              isActive: _isActive,
+            );
+
+      if (mounted) {
+        if (success) {
+          Navigator.pop(context, true);
+          AppNotification.showSuccess(
+            context,
+            isEditing ? 'Per unit updated successfully' : 'Per unit created successfully',
           );
-
-    if (mounted) {
-      setState(() => _isSaving = false);
-      if (success) {
-        Navigator.pop(context, true);
-        AppNotification.showSuccess(
-          context,
-          isEditing ? 'Per unit updated successfully' : 'Per unit created successfully',
-        );
-      } else {
-        _showError(widget.controller.errorMessage ?? 'Failed to save per unit');
+        } else {
+          _showError(widget.controller.errorMessage ?? 'Failed to save per unit');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Failed to save per unit: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
       }
     }
   }

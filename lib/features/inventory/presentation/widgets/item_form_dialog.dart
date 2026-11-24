@@ -83,54 +83,64 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
 
   Future<void> _submit() async {
     setState(() => _formErrorMessage = null);
-    if (!_formKey.currentState!.validate()) return;
-    if (_selectedUomId == null || _selectedUomId!.isEmpty) {
-      _showError('Please select a default UOM');
-      return;
-    }
-    if (_selectedPerId == null || _selectedPerId!.isEmpty) {
-      _showError('Please select a default Per Unit');
-      return;
-    }
 
-    final rate = double.tryParse(_standardRateController.text.trim()) ?? 0.0;
-    final openingStock = double.tryParse(_openingStockController.text.trim()) ?? 0.0;
+    try {
+      if (!_formKey.currentState!.validate()) return;
+      if (_selectedUomId == null || _selectedUomId!.isEmpty) {
+        _showError('Please select a default UOM');
+        return;
+      }
+      if (_selectedPerId == null || _selectedPerId!.isEmpty) {
+        _showError('Please select a default Per Unit');
+        return;
+      }
 
-    setState(() => _isSaving = true);
-    final success = isEditing
-        ? await widget.controller.updateItem(
-            widget.item!.id,
-            name: _nameController.text.trim(),
-            itemCode: _codeController.text.trim().isEmpty ? null : _codeController.text.trim(),
-            itemGroupId: _selectedItemGroupId,
-            description: _descriptionController.text.trim(),
-            defaultUomId: _selectedUomId,
-            defaultPerId: _selectedPerId,
-            standardRate: rate,
-            isActive: _isActive,
-          )
-        : await widget.controller.createItem(
-            name: _nameController.text.trim(),
-            itemCode: _codeController.text.trim().isEmpty ? null : _codeController.text.trim(),
-            itemGroupId: _selectedItemGroupId,
-            description: _descriptionController.text.trim(),
-            defaultUomId: _selectedUomId!,
-            defaultPerId: _selectedPerId!,
-            standardRate: rate,
-            openingStock: openingStock,
-            isActive: _isActive,
+      final rate = double.tryParse(_standardRateController.text.trim()) ?? 0.0;
+      final openingStock = double.tryParse(_openingStockController.text.trim()) ?? 0.0;
+
+      setState(() => _isSaving = true);
+      final success = isEditing
+          ? await widget.controller.updateItem(
+              widget.item!.id,
+              name: _nameController.text.trim(),
+              itemCode: _codeController.text.trim().isEmpty ? null : _codeController.text.trim(),
+              itemGroupId: _selectedItemGroupId,
+              description: _descriptionController.text.trim(),
+              defaultUomId: _selectedUomId,
+              defaultPerId: _selectedPerId,
+              standardRate: rate,
+              isActive: _isActive,
+            )
+          : await widget.controller.createItem(
+              name: _nameController.text.trim(),
+              itemCode: _codeController.text.trim().isEmpty ? null : _codeController.text.trim(),
+              itemGroupId: _selectedItemGroupId,
+              description: _descriptionController.text.trim(),
+              defaultUomId: _selectedUomId!,
+              defaultPerId: _selectedPerId!,
+              standardRate: rate,
+              openingStock: openingStock,
+              isActive: _isActive,
+            );
+
+      if (mounted) {
+        if (success) {
+          Navigator.pop(context, true);
+          AppNotification.showSuccess(
+            context,
+            isEditing ? 'Item updated successfully' : 'Item created successfully',
           );
-
-    if (mounted) {
-      setState(() => _isSaving = false);
-      if (success) {
-        Navigator.pop(context, true);
-        AppNotification.showSuccess(
-          context,
-          isEditing ? 'Item updated successfully' : 'Item created successfully',
-        );
-      } else {
-        _showError(widget.controller.errorMessage ?? 'Failed to save item');
+        } else {
+          _showError(widget.controller.errorMessage ?? 'Failed to save item');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Failed to save item: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
       }
     }
   }

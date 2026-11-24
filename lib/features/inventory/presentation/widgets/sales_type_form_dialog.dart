@@ -55,34 +55,43 @@ class _SalesTypeFormDialogState extends State<SalesTypeFormDialog> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    try {
+      if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isSaving = true);
-    final success = isEditing
-        ? await widget.controller.updateSalesType(
-            widget.salesType!.id,
-            name: _nameController.text.trim(),
-            code: _codeController.text.trim().isEmpty ? null : _codeController.text.trim(),
-            description: _descriptionController.text.trim(),
-            isActive: _isActive,
-          )
-        : await widget.controller.createSalesType(
-            name: _nameController.text.trim(),
-            code: _codeController.text.trim().isEmpty ? null : _codeController.text.trim(),
-            description: _descriptionController.text.trim(),
-            isActive: _isActive,
+      setState(() => _isSaving = true);
+      final success = isEditing
+          ? await widget.controller.updateSalesType(
+              widget.salesType!.id,
+              name: _nameController.text.trim(),
+              code: _codeController.text.trim().isEmpty ? null : _codeController.text.trim(),
+              description: _descriptionController.text.trim(),
+              isActive: _isActive,
+            )
+          : await widget.controller.createSalesType(
+              name: _nameController.text.trim(),
+              code: _codeController.text.trim().isEmpty ? null : _codeController.text.trim(),
+              description: _descriptionController.text.trim(),
+              isActive: _isActive,
+            );
+
+      if (mounted) {
+        if (success) {
+          Navigator.pop(context, true);
+          AppNotification.showSuccess(
+            context,
+            isEditing ? 'Sales type updated successfully' : 'Sales type created successfully',
           );
-
-    if (mounted) {
-      setState(() => _isSaving = false);
-      if (success) {
-        Navigator.pop(context, true);
-        AppNotification.showSuccess(
-          context,
-          isEditing ? 'Sales type updated successfully' : 'Sales type created successfully',
-        );
-      } else {
-        _showError(widget.controller.errorMessage ?? 'Failed to save sales type');
+        } else {
+          _showError(widget.controller.errorMessage ?? 'Failed to save sales type');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Failed to save sales type: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
       }
     }
   }

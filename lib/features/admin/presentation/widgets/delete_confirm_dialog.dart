@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
+import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/admin_user_entity.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/admin_controller.dart';
 
@@ -55,9 +56,19 @@ class DeleteConfirmDialog extends StatelessWidget {
               onPressed: controller.isActionLoading
                   ? null
                   : () async {
-                      final success = await controller.deleteUser(user.id);
-                      if (success && context.mounted) {
-                        Navigator.of(context).pop(true);
+                      try {
+                        final success = await controller.deleteUser(user.id);
+                        if (context.mounted) {
+                          if (success) {
+                            Navigator.of(context).pop(true);
+                          } else if (controller.errorMessage != null) {
+                            AppNotification.showError(context, controller.errorMessage!);
+                          }
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          AppNotification.showError(context, 'Failed to delete user: $e');
+                        }
                       }
                     },
               child: controller.isActionLoading

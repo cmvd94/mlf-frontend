@@ -223,109 +223,115 @@ class _CreditNoteEntryDialogState extends State<CreditNoteEntryDialog> {
   Future<void> _submit() async {
     setState(() => _formErrorMessage = null);
 
-    if (!_formKey.currentState!.validate()) return;
+    try {
+      if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedPartyId == null || _selectedPartyId!.isEmpty) {
-      _showError('Please select a Party.');
-      return;
-    }
-
-    if (_selectedCompanyGodownId == null || _selectedCompanyGodownId!.isEmpty) {
-      _showError('Company Godown is mandatory.');
-      return;
-    }
-
-    for (int i = 0; i < _rows.length; i++) {
-      final row = _rows[i];
-      if (row.itemId == null || row.itemId!.isEmpty) {
-        _showError('Row ${i + 1}: Please select an Item.');
+      if (_selectedPartyId == null || _selectedPartyId!.isEmpty) {
+        _showError('Please select a Party.');
         return;
       }
-      if (row.godownId == null || row.godownId!.isEmpty) {
-        _showError('Row ${i + 1}: Please select a delivered Godown.');
-        return;
-      }
-      final actualQty = double.tryParse(row.actualQtyController.text);
-      if (actualQty == null || actualQty <= 0) {
-        _showError('Row ${i + 1}: Actual Quantity must be greater than 0.');
-        return;
-      }
-      final billedQty = double.tryParse(row.billedQtyController.text);
-      if (billedQty == null || billedQty <= 0) {
-        _showError('Row ${i + 1}: Billed Quantity must be greater than 0.');
-        return;
-      }
-      if (row.uomId == null || row.uomId!.isEmpty) {
-        _showError('Row ${i + 1}: Please select a Unit (UOM).');
-        return;
-      }
-      if (row.perId == null || row.perId!.isEmpty) {
-        _showError('Row ${i + 1}: Please select Per Unit.');
-        return;
-      }
-    }
 
-    final itemsInput = _rows.map((row) {
-      final actualQty = double.parse(row.actualQtyController.text.trim());
-      final billedQty = double.parse(row.billedQtyController.text.trim());
-      final uomQty = double.tryParse(row.uomQtyController.text.trim()) ?? actualQty;
-      final rate = double.tryParse(row.rateController.text.trim()) ?? 0.0;
+      if (_selectedCompanyGodownId == null || _selectedCompanyGodownId!.isEmpty) {
+        _showError('Company Godown is mandatory.');
+        return;
+      }
 
-      return CreditNoteItemInput(
-        godownStockId: row.godownStockId,
-        itemId: row.itemId!,
-        godownId: row.godownId!,
-        companyGodownId: _selectedCompanyGodownId,
-        dcNo: row.dcNoController.text.trim(),
-        lotNo: row.lotNoController.text.trim(),
-        batchNo: row.dcNoController.text.trim(),
-        uomId: row.uomId!,
-        uomQuantity: uomQty,
-        actualQuantity: actualQty,
-        billedQuantity: billedQty,
-        rate: rate,
-        perId: row.perId!,
-      );
-    }).toList();
+      for (int i = 0; i < _rows.length; i++) {
+        final row = _rows[i];
+        if (row.itemId == null || row.itemId!.isEmpty) {
+          _showError('Row ${i + 1}: Please select an Item.');
+          return;
+        }
+        if (row.godownId == null || row.godownId!.isEmpty) {
+          _showError('Row ${i + 1}: Please select a delivered Godown.');
+          return;
+        }
+        final actualQty = double.tryParse(row.actualQtyController.text);
+        if (actualQty == null || actualQty <= 0) {
+          _showError('Row ${i + 1}: Actual Quantity must be greater than 0.');
+          return;
+        }
+        final billedQty = double.tryParse(row.billedQtyController.text);
+        if (billedQty == null || billedQty <= 0) {
+          _showError('Row ${i + 1}: Billed Quantity must be greater than 0.');
+          return;
+        }
+        if (row.uomId == null || row.uomId!.isEmpty) {
+          _showError('Row ${i + 1}: Please select a Unit (UOM).');
+          return;
+        }
+        if (row.perId == null || row.perId!.isEmpty) {
+          _showError('Row ${i + 1}: Please select Per Unit.');
+          return;
+        }
+      }
 
-    bool success;
-    if (isEditing) {
-      final input = CreditNoteUpdateInput(
-        date: _selectedDate,
-        partyId: _selectedPartyId,
-        purchaseTypeId: _selectedPurchaseTypeId,
-        creditNoteTypeId: _selectedPurchaseTypeId,
-        companyGodownId: _selectedCompanyGodownId,
-        items: itemsInput,
-        isGstBill: _isGstBill,
-        gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
-        notes: _notesController.text.trim(),
-      );
-      success = await widget.creditNoteController.updateCreditNote(
-        widget.existingCreditNote!.id,
-        input,
-      );
-    } else {
-      final input = CreditNoteCreateInput(
-        date: _selectedDate,
-        partyId: _selectedPartyId!,
-        purchaseTypeId: _selectedPurchaseTypeId,
-        creditNoteTypeId: _selectedPurchaseTypeId,
-        companyGodownId: _selectedCompanyGodownId!,
-        items: itemsInput,
-        isGstBill: _isGstBill,
-        gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
-        notes: _notesController.text.trim(),
-      );
-      success = await widget.creditNoteController.createCreditNote(input);
-    }
+      final itemsInput = _rows.map((row) {
+        final actualQty = double.tryParse(row.actualQtyController.text.trim()) ?? 0.0;
+        final billedQty = double.tryParse(row.billedQtyController.text.trim()) ?? actualQty;
+        final uomQty = double.tryParse(row.uomQtyController.text.trim()) ?? actualQty;
+        final rate = double.tryParse(row.rateController.text.trim()) ?? 0.0;
 
-    if (mounted) {
-      if (success) {
-        Navigator.pop(context, true);
+        return CreditNoteItemInput(
+          godownStockId: row.godownStockId,
+          itemId: row.itemId!,
+          godownId: row.godownId!,
+          companyGodownId: _selectedCompanyGodownId,
+          dcNo: row.dcNoController.text.trim(),
+          lotNo: row.lotNoController.text.trim(),
+          batchNo: row.dcNoController.text.trim(),
+          uomId: row.uomId!,
+          uomQuantity: uomQty,
+          actualQuantity: actualQty,
+          billedQuantity: billedQty,
+          rate: rate,
+          perId: row.perId!,
+        );
+      }).toList();
+
+      bool success;
+      if (isEditing) {
+        final input = CreditNoteUpdateInput(
+          date: _selectedDate,
+          partyId: _selectedPartyId,
+          purchaseTypeId: _selectedPurchaseTypeId,
+          creditNoteTypeId: _selectedPurchaseTypeId,
+          companyGodownId: _selectedCompanyGodownId,
+          items: itemsInput,
+          isGstBill: _isGstBill,
+          gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
+          notes: _notesController.text.trim(),
+        );
+        success = await widget.creditNoteController.updateCreditNote(
+          widget.existingCreditNote!.id,
+          input,
+        );
       } else {
-        final err = widget.creditNoteController.errorMessage ?? 'Operation failed. Please try again.';
-        _showError(err);
+        final input = CreditNoteCreateInput(
+          date: _selectedDate,
+          partyId: _selectedPartyId!,
+          purchaseTypeId: _selectedPurchaseTypeId,
+          creditNoteTypeId: _selectedPurchaseTypeId,
+          companyGodownId: _selectedCompanyGodownId!,
+          items: itemsInput,
+          isGstBill: _isGstBill,
+          gstPercentage: _isGstBill ? _selectedGstPercentage : 0.0,
+          notes: _notesController.text.trim(),
+        );
+        success = await widget.creditNoteController.createCreditNote(input);
+      }
+
+      if (mounted) {
+        if (success) {
+          Navigator.pop(context, true);
+        } else {
+          final err = widget.creditNoteController.errorMessage ?? 'Operation failed. Please try again.';
+          _showError(err);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('An unexpected error occurred: $e');
       }
     }
   }

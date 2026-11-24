@@ -67,42 +67,51 @@ class _PartyFormDialogState extends State<PartyFormDialog> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    try {
+      if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isSaving = true);
-    final success = isEditing
-        ? await widget.controller.updateParty(
-            widget.party!.id,
-            name: _nameController.text.trim(),
-            partyCode: _partyCodeController.text.trim().isEmpty ? null : _partyCodeController.text.trim(),
-            contactPerson: _contactPersonController.text.trim(),
-            phoneNumber: _phoneNumberController.text.trim(),
-            email: _emailController.text.trim(),
-            address: _addressController.text.trim(),
-            gstin: _gstinController.text.trim(),
-            isActive: _isActive,
-          )
-        : await widget.controller.createParty(
-            name: _nameController.text.trim(),
-            partyCode: _partyCodeController.text.trim().isEmpty ? null : _partyCodeController.text.trim(),
-            contactPerson: _contactPersonController.text.trim(),
-            phoneNumber: _phoneNumberController.text.trim(),
-            email: _emailController.text.trim(),
-            address: _addressController.text.trim(),
-            gstin: _gstinController.text.trim(),
-            isActive: _isActive,
+      setState(() => _isSaving = true);
+      final success = isEditing
+          ? await widget.controller.updateParty(
+              widget.party!.id,
+              name: _nameController.text.trim(),
+              partyCode: _partyCodeController.text.trim().isEmpty ? null : _partyCodeController.text.trim(),
+              contactPerson: _contactPersonController.text.trim(),
+              phoneNumber: _phoneNumberController.text.trim(),
+              email: _emailController.text.trim(),
+              address: _addressController.text.trim(),
+              gstin: _gstinController.text.trim(),
+              isActive: _isActive,
+            )
+          : await widget.controller.createParty(
+              name: _nameController.text.trim(),
+              partyCode: _partyCodeController.text.trim().isEmpty ? null : _partyCodeController.text.trim(),
+              contactPerson: _contactPersonController.text.trim(),
+              phoneNumber: _phoneNumberController.text.trim(),
+              email: _emailController.text.trim(),
+              address: _addressController.text.trim(),
+              gstin: _gstinController.text.trim(),
+              isActive: _isActive,
+            );
+
+      if (mounted) {
+        if (success) {
+          Navigator.pop(context, true);
+          AppNotification.showSuccess(
+            context,
+            isEditing ? 'Party updated successfully' : 'Party created successfully',
           );
-
-    if (mounted) {
-      setState(() => _isSaving = false);
-      if (success) {
-        Navigator.pop(context, true);
-        AppNotification.showSuccess(
-          context,
-          isEditing ? 'Party updated successfully' : 'Party created successfully',
-        );
-      } else {
-        _showError(widget.controller.errorMessage ?? 'Failed to save party');
+        } else {
+          _showError(widget.controller.errorMessage ?? 'Failed to save party');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Failed to save party: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
       }
     }
   }

@@ -55,34 +55,43 @@ class _UomFormDialogState extends State<UomFormDialog> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    try {
+      if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isSaving = true);
-    final success = isEditing
-        ? await widget.controller.updateUom(
-            widget.uom!.id,
-            name: _nameController.text.trim(),
-            symbol: _symbolController.text.trim().toUpperCase(),
-            description: _descriptionController.text.trim(),
-            isActive: _isActive,
-          )
-        : await widget.controller.createUom(
-            name: _nameController.text.trim(),
-            symbol: _symbolController.text.trim().toUpperCase(),
-            description: _descriptionController.text.trim(),
-            isActive: _isActive,
+      setState(() => _isSaving = true);
+      final success = isEditing
+          ? await widget.controller.updateUom(
+              widget.uom!.id,
+              name: _nameController.text.trim(),
+              symbol: _symbolController.text.trim().toUpperCase(),
+              description: _descriptionController.text.trim(),
+              isActive: _isActive,
+            )
+          : await widget.controller.createUom(
+              name: _nameController.text.trim(),
+              symbol: _symbolController.text.trim().toUpperCase(),
+              description: _descriptionController.text.trim(),
+              isActive: _isActive,
+            );
+
+      if (mounted) {
+        if (success) {
+          Navigator.pop(context, true);
+          AppNotification.showSuccess(
+            context,
+            isEditing ? 'UOM updated successfully' : 'UOM created successfully',
           );
-
-    if (mounted) {
-      setState(() => _isSaving = false);
-      if (success) {
-        Navigator.pop(context, true);
-        AppNotification.showSuccess(
-          context,
-          isEditing ? 'UOM updated successfully' : 'UOM created successfully',
-        );
-      } else {
-        _showError(widget.controller.errorMessage ?? 'Failed to save UOM');
+        } else {
+          _showError(widget.controller.errorMessage ?? 'Failed to save UOM');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Failed to save UOM: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
       }
     }
   }

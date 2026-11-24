@@ -108,10 +108,20 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
       ),
     );
 
-    if (confirmed == true) {
-      final success = await widget.controller.deleteGodown(godown.id);
-      if (success && mounted) {
-        AppNotification.showSuccess(context, 'Godown deleted successfully!');
+    if (confirmed == true && mounted) {
+      try {
+        final success = await widget.controller.deleteGodown(godown.id);
+        if (mounted) {
+          if (success) {
+            AppNotification.showSuccess(context, 'Godown deleted successfully!');
+          } else if (widget.controller.errorMessage != null) {
+            AppNotification.showError(context, widget.controller.errorMessage!);
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          AppNotification.showError(context, 'Failed to delete godown: $e');
+        }
       }
     }
   }
