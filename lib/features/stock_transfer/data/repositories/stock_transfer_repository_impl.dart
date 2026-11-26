@@ -65,6 +65,7 @@ class StockTransferRepositoryImpl implements StockTransferRepository {
     required List<CreateStockTransferSourceInput> sourceItems,
     required List<CreateStockTransferDestinationInput> destinationItems,
     String? narration,
+    bool isGst = false,
   }) async {
     final token = await _getToken();
 
@@ -73,6 +74,7 @@ class StockTransferRepositoryImpl implements StockTransferRepository {
       'sourceItems': sourceItems.map((s) => s.toJson()).toList(),
       'destinationItems': destinationItems.map((d) => d.toJson()).toList(),
       if (narration != null && narration.isNotEmpty) 'narration': narration,
+      'isGst': isGst,
     };
 
     return await remoteDataSource.createStockTransfer(body, token: token);
@@ -85,6 +87,7 @@ class StockTransferRepositoryImpl implements StockTransferRepository {
     List<CreateStockTransferSourceInput>? sourceItems,
     List<CreateStockTransferDestinationInput>? destinationItems,
     String? narration,
+    bool? isGst,
   }) async {
     final token = await _getToken();
 
@@ -96,6 +99,7 @@ class StockTransferRepositoryImpl implements StockTransferRepository {
       if (destinationItems != null)
         'destinationItems': destinationItems.map((d) => d.toJson()).toList(),
       if (narration != null) 'narration': narration,
+      if (isGst != null) 'isGst': isGst,
     };
 
     return await remoteDataSource.updateStockTransfer(id, body, token: token);

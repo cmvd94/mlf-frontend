@@ -261,6 +261,12 @@ class GodownDetailDialog extends StatelessWidget {
                       _buildInfoRow('State', godown.state),
                       _buildInfoRow('District', godown.district),
                       _buildInfoRow('Pincode', godown.pincode),
+                      if (godown.address.isNotEmpty)
+                        _buildInfoRow('Address', godown.address),
+                      if (godown.gstin.isNotEmpty)
+                        _buildInfoRow('GSTIN / GST Details', godown.gstin),
+                      if (godown.phoneNumber.isNotEmpty)
+                        _buildInfoRow('Phone Number', godown.phoneNumber),
 
                       const SizedBox(height: 12),
                       const Divider(height: 1),

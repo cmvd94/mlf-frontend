@@ -791,6 +791,7 @@ class MockStockTransferRepository implements StockTransferRepository {
     required List<CreateStockTransferSourceInput> sourceItems,
     required List<CreateStockTransferDestinationInput> destinationItems,
     String? narration,
+    bool isGst = false,
   }) async {
     final newTransfer = StockTransferEntity(
       id: 'st_${DateTime.now().millisecondsSinceEpoch}',
@@ -837,6 +838,7 @@ class MockStockTransferRepository implements StockTransferRepository {
     List<CreateStockTransferSourceInput>? sourceItems,
     List<CreateStockTransferDestinationInput>? destinationItems,
     String? narration,
+    bool? isGst,
   }) async {
     final index = transfers.indexWhere((t) => t.id == id);
     if (index == -1) throw Exception('Stock transfer not found');

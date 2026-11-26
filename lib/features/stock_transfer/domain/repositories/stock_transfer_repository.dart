@@ -24,6 +24,7 @@ abstract class StockTransferRepository {
     required List<CreateStockTransferSourceInput> sourceItems,
     required List<CreateStockTransferDestinationInput> destinationItems,
     String? narration,
+    bool isGst = false,
   });
 
   Future<StockTransferEntity> updateStockTransfer({
@@ -32,6 +33,7 @@ abstract class StockTransferRepository {
     List<CreateStockTransferSourceInput>? sourceItems,
     List<CreateStockTransferDestinationInput>? destinationItems,
     String? narration,
+    bool? isGst,
   });
 
   Future<void> deleteStockTransfer(String id);

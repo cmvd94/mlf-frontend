@@ -52,6 +52,9 @@ class GodownEntity {
   final String state;
   final String district;
   final String pincode;
+  final String address;
+  final String gstin;
+  final String phoneNumber;
 
   // Assigned Admins
   final AssignedAdminEntity? godownManager;
@@ -77,6 +80,9 @@ class GodownEntity {
     required this.state,
     required this.district,
     required this.pincode,
+    this.address = '',
+    this.gstin = '',
+    this.phoneNumber = '',
     this.godownManager,
     this.supervisors = const [],
     this.assistants = const [],

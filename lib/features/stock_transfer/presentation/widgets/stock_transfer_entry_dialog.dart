@@ -66,6 +66,7 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
 
   DateTime _selectedDate = DateTime.now();
   final TextEditingController _narrationController = TextEditingController();
+  bool _isGst = false;
   String? _filterSourceGodownId;
 
   final List<_SourceItemRow> _sourceRows = [];
@@ -96,6 +97,7 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
     if (_isEditMode) {
       _selectedDate = widget.transferToEdit!.date;
       _narrationController.text = widget.transferToEdit!.narration;
+      _isGst = widget.transferToEdit!.isGst;
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -119,7 +121,33 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
             AvailableStockEntity matched;
             final existing = _transferController.availableStocks.where((s) => s.godownStockId == src.godownStockId);
             if (existing.isNotEmpty) {
-              matched = existing.first;
+              final raw = existing.first;
+              matched = AvailableStockEntity(
+                godownStockId: raw.godownStockId,
+                godownId: raw.godownId,
+                godownName: raw.godownName,
+                godownCode: raw.godownCode,
+                companyGodownId: raw.companyGodownId,
+                companyGodownName: raw.companyGodownName,
+                companyGodownCode: raw.companyGodownCode,
+                itemId: raw.itemId,
+                itemName: raw.itemName,
+                itemCode: raw.itemCode,
+                dcNo: raw.dcNo,
+                lotNo: raw.lotNo,
+                batchNo: raw.batchNo,
+                currentStock: raw.currentStock + src.quantity,
+                rate: raw.rate,
+                amount: raw.amount,
+                uomId: raw.uomId,
+                uomName: raw.uomName,
+                uomSymbol: raw.uomSymbol,
+                uomQuantity: raw.uomQuantity + src.uomQuantity,
+                perId: raw.perId,
+                perName: raw.perName,
+                perSymbol: raw.perSymbol,
+                perMultiplier: raw.perMultiplier,
+              );
             } else {
               matched = AvailableStockEntity(
                 godownStockId: src.godownStockId,
@@ -133,7 +161,10 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
                 currentStock: src.quantity,
                 rate: src.rate,
                 amount: src.amount,
+                uomId: src.uomId,
                 uomSymbol: src.uomSymbol,
+                uomQuantity: src.uomQuantity,
+                perId: src.perId,
               );
             }
 
@@ -269,7 +300,7 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
     setState(() => _formErrorMessage = null);
 
     try {
-      // Basic UI input validations before submitting to backend
+      // Basic UI format validations before submitting to backend
       for (int i = 0; i < _sourceRows.length; i++) {
         final r = _sourceRows[i];
         if (r.selectedStock == null) {
@@ -278,18 +309,6 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
         }
         if (r.quantity <= 0) {
           _showError('Source quantity for line ${i + 1} must be greater than 0');
-          return;
-        }
-        if (r.quantity > r.selectedStock!.currentStock) {
-          _showError(
-            'Quantity for batch "${r.selectedStock!.batchNo}" exceeds available stock (${r.selectedStock!.currentStock})',
-          );
-          return;
-        }
-        if (r.selectedStock != null && r.selectedStock!.uomQuantity > 0 && r.uomQuantity > r.selectedStock!.uomQuantity) {
-          _showError(
-            'UOM quantity for DC "${r.selectedStock!.dcNo}" exceeds available stock (${r.selectedStock!.uomQuantity})',
-          );
           return;
         }
       }
@@ -346,6 +365,7 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
           sourceItems: sourceInputs,
           destinationItems: destInputs,
           narration: _narrationController.text.trim(),
+          isGst: _isGst,
         );
       } else {
         success = await _transferController.createStockTransfer(
@@ -353,6 +373,7 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
           sourceItems: sourceInputs,
           destinationItems: destInputs,
           narration: _narrationController.text.trim(),
+          isGst: _isGst,
         );
       }
 
@@ -496,6 +517,27 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
                             TextButton(
                               onPressed: _selectDate,
                               child: const Text('Change Date'),
+                            ),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () => setState(() => _isGst = !_isGst),
+                              borderRadius: BorderRadius.circular(4),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Checkbox(
+                                    value: _isGst,
+                                    activeColor: AppColors.primary,
+                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    onChanged: (val) => setState(() => _isGst = val ?? false),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  const Text(
+                                    'GST',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryDark),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -793,7 +835,41 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
 
   Widget _buildSourceRowWidget(_SourceItemRow row, int index, {bool isMobile = false}) {
     final availableList = [
-      ..._transferController.availableStocks,
+      ..._transferController.availableStocks.map((s) {
+        if (_isEditMode && widget.transferToEdit != null) {
+          final matchedSrc = widget.transferToEdit!.sourceItems.where((src) => src.godownStockId == s.godownStockId);
+          if (matchedSrc.isNotEmpty) {
+            final src = matchedSrc.first;
+            return AvailableStockEntity(
+              godownStockId: s.godownStockId,
+              godownId: s.godownId,
+              godownName: s.godownName,
+              godownCode: s.godownCode,
+              companyGodownId: s.companyGodownId,
+              companyGodownName: s.companyGodownName,
+              companyGodownCode: s.companyGodownCode,
+              itemId: s.itemId,
+              itemName: s.itemName,
+              itemCode: s.itemCode,
+              dcNo: s.dcNo,
+              lotNo: s.lotNo,
+              batchNo: s.batchNo,
+              currentStock: s.currentStock + src.quantity,
+              rate: s.rate,
+              amount: s.amount,
+              uomId: s.uomId,
+              uomName: s.uomName,
+              uomSymbol: s.uomSymbol,
+              uomQuantity: s.uomQuantity + src.uomQuantity,
+              perId: s.perId,
+              perName: s.perName,
+              perSymbol: s.perSymbol,
+              perMultiplier: s.perMultiplier,
+            );
+          }
+        }
+        return s;
+      }),
       if (row.selectedStock != null &&
           !_transferController.availableStocks.any((s) => s.godownStockId == row.selectedStock!.godownStockId))
         row.selectedStock!,

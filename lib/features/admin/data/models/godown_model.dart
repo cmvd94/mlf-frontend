@@ -46,6 +46,9 @@ class GodownModel extends GodownEntity {
     required super.state,
     required super.district,
     required super.pincode,
+    super.address,
+    super.gstin,
+    super.phoneNumber,
     super.godownManager,
     super.supervisors,
     super.assistants,
@@ -109,6 +112,9 @@ class GodownModel extends GodownEntity {
       state: json['state']?.toString() ?? '',
       district: json['district']?.toString() ?? '',
       pincode: json['pincode']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
+      gstin: json['gstin']?.toString() ?? '',
+      phoneNumber: json['phoneNumber']?.toString() ?? '',
       godownManager: manager,
       supervisors: sups,
       assistants: assts,
@@ -132,6 +138,9 @@ class GodownModel extends GodownEntity {
     required String state,
     required String district,
     required String pincode,
+    String? address,
+    String? gstin,
+    String? phoneNumber,
     String? godownManagerId,
     List<String>? supervisorId,
     List<String>? assistantId,
@@ -146,6 +155,9 @@ class GodownModel extends GodownEntity {
       'state': state.trim(),
       'district': district.trim(),
       'pincode': pincode.trim(),
+      if (address != null && address.trim().isNotEmpty) 'address': address.trim(),
+      if (gstin != null && gstin.trim().isNotEmpty) 'gstin': gstin.trim(),
+      if (phoneNumber != null && phoneNumber.trim().isNotEmpty) 'phoneNumber': phoneNumber.trim(),
       'isActive': isActive,
     };
 
@@ -180,6 +192,9 @@ class GodownModel extends GodownEntity {
     String? godownId,
     GodownType? type,
     String? description,
+    String? address,
+    String? gstin,
+    String? phoneNumber,
     bool? isActive,
     String? godownManagerId,
     bool clearGodownManager = false,
@@ -193,6 +208,9 @@ class GodownModel extends GodownEntity {
     if (godownId != null) map['godownId'] = godownId.trim();
     if (type != null) map['type'] = type.value;
     if (description != null) map['description'] = description.trim();
+    if (address != null) map['address'] = address.trim();
+    if (gstin != null) map['gstin'] = gstin.trim();
+    if (phoneNumber != null) map['phoneNumber'] = phoneNumber.trim();
     if (isActive != null) map['isActive'] = isActive;
 
     // Jobwork godown does not require admin user assigning (all four fields)

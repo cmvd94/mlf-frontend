@@ -57,7 +57,7 @@ class EnvConfig extends ChangeNotifier {
   factory EnvConfig() => _instance;
   EnvConfig._internal();
 
-  AppEnvironment _environment = AppEnvironment.local;
+  AppEnvironment _environment = AppEnvironment.prod;
   String? _customBaseUrl;
   SharedPreferences? _prefs;
 
@@ -79,7 +79,7 @@ class EnvConfig extends ChangeNotifier {
     if (savedEnv != null) {
       _environment = AppEnvironment.fromString(savedEnv);
     } else {
-      const compileTimeEnv = String.fromEnvironment('ENV', defaultValue: 'local');
+      const compileTimeEnv = String.fromEnvironment('ENV', defaultValue: 'prod');
       _environment = AppEnvironment.fromString(compileTimeEnv);
     }
 

@@ -31,6 +31,9 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
   late final TextEditingController _godownIdController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _pincodeController;
+  late final TextEditingController _addressController;
+  late final TextEditingController _gstinController;
+  late final TextEditingController _phoneNumberController;
 
   late GodownType _selectedType;
   late bool _isActive;
@@ -103,6 +106,9 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
     _godownIdController = TextEditingController(text: godown?.godownId ?? '');
     _descriptionController = TextEditingController(text: godown?.description ?? '');
     _pincodeController = TextEditingController(text: godown?.pincode ?? '641001');
+    _addressController = TextEditingController(text: godown?.address ?? '');
+    _gstinController = TextEditingController(text: godown?.gstin ?? '');
+    _phoneNumberController = TextEditingController(text: godown?.phoneNumber ?? '');
 
     _selectedType = godown?.type ?? widget.defaultType ?? GodownType.companyGodown;
     _isActive = godown?.isActive ?? true;
@@ -143,6 +149,9 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
     _godownIdController.dispose();
     _descriptionController.dispose();
     _pincodeController.dispose();
+    _addressController.dispose();
+    _gstinController.dispose();
+    _phoneNumberController.dispose();
     super.dispose();
   }
 
@@ -220,6 +229,9 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
               : null,
           type: _selectedType,
           description: _descriptionController.text.trim(),
+          address: _addressController.text.trim(),
+          gstin: _gstinController.text.trim(),
+          phoneNumber: _phoneNumberController.text.trim(),
           isActive: _isActive,
           godownManagerId: isJobwork ? null : _selectedManagerId,
           clearGodownManager: isJobwork || _selectedManagerId == null,
@@ -241,6 +253,9 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
           state: _selectedState!,
           district: _selectedDistrict!,
           pincode: _pincodeController.text.trim(),
+          address: _addressController.text.trim(),
+          gstin: _gstinController.text.trim(),
+          phoneNumber: _phoneNumberController.text.trim(),
           godownManagerId: isJobwork ? null : _selectedManagerId,
           supervisorId: isJobwork ? null : _selectedSupervisorIds,
           assistantId: isJobwork ? null : _selectedAssistantIds,
@@ -561,6 +576,48 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
                             hintText: 'Notes regarding location, capacity, or jobwork client',
                             prefixIcon: Icon(Icons.notes, size: 20),
                           ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Address
+                        TextFormField(
+                          controller: _addressController,
+                          maxLines: 2,
+                          decoration: const InputDecoration(
+                            labelText: 'Address (Jobwork / Godown)',
+                            hintText: 'Enter street address, building, premises',
+                            prefixIcon: Icon(Icons.location_on_outlined, size: 20),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // GST Details & Phone Number
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _gstinController,
+                                textCapitalization: TextCapitalization.characters,
+                                decoration: const InputDecoration(
+                                  labelText: 'GSTIN / GST Details',
+                                  hintText: 'e.g. 33AAAAA0000A1Z5',
+                                  prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _phoneNumberController,
+                                keyboardType: TextInputType.phone,
+                                decoration: const InputDecoration(
+                                  labelText: 'Phone Number',
+                                  hintText: 'e.g. 9876543210',
+                                  prefixIcon: Icon(Icons.phone_outlined, size: 20),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 20),
 

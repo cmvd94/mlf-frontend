@@ -56,12 +56,16 @@ class EnvironmentBadge extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  isCustom ? '${env.displayName} (Custom)' : env.displayName,
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                Flexible(
+                  child: Text(
+                    isCustom ? '${env.displayName} (Custom)' : env.displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
                 if (showSwitchDialogOnTap) ...[

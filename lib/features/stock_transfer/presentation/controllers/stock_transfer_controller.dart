@@ -146,6 +146,7 @@ class StockTransferController extends ChangeNotifier {
     required List<CreateStockTransferSourceInput> sourceItems,
     required List<CreateStockTransferDestinationInput> destinationItems,
     String? narration,
+    bool isGst = false,
   }) async {
     _isSaving = true;
     _errorMessage = null;
@@ -158,6 +159,7 @@ class StockTransferController extends ChangeNotifier {
         sourceItems: sourceItems,
         destinationItems: destinationItems,
         narration: narration,
+        isGst: isGst,
       );
 
       _successMessage = 'Stock transfer ${created.transferNumber} created successfully!';
@@ -180,6 +182,7 @@ class StockTransferController extends ChangeNotifier {
     List<CreateStockTransferSourceInput>? sourceItems,
     List<CreateStockTransferDestinationInput>? destinationItems,
     String? narration,
+    bool? isGst,
   }) async {
     _isSaving = true;
     _errorMessage = null;
@@ -193,6 +196,7 @@ class StockTransferController extends ChangeNotifier {
         sourceItems: sourceItems,
         destinationItems: destinationItems,
         narration: narration,
+        isGst: isGst,
       );
 
       _successMessage = 'Stock transfer ${updated.transferNumber} updated successfully!';

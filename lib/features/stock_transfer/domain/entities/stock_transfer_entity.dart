@@ -5,6 +5,13 @@ class StockTransferSourceItemEntity {
   final String itemCode;
   final String godownId;
   final String godownName;
+  final String godownAddress;
+  final String godownGstin;
+  final String godownPhone;
+  final String godownState;
+  final String godownDistrict;
+  final String godownPincode;
+  final String hsnCode;
   final String companyGodownId;
   final String companyGodownName;
   final String companyGodownCode;
@@ -28,6 +35,13 @@ class StockTransferSourceItemEntity {
     this.itemCode = '',
     required this.godownId,
     this.godownName = '',
+    this.godownAddress = '',
+    this.godownGstin = '',
+    this.godownPhone = '',
+    this.godownState = '',
+    this.godownDistrict = '',
+    this.godownPincode = '',
+    this.hsnCode = '',
     this.companyGodownId = '',
     this.companyGodownName = '',
     this.companyGodownCode = '',
@@ -52,6 +66,13 @@ class StockTransferDestinationItemEntity {
   final String itemCode;
   final String godownId;
   final String godownName;
+  final String godownAddress;
+  final String godownGstin;
+  final String godownPhone;
+  final String godownState;
+  final String godownDistrict;
+  final String godownPincode;
+  final String hsnCode;
   final String companyGodownId;
   final String companyGodownName;
   final String companyGodownCode;
@@ -75,6 +96,13 @@ class StockTransferDestinationItemEntity {
     this.itemCode = '',
     required this.godownId,
     this.godownName = '',
+    this.godownAddress = '',
+    this.godownGstin = '',
+    this.godownPhone = '',
+    this.godownState = '',
+    this.godownDistrict = '',
+    this.godownPincode = '',
+    this.hsnCode = '',
     this.companyGodownId = '',
     this.companyGodownName = '',
     this.companyGodownCode = '',
@@ -105,6 +133,7 @@ class StockTransferEntity {
   final double totalDestinationQuantity;
   final double totalDestinationAmount;
   final String narration;
+  final bool isGst;
   final String createdByName;
   final DateTime? createdAt;
 
@@ -119,6 +148,7 @@ class StockTransferEntity {
     this.totalDestinationQuantity = 0.0,
     this.totalDestinationAmount = 0.0,
     this.narration = '',
+    this.isGst = false,
     this.createdByName = '',
     this.createdAt,
   });

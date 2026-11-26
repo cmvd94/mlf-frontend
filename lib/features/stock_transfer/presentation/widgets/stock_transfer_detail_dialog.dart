@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import '../../domain/entities/stock_transfer_entity.dart';
+import 'stock_transfer_challan_dialog.dart';
 
 class StockTransferDetailDialog extends StatelessWidget {
   final StockTransferEntity transfer;
@@ -72,6 +73,16 @@ class StockTransferDetailDialog extends StatelessWidget {
                         ),
                       ],
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.print_outlined, color: AppColors.primary),
+                    tooltip: 'Print Delivery Challan',
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => StockTransferChallanDialog(transfer: transfer),
+                      );
+                    },
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -146,6 +157,20 @@ class StockTransferDetailDialog extends StatelessWidget {
                       runSpacing: 8,
                       alignment: WrapAlignment.end,
                       children: [
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                          ),
+                          icon: const Icon(Icons.print, size: 16),
+                          label: const Text('Challan'),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => StockTransferChallanDialog(transfer: transfer),
+                            );
+                          },
+                        ),
                         if (onEdit != null)
                           OutlinedButton.icon(
                             icon: const Icon(Icons.edit, size: 16),
@@ -186,6 +211,21 @@ class StockTransferDetailDialog extends StatelessWidget {
                     ),
                     Row(
                       children: [
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                          ),
+                          icon: const Icon(Icons.print, size: 16),
+                          label: const Text('Challan'),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => StockTransferChallanDialog(transfer: transfer),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
                         if (onEdit != null) ...[
                           OutlinedButton.icon(
                             icon: const Icon(Icons.edit, size: 16),

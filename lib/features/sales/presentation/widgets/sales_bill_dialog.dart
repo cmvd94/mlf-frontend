@@ -98,7 +98,7 @@ class SalesBillDialog extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Text(
-            sale.isGstBill ? 'Tax Invoice Preview' : 'Sales Bill Preview',
+            sale.isGstBill ? 'Tax Invoice Preview' : 'Estimation Preview',
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
           ),
           const Spacer(),
@@ -157,7 +157,7 @@ class SalesBillDialog extends StatelessWidget {
             border: Border(bottom: BorderSide(color: Colors.black, width: 1.2)),
           ),
           child: Text(
-            isTax ? 'Tax Invoice' : 'Invoice',
+            isTax ? 'Tax Invoice' : 'Estimation',
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 15,
@@ -665,7 +665,7 @@ class SalesBillDialog extends StatelessWidget {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>${isTax ? 'Tax Invoice' : 'Invoice'} - $invoiceNumber</title>
+  <title>${isTax ? 'Tax Invoice' : 'Estimation'} - $invoiceNumber</title>
   <style>
     @page {
       size: A4 portrait;
@@ -846,7 +846,7 @@ class SalesBillDialog extends StatelessWidget {
 </head>
 <body>
   <div class="invoice-box">
-    <div class="header-title">${isTax ? 'Tax Invoice' : 'Invoice'}</div>
+    <div class="header-title">${isTax ? 'Tax Invoice' : 'Estimation'}</div>
 
     <div class="flex-row border-bottom">
       <div class="seller-box border-right">

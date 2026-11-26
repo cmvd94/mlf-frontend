@@ -7,6 +7,7 @@ import '../../domain/entities/stock_transfer_entity.dart';
 import '../controllers/stock_transfer_controller.dart';
 import '../widgets/stock_transfer_entry_dialog.dart';
 import '../widgets/stock_transfer_detail_dialog.dart';
+import '../widgets/stock_transfer_challan_dialog.dart';
 
 class StockTransferPage extends StatefulWidget {
   const StockTransferPage({super.key});
@@ -78,6 +79,13 @@ class _StockTransferPageState extends State<StockTransferPage> {
         onEdit: () => _openEditDialog(st),
         onDelete: () => _confirmDelete(st),
       ),
+    );
+  }
+
+  void _openChallanDialog(StockTransferEntity st) {
+    showDialog(
+      context: context,
+      builder: (_) => StockTransferChallanDialog(transfer: st),
     );
   }
 
@@ -462,7 +470,6 @@ class _StockTransferPageState extends State<StockTransferPage> {
               DataColumn(label: Text('Destination (Production)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green))),
               DataColumn(label: Text('Source Qty', style: TextStyle(fontWeight: FontWeight.bold))),
               DataColumn(label: Text('Dest Qty', style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text('Narration', style: TextStyle(fontWeight: FontWeight.bold))),
               DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
             ],
             rows: _controller.transfers.map((st) {
@@ -483,9 +490,40 @@ class _StockTransferPageState extends State<StockTransferPage> {
               return DataRow(
                 cells: [
                   DataCell(
-                    Text(
-                      st.transferNumber,
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+                    InkWell(
+                      onTap: () => _openChallanDialog(st),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            st.transferNumber,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                          if (st.isGst) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade50,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: Colors.green.shade400, width: 0.8),
+                              ),
+                              child: Text(
+                                'GST',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green.shade800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
                   DataCell(Text(formattedDate)),
@@ -522,22 +560,17 @@ class _StockTransferPageState extends State<StockTransferPage> {
                     ),
                   ),
                   DataCell(
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 160),
-                      child: Text(
-                        st.narration.isNotEmpty ? st.narration : '-',
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                      ),
-                    ),
-                  ),
-                  DataCell(
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
+                          tooltip: 'Print Delivery Challan',
+                          icon: const Icon(Icons.print_outlined, color: AppColors.primary, size: 20),
+                          onPressed: () => _openChallanDialog(st),
+                        ),
+                        IconButton(
                           tooltip: 'View Voucher Details',
-                          icon: const Icon(Icons.visibility, color: AppColors.primary, size: 20),
+                          icon: const Icon(Icons.visibility, color: AppColors.primaryLight, size: 20),
                           onPressed: () => _openDetailDialog(st),
                         ),
                         IconButton(
