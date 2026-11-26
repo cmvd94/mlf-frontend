@@ -216,7 +216,6 @@ class CreateStockTransferDestinationInput {
   final double quantity;
   final double? rate;
   final String? perId;
-  final String? destinationGodownStockId;
 
   const CreateStockTransferDestinationInput({
     required this.itemId,
@@ -229,7 +228,6 @@ class CreateStockTransferDestinationInput {
     required this.quantity,
     this.rate,
     this.perId,
-    this.destinationGodownStockId,
   }) : dcNo = dcNo != '' ? dcNo : batchNo;
 
   Map<String, dynamic> toJson() => {
@@ -243,6 +241,5 @@ class CreateStockTransferDestinationInput {
         'quantity': quantity,
         if (rate != null) 'rate': rate,
         if (perId != null) 'perId': perId,
-        if (destinationGodownStockId != null) 'destinationGodownStockId': destinationGodownStockId,
       };
 }

@@ -163,6 +163,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
       }
     } catch (e) {
       AppLogger().e('Error in _loadInitialData: $e', tag: 'SalesEntry');
+      _showError('Failed to load masters or available stock: $e');
     } finally {
       if (mounted) {
         setState(() => _isInit = false);
@@ -302,31 +303,41 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
     return _estimatedSubTotal + gst;
   }
 
+  void _showError(String message) {
+    if (mounted) {
+      setState(() {
+        _formErrorMessage = message;
+      });
+      AppNotification.showError(context, message);
+    }
+  }
+
   Future<void> _handleSubmit() async {
     setState(() => _formErrorMessage = null);
 
     try {
       if (!_formKey.currentState!.validate()) {
+        _showError('Please check and fill all required fields correctly.');
         return;
       }
 
       if (_selectedSalesTypeId == null || _selectedSalesTypeId!.isEmpty) {
-        setState(() => _formErrorMessage = 'Please select a Sales Type.');
+        _showError('Please select a Sales Type.');
         return;
       }
 
       if (_selectedPartyId == null || _selectedPartyId!.isEmpty) {
-        setState(() => _formErrorMessage = 'Please select a Party / Customer.');
+        _showError('Please select a Party / Customer.');
         return;
       }
 
       if (_dcNoController.text.trim().isEmpty) {
-        setState(() => _formErrorMessage = 'Please enter a DC Number.');
+        _showError('Please enter a DC Number.');
         return;
       }
 
       if (_rows.isEmpty) {
-        setState(() => _formErrorMessage = 'At least one item is required for sale.');
+        _showError('At least one item is required for sale.');
         return;
       }
 
@@ -334,23 +345,23 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
       for (int i = 0; i < _rows.length; i++) {
         final row = _rows[i];
         if (row.itemId == null || row.itemId!.isEmpty) {
-          setState(() => _formErrorMessage = 'Please select Item for Line #${i + 1}.');
+          _showError('Please select Item for Line #${i + 1}.');
           return;
         }
         if (row.godownStockId == null || row.godownStockId!.isEmpty) {
-          setState(() => _formErrorMessage = 'No available stock batch selected for Line #${i + 1}.');
+          _showError('No available stock batch selected for Line #${i + 1}.');
           return;
         }
         if (row.actualQuantity <= 0) {
-          setState(() => _formErrorMessage = 'Actual quantity must be greater than 0 for Line #${i + 1}.');
+          _showError('Actual quantity must be greater than 0 for Line #${i + 1}.');
           return;
         }
         if (row.billedQuantity <= 0) {
-          setState(() => _formErrorMessage = 'Billed quantity must be greater than 0 for Line #${i + 1}.');
+          _showError('Billed quantity must be greater than 0 for Line #${i + 1}.');
           return;
         }
         if (row.rate < 0) {
-          setState(() => _formErrorMessage = 'Rate cannot be negative for Line #${i + 1}.');
+          _showError('Rate cannot be negative for Line #${i + 1}.');
           return;
         }
 
@@ -417,12 +428,12 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
           _isEditMode ? 'Sale record updated successfully!' : 'Sale record created successfully!',
         );
         Navigator.of(context).pop(true);
-      } else if (mounted && _salesController.errorMessage != null) {
-        setState(() => _formErrorMessage = _salesController.errorMessage);
+      } else if (mounted) {
+        _showError(_salesController.errorMessage ?? 'Failed to save sale record');
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _formErrorMessage = 'An unexpected error occurred: $e');
+        _showError('An unexpected error occurred: $e');
       }
     }
   }
@@ -1295,45 +1306,44 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                   border: OutlineInputBorder(),
                                 ),
                               ),
-
-                              // Error Message Alert
-                              if (_formErrorMessage != null) ...[
-                                const SizedBox(height: 16),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.error.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          _formErrorMessage!,
-                                          style: const TextStyle(
-                                            color: AppColors.error,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.close, size: 16, color: AppColors.error),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () => setState(() => _formErrorMessage = null),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
                         ),
                 ),
+                if (_formErrorMessage != null) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _formErrorMessage!,
+                            style: const TextStyle(
+                              color: AppColors.error,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 16, color: AppColors.error),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () => setState(() => _formErrorMessage = null),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const Divider(height: 20),
 
                 // Dialog Footer: Responsive for Mobile

@@ -27,7 +27,6 @@ class _SourceItemRow {
 }
 
 class _DestinationItemRow {
-  String? destinationGodownStockId;
   String? itemId;
   String? godownId;
   String? uomId;
@@ -184,7 +183,6 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
         if (_destRows.isEmpty) {
           for (final dest in widget.transferToEdit!.destinationItems) {
             final row = _DestinationItemRow();
-            row.destinationGodownStockId = dest.destinationGodownStockId;
             row.itemId = dest.itemId.isNotEmpty ? dest.itemId : null;
             row.godownId = dest.godownId.isNotEmpty ? dest.godownId : null;
             row.dcNoController.text = dest.dcNo.isNotEmpty ? dest.dcNo : dest.batchNo;
@@ -356,7 +354,6 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
                 uomQuantity: r.uomQuantity,
                 quantity: r.quantity,
                 perId: r.perId,
-                destinationGodownStockId: r.destinationGodownStockId,
               ))
           .toList();
 

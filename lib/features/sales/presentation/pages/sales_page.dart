@@ -146,6 +146,35 @@ class _SalesPageState extends State<SalesPage> {
                 const SizedBox(height: 16),
                 _buildFilterBar(isMobile),
                 const SizedBox(height: 16),
+                if (_salesController.errorMessage != null) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _salesController.errorMessage!,
+                            style: const TextStyle(color: AppColors.error, fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 16, color: AppColors.error),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () => _salesController.clearMessages(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 Expanded(
                   child: _salesController.isLoading && _salesController.sales.isEmpty
                       ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -354,6 +383,29 @@ class _SalesPageState extends State<SalesPage> {
   }
 
   Widget _buildEmptyState() {
+    if (_salesController.errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline_rounded, size: 56, color: AppColors.error),
+            const SizedBox(height: 14),
+            Text(
+              _salesController.errorMessage!,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.error),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () => _salesController.fetchSales(page: 1, reset: true),
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
