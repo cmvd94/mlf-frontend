@@ -349,11 +349,6 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
           setState(() => _formErrorMessage = 'Billed quantity must be greater than 0 for Line #${i + 1}.');
           return;
         }
-        if (!_isEditMode && row.maxAvailableStock > 0 && row.actualQuantity > row.maxAvailableStock) {
-          setState(() => _formErrorMessage =
-              'Actual quantity for Line #${i + 1} (${row.actualQuantity}) exceeds available stock (${row.maxAvailableStock}).');
-          return;
-        }
         if (row.rate < 0) {
           setState(() => _formErrorMessage = 'Rate cannot be negative for Line #${i + 1}.');
           return;
@@ -1072,9 +1067,6 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                                       if (v == null || v.trim().isEmpty) return 'Required';
                                                       final n = double.tryParse(v.trim());
                                                       if (n == null || n <= 0) return '> 0';
-                                                      if (!_isEditMode && row.maxAvailableStock > 0 && n > row.maxAvailableStock) {
-                                                        return 'Max ${row.maxAvailableStock}';
-                                                      }
                                                       return null;
                                                     },
                                                   ),

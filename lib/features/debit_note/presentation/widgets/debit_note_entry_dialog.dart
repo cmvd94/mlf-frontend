@@ -317,11 +317,6 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
           setState(() => _formErrorMessage = 'Row ${i + 1}: Actual Quantity must be greater than 0.');
           return;
         }
-        if (!_isEditMode && row.actualQuantity > row.maxAvailableStock) {
-          setState(() => _formErrorMessage =
-              'Row ${i + 1}: Quantity (${row.actualQuantity}) exceeds available stock (${row.maxAvailableStock}).');
-          return;
-        }
         if (row.uomId == null || row.uomId!.isEmpty) {
           setState(() => _formErrorMessage = 'Row ${i + 1}: Please select a Unit (UOM).');
           return;
