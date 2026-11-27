@@ -10,12 +10,14 @@ class GodownFormDialog extends StatefulWidget {
   final GodownController controller;
   final GodownEntity? godownToEdit;
   final GodownType? defaultType;
+  final bool isSuperAdmin;
 
   const GodownFormDialog({
     super.key,
     required this.controller,
     this.godownToEdit,
     this.defaultType,
+    this.isSuperAdmin = true,
   });
 
   bool get isEditing => godownToEdit != null;
@@ -110,7 +112,14 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
     _gstinController = TextEditingController(text: godown?.gstin ?? '');
     _phoneNumberController = TextEditingController(text: godown?.phoneNumber ?? '');
 
-    _selectedType = godown?.type ?? widget.defaultType ?? GodownType.companyGodown;
+    final allowedTypes = widget.isSuperAdmin
+        ? GodownType.values
+        : [GodownType.jobworkGodown];
+    final requestedType =
+        godown?.type ?? widget.defaultType ?? (widget.isSuperAdmin ? GodownType.companyGodown : GodownType.jobworkGodown);
+    _selectedType = allowedTypes.contains(requestedType)
+        ? requestedType
+        : GodownType.jobworkGodown;
     _isActive = godown?.isActive ?? true;
 
     if (godown != null) {
@@ -500,28 +509,35 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
                                   labelText: 'Godown Type *',
                                   prefixIcon: Icon(Icons.category, size: 20),
                                 ),
-                                items: GodownType.values.map((type) {
+                                items: (widget.isSuperAdmin
+                                        ? GodownType.values
+                                        : [GodownType.jobworkGodown])
+                                    .map((type) {
                                   return DropdownMenuItem(
                                     value: type,
                                     child: Text(type.label),
                                   );
                                 }).toList(),
-                                onChanged: (val) {
-                                  if (val != null) {
-                                    setState(() {
-                                      _selectedType = val;
-                                      if (val == GodownType.jobworkGodown) {
-                                        _selectedManagerId = null;
-                                        _selectedBillingUserId = null;
-                                        _selectedSupervisorIds.clear();
-                                        _selectedAssistantIds.clear();
+                                onChanged: widget.isSuperAdmin
+                                    ? (val) {
+                                        if (val != null) {
+                                          setState(() {
+                                            _selectedType = val;
+                                            if (val ==
+                                                GodownType.jobworkGodown) {
+                                              _selectedManagerId = null;
+                                              _selectedBillingUserId = null;
+                                              _selectedSupervisorIds.clear();
+                                              _selectedAssistantIds.clear();
+                                            }
+                                          });
+                                          if (val ==
+                                              GodownType.companyGodown) {
+                                            _loadEligibleAdmins();
+                                          }
+                                        }
                                       }
-                                    });
-                                    if (val == GodownType.companyGodown) {
-                                      _loadEligibleAdmins();
-                                    }
-                                  }
-                                },
+                                    : null,
                               ),
                             ),
                           ],

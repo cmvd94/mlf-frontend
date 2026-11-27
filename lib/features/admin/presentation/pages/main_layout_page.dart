@@ -36,16 +36,20 @@ class MainLayoutPage extends StatefulWidget {
 
 class _MainLayoutPageState extends State<MainLayoutPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int _selectedTabIndex = 1; // Default to Admin Management tab as requested
+  late int _selectedTabIndex;
   late final AdminController _adminController;
   late final GodownController _godownController;
   late final InventoryController _inventoryController;
   late final PurchaseController _purchaseController;
   late final StockSummaryController _stockSummaryController;
 
+  bool get _isSuperAdmin =>
+      widget.currentUser?.role?.toUpperCase() == 'SUPER_ADMIN';
+
   @override
   void initState() {
     super.initState();
+    _selectedTabIndex = _isSuperAdmin ? 1 : 0;
     _adminController = sl<AdminController>();
     _godownController = sl<GodownController>();
     _inventoryController = sl<InventoryController>();
@@ -347,13 +351,14 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       label: 'Dashboard',
                       isDrawer: isDrawer,
                     ),
-                    _buildNavItem(
-                      index: 1,
-                      icon: Icons.admin_panel_settings_outlined,
-                      activeIcon: Icons.admin_panel_settings,
-                      label: 'Admin Users',
-                      isDrawer: isDrawer,
-                    ),
+                    if (_isSuperAdmin)
+                      _buildNavItem(
+                        index: 1,
+                        icon: Icons.admin_panel_settings_outlined,
+                        activeIcon: Icons.admin_panel_settings,
+                        label: 'Admin Users',
+                        isDrawer: isDrawer,
+                      ),
                     _buildNavItem(
                       index: 2,
                       icon: Icons.warehouse_outlined,
@@ -583,12 +588,20 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
         content = _buildDashboardTab();
         break;
       case 1:
-        sectionName = 'Admin Management';
-        content = AdminManagementPage(controller: _adminController);
+        if (!_isSuperAdmin) {
+          sectionName = 'Dashboard';
+          content = _buildDashboardTab();
+        } else {
+          sectionName = 'Admin Management';
+          content = AdminManagementPage(controller: _adminController);
+        }
         break;
       case 2:
         sectionName = 'Godown Management';
-        content = GodownManagementPage(controller: _godownController);
+        content = GodownManagementPage(
+          controller: _godownController,
+          currentUser: widget.currentUser,
+        );
         break;
       case 3:
         sectionName = 'Account & Inventory';
@@ -626,8 +639,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
         content = _buildEnvironmentTab();
         break;
       default:
-        sectionName = 'Admin Management';
-        content = AdminManagementPage(controller: _adminController);
+        sectionName = 'Dashboard';
+        content = _buildDashboardTab();
         break;
     }
 
@@ -650,13 +663,14 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             (constraints.maxWidth - (crossAxisCount - 1) * spacing) / crossAxisCount;
 
         final cards = [
-          _buildStatCard(
-            title: 'Admin Users',
-            subtitle: 'Manage roles & permissions',
-            icon: Icons.admin_panel_settings,
-            color: AppColors.primary,
-            onTap: () => setState(() => _selectedTabIndex = 1),
-          ),
+          if (_isSuperAdmin)
+            _buildStatCard(
+              title: 'Admin Users',
+              subtitle: 'Manage roles & permissions',
+              icon: Icons.admin_panel_settings,
+              color: AppColors.primary,
+              onTap: () => setState(() => _selectedTabIndex = 1),
+            ),
           _buildStatCard(
             title: 'Godowns',
             subtitle: 'Manage branches & jobworks',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
 import 'package:mlf_frontend/features/admin/presentation/widgets/environment_badge.dart';
+import 'package:mlf_frontend/features/auth/domain/entities/user_entity.dart';
 import '../../domain/entities/godown_entity.dart';
 import '../controllers/godown_controller.dart';
 import '../widgets/godown_detail_dialog.dart';
@@ -9,8 +10,13 @@ import '../widgets/godown_form_dialog.dart';
 
 class GodownManagementPage extends StatefulWidget {
   final GodownController controller;
+  final UserEntity? currentUser;
 
-  const GodownManagementPage({super.key, required this.controller});
+  const GodownManagementPage({
+    super.key,
+    required this.controller,
+    this.currentUser,
+  });
 
   @override
   State<GodownManagementPage> createState() => _GodownManagementPageState();
@@ -18,13 +24,19 @@ class GodownManagementPage extends StatefulWidget {
 
 class _GodownManagementPageState extends State<GodownManagementPage> {
   final TextEditingController _searchController = TextEditingController();
-  int _selectedSubTab = 0; // 0 = Company Godowns, 1 = Jobwork Godowns
+  late int _selectedSubTab; // 0 = Company Godowns, 1 = Jobwork Godowns
+
+  bool get _isSuperAdmin =>
+      widget.currentUser?.role?.toUpperCase() == 'SUPER_ADMIN';
 
   @override
   void initState() {
     super.initState();
+    _selectedSubTab = _isSuperAdmin ? 0 : 1;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.controller.setTypeFilter(GodownType.companyGodown);
+      widget.controller.setTypeFilter(
+        _isSuperAdmin ? GodownType.companyGodown : GodownType.jobworkGodown,
+      );
     });
   }
 
@@ -35,6 +47,7 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
   }
 
   void _switchSubTab(int index) {
+    if (!_isSuperAdmin && index == 0) return;
     if (_selectedSubTab == index) return;
     setState(() {
       _selectedSubTab = index;
@@ -45,15 +58,18 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
   }
 
   void _openCreateDialog([GodownType? defaultType]) async {
-    final typeToCreate = defaultType ??
-        (_selectedSubTab == 0
-            ? GodownType.companyGodown
-            : GodownType.jobworkGodown);
+    final typeToCreate = (!_isSuperAdmin)
+        ? GodownType.jobworkGodown
+        : (defaultType ??
+            (_selectedSubTab == 0
+                ? GodownType.companyGodown
+                : GodownType.jobworkGodown));
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => GodownFormDialog(
         controller: widget.controller,
         defaultType: typeToCreate,
+        isSuperAdmin: _isSuperAdmin,
       ),
     );
 
@@ -63,11 +79,19 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
   }
 
   void _openEditDialog(GodownEntity godown) async {
+    if (godown.type == GodownType.companyGodown && !_isSuperAdmin) {
+      AppNotification.showError(
+        context,
+        'Only Super Admin has access to Company Godowns.',
+      );
+      return;
+    }
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => GodownFormDialog(
         controller: widget.controller,
         godownToEdit: godown,
+        isSuperAdmin: _isSuperAdmin,
       ),
     );
 
@@ -77,6 +101,13 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
   }
 
   void _openDetailDialog(GodownEntity godown) {
+    if (godown.type == GodownType.companyGodown && !_isSuperAdmin) {
+      AppNotification.showError(
+        context,
+        'Only Super Admin has access to Company Godowns.',
+      );
+      return;
+    }
     showDialog(
       context: context,
       builder: (ctx) => GodownDetailDialog(godown: godown),
@@ -84,6 +115,13 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
   }
 
   void _confirmDelete(GodownEntity godown) async {
+    if (godown.type == GodownType.companyGodown && !_isSuperAdmin) {
+      AppNotification.showError(
+        context,
+        'Only Super Admin has access to Company Godowns.',
+      );
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -240,14 +278,14 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
           icon: const Icon(Icons.add, size: 20),
           label: Text(
             isDesktop
-                ? (_selectedSubTab == 0
+                ? (_isSuperAdmin && _selectedSubTab == 0
                     ? 'Create Company Godown'
                     : 'Create Jobwork Godown')
                 : 'Add',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           onPressed: () => _openCreateDialog(
-            _selectedSubTab == 0
+            _isSuperAdmin && _selectedSubTab == 0
                 ? GodownType.companyGodown
                 : GodownType.jobworkGodown,
           ),
@@ -257,6 +295,29 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
   }
 
   Widget _buildSubTabBar(bool isDesktop) {
+    if (!_isSuperAdmin) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        padding: const EdgeInsets.all(6),
+        child: Row(
+          mainAxisSize: isDesktop ? MainAxisSize.min : MainAxisSize.max,
+          children: [
+            _buildSubTabItem(
+              index: 1,
+              title: 'Jobwork Godowns',
+              icon: Icons.precision_manufacturing_outlined,
+              isSelected: true,
+              isDesktop: isDesktop,
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
