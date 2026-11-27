@@ -165,6 +165,7 @@ class MockSalesRepository implements SalesRepository {
     String? godownId,
     String? itemId,
     String? search,
+    String? saleId,
   }) async {
     return availableStocks;
   }

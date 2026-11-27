@@ -69,12 +69,14 @@ class SalesRepositoryImpl implements SalesRepository {
     String? godownId,
     String? itemId,
     String? search,
+    String? saleId,
   }) async {
     final token = await _getToken();
     return await remoteDataSource.getAvailableStocks(
       godownId: godownId,
       itemId: itemId,
       search: search,
+      saleId: saleId,
       token: token,
     );
   }

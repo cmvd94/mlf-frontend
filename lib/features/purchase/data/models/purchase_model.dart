@@ -2,6 +2,7 @@ import '../../domain/entities/purchase_entity.dart';
 
 class PurchaseItemModel extends PurchaseItemEntity {
   const PurchaseItemModel({
+    super.id,
     super.godownStockId,
     required super.itemId,
     required super.itemName,
@@ -36,6 +37,7 @@ class PurchaseItemModel extends PurchaseItemEntity {
     final stockData = json['godownStockId'];
 
     return PurchaseItemModel(
+      id: json['_id']?.toString(),
       godownStockId: stockData is Map ? stockData['_id']?.toString() : stockData?.toString(),
       itemId: itemData is Map ? itemData['_id']?.toString() ?? '' : itemData?.toString() ?? '',
       itemName: itemData is Map ? itemData['name']?.toString() ?? '' : '',

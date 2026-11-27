@@ -782,6 +782,7 @@ class MockStockTransferRepository implements StockTransferRepository {
     String? godownId,
     String? itemId,
     String? search,
+    String? saleId,
   }) async =>
       availableStocks;
 

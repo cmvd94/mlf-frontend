@@ -24,5 +24,6 @@ abstract class SalesRepository {
     String? godownId,
     String? itemId,
     String? search,
+    String? saleId,
   });
 }

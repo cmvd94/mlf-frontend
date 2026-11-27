@@ -1,4 +1,5 @@
 class PurchaseItemEntity {
+  final String? id;
   final String? godownStockId;
   final String itemId;
   final String itemName;
@@ -24,6 +25,7 @@ class PurchaseItemEntity {
   final double amount;
 
   const PurchaseItemEntity({
+    this.id,
     this.godownStockId,
     required this.itemId,
     required this.itemName,
@@ -51,6 +53,7 @@ class PurchaseItemEntity {
 }
 
 class PurchaseItemInput {
+  final String? id;
   final String? godownStockId;
   final String itemId;
   final String godownId;
@@ -66,6 +69,7 @@ class PurchaseItemInput {
   final String perId;
 
   const PurchaseItemInput({
+    this.id,
     this.godownStockId,
     required this.itemId,
     required this.godownId,
@@ -82,6 +86,7 @@ class PurchaseItemInput {
   });
 
   Map<String, dynamic> toJson() => {
+    if (id != null && id!.isNotEmpty) '_id': id,
     if (godownStockId != null && godownStockId!.isNotEmpty) 'godownStockId': godownStockId,
     'itemId': itemId,
     'godownId': godownId,

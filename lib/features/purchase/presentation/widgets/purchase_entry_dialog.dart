@@ -8,6 +8,7 @@ import '../../domain/entities/purchase_entity.dart';
 import '../controllers/purchase_controller.dart';
 
 class _ItemRowData {
+  String? id;
   String? godownStockId;
   String? itemId;
   String? godownId;
@@ -22,6 +23,7 @@ class _ItemRowData {
   final TextEditingController rateController;
 
   _ItemRowData({
+    this.id,
     this.godownStockId,
     this.itemId,
     this.godownId,
@@ -120,6 +122,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
     if (p != null && p.items.isNotEmpty) {
       for (final it in p.items) {
         _rows.add(_ItemRowData(
+          id: it.id,
           godownStockId: it.godownStockId,
           itemId: it.itemId,
           godownId: it.godownId,
@@ -270,6 +273,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
       // Build raw item inputs with individual assigned godown
       final itemsInput = _rows.map((row) {
         return PurchaseItemInput(
+          id: row.id,
           godownStockId: row.godownStockId,
           itemId: row.itemId!,
           godownId: row.godownId!,

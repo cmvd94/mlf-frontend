@@ -131,7 +131,7 @@ class SalesController extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchAvailableStocks({String? godownId, String? itemId, String? search}) async {
+  Future<void> fetchAvailableStocks({String? godownId, String? itemId, String? search, String? saleId}) async {
     _isLoadingAvailable = true;
     notifyListeners();
 
@@ -140,6 +140,7 @@ class SalesController extends ChangeNotifier {
         godownId: godownId,
         itemId: itemId,
         search: search,
+        saleId: saleId,
       );
       AppLogger().i(
         'Fetched ${_availableStocks.length} available stocks for sales',

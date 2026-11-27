@@ -27,6 +27,7 @@ abstract class SalesRemoteDataSource {
     String? godownId,
     String? itemId,
     String? search,
+    String? saleId,
     String? token,
   });
 }
@@ -123,12 +124,14 @@ class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
     String? godownId,
     String? itemId,
     String? search,
+    String? saleId,
     String? token,
   }) async {
     final queryParams = <String, dynamic>{
       if (godownId != null && godownId.isNotEmpty) 'godownId': godownId,
       if (itemId != null && itemId.isNotEmpty) 'itemId': itemId,
       if (search != null && search.isNotEmpty) 'search': search,
+      if (saleId != null && saleId.isNotEmpty) 'saleId': saleId,
     };
 
     final response = await apiClient.get(

@@ -932,6 +932,31 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
         .where((s) => s.itemId == row.itemId && (s.currentStock > 0 || s.godownStockId == row.godownStockId))
         .toList();
 
+    if (widget.debitNoteToEdit != null && row.godownStockId != null && !availableStocksForItem.any((s) => s.godownStockId == row.godownStockId)) {
+      final orig = widget.debitNoteToEdit!.items.where((it) => it.godownStockId == row.godownStockId).firstOrNull;
+      if (orig != null) {
+        availableStocksForItem.add(AvailableStockEntity(
+          godownStockId: orig.godownStockId,
+          godownId: orig.godownId,
+          godownName: orig.godownName,
+          companyGodownId: orig.companyGodownId ?? '',
+          companyGodownName: orig.companyGodownName,
+          itemId: orig.itemId,
+          itemName: orig.itemName,
+          itemCode: orig.itemCode,
+          dcNo: orig.dcNo,
+          lotNo: orig.lotNo,
+          currentStock: orig.actualQuantity,
+          rate: orig.rate,
+          uomId: orig.uomId,
+          uomSymbol: orig.uomSymbol,
+          uomQuantity: orig.uomQuantity,
+          perId: orig.perId,
+          perSymbol: orig.perSymbol,
+        ));
+      }
+    }
+
     double multiplier = 1.0;
     if (row.perId != null) {
       final p = _inventoryController.perUnits

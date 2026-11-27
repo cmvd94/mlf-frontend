@@ -133,7 +133,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
           actualQty: it.actualQuantity.toString(),
           billedQty: it.billedQuantity.toString(),
           rate: it.rate.toString(),
-          maxAvailableStock: it.actualQuantity + 999999, // Allow current sold stock during edit
+          maxAvailableStock: it.actualQuantity, // Current sold stock during edit
           onChanged: () => setState(() {}),
         ));
       }
@@ -151,7 +151,7 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
     try {
       await Future.wait([
         _inventoryController.fetchMasters(),
-        _salesController.fetchAvailableStocks(),
+        _salesController.fetchAvailableStocks(saleId: widget.saleToEdit?.id),
       ]);
 
       // If sales types loaded and none selected, auto-select first active sales type
@@ -159,6 +159,20 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
         final active = _inventoryController.salesTypes.where((st) => st.isActive).firstOrNull;
         if (active != null) {
           _selectedSalesTypeId = active.id;
+        }
+      }
+
+      // In edit mode, sync each row's maxAvailableStock with fetched available stock headroom
+      if (_isEditMode && widget.saleToEdit != null) {
+        for (final row in _rows) {
+          if (row.godownStockId != null) {
+            final st = _salesController.availableStocks
+                .where((s) => s.godownStockId == row.godownStockId)
+                .firstOrNull;
+            if (st != null) {
+              row.maxAvailableStock = st.currentStock;
+            }
+          }
         }
       }
     } catch (e) {
@@ -211,6 +225,71 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
     }
   }
 
+  List<AvailableStockEntity> _getAvailableStocksForEdit() {
+    final available = <AvailableStockEntity>[];
+    final seenStockIds = <String>{};
+
+    for (final s in _salesController.availableStocks) {
+      if (_isEditMode && widget.saleToEdit != null) {
+        final matchedSaleItem = widget.saleToEdit!.items.where((it) => it.godownStockId == s.godownStockId).firstOrNull;
+        if (matchedSaleItem != null) {
+          available.add(AvailableStockEntity(
+            godownStockId: s.godownStockId,
+            godownId: s.godownId,
+            godownName: s.godownName,
+            companyGodownId: s.companyGodownId,
+            companyGodownName: s.companyGodownName,
+            itemId: s.itemId,
+            itemName: s.itemName,
+            itemCode: s.itemCode,
+            dcNo: s.dcNo,
+            lotNo: s.lotNo,
+            currentStock: s.currentStock,
+            rate: s.rate > 0 ? s.rate : matchedSaleItem.rate,
+            uomId: s.uomId,
+            uomSymbol: s.uomSymbol,
+            uomQuantity: s.uomQuantity,
+            perId: s.perId,
+            perSymbol: s.perSymbol,
+          ));
+          seenStockIds.add(s.godownStockId);
+          continue;
+        }
+      }
+      available.add(s);
+      seenStockIds.add(s.godownStockId);
+    }
+
+    if (_isEditMode && widget.saleToEdit != null) {
+      for (final saleItem in widget.saleToEdit!.items) {
+        if (!seenStockIds.contains(saleItem.godownStockId)) {
+          available.add(AvailableStockEntity(
+            godownStockId: saleItem.godownStockId,
+            godownId: saleItem.godownId,
+            godownName: saleItem.godownName,
+            companyGodownId: saleItem.companyGodownId ?? '',
+            companyGodownName: saleItem.companyGodownName,
+            itemId: saleItem.itemId,
+            itemName: saleItem.itemName,
+            itemCode: saleItem.itemCode,
+            dcNo: saleItem.dcNo,
+            lotNo: saleItem.lotNo,
+            currentStock: saleItem.actualQuantity,
+            rate: saleItem.rate,
+            uomId: saleItem.uomId,
+            uomSymbol: saleItem.uomSymbol,
+            uomQuantity: saleItem.uomQuantity,
+            perId: saleItem.perId,
+            perSymbol: saleItem.perSymbol,
+          ));
+          seenStockIds.add(saleItem.godownStockId);
+        }
+      }
+    }
+
+    return available;
+  }
+
   void _onItemChanged(_SaleItemRowData row, String? itemId) {
     setState(() {
       row.itemId = itemId;
@@ -225,8 +304,9 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
       final itemDoc = _inventoryController.items.where((it) => it.id == itemId).firstOrNull ??
           _inventoryController.masters.items.where((it) => it.id == itemId).firstOrNull;
       row.hsnCode = itemDoc?.hsnCode ?? '';
-      final stocksForItem = _salesController.availableStocks
-          .where((s) => s.itemId == itemId && s.currentStock > 0)
+      final allAvailable = _getAvailableStocksForEdit();
+      final stocksForItem = allAvailable
+          .where((s) => s.itemId == itemId && (s.currentStock > 0 || s.godownStockId == row.godownStockId))
           .toList();
 
       if (stocksForItem.isNotEmpty) {
@@ -273,7 +353,8 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
 
   void _onStockBatchSelected(_SaleItemRowData row, String? godownStockId) {
     if (godownStockId == null) return;
-    final stock = _salesController.availableStocks.where((s) => s.godownStockId == godownStockId).firstOrNull;
+    final allAvailable = _getAvailableStocksForEdit();
+    final stock = allAvailable.where((s) => s.godownStockId == godownStockId).firstOrNull;
     if (stock != null) {
       final itemDoc = _inventoryController.items.where((it) => it.id == row.itemId).firstOrNull;
       setState(() {
@@ -887,8 +968,9 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                               // Item Rows
                                               ...List.generate(_rows.length, (index) {
                                       final row = _rows[index];
+                                      final allAvailable = _getAvailableStocksForEdit();
                                       final stocksForItem = row.itemId != null
-                                          ? _salesController.availableStocks
+                                          ? allAvailable
                                               .where((s) => s.itemId == row.itemId && (s.currentStock > 0 || s.godownStockId == row.godownStockId))
                                               .toList()
                                           : <AvailableStockEntity>[];
