@@ -157,9 +157,7 @@ class SalesDetailDialog extends StatelessWidget {
 
                                 return TableRow(
                                   children: [
-                                    _TableCell(
-                                      '${item.itemName}\n${item.itemCode.isNotEmpty ? "(${item.itemCode})" : ""}',
-                                    ),
+                                    _TableCell(item.itemName),
                                     _TableCell(
                                       '${item.godownName}\n${ref.isNotEmpty ? "[$ref]" : ""}',
                                     ),

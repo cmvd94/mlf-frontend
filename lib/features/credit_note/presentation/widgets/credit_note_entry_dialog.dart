@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/constants/app_constants.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
+import 'package:mlf_frontend/core/widgets/app_popup_select_field.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/godown_entity.dart';
 import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
 import '../../domain/entities/credit_note_entity.dart';
@@ -362,60 +363,73 @@ class _CreditNoteEntryDialogState extends State<CreditNoteEntryDialog> {
       ),
     );
 
-    final partyField = DropdownButtonFormField<String>(
-      isExpanded: true,
+    final partyField = AppPopupSelectField<String>(
+      key: ValueKey('cn_party_$_selectedPartyId'),
       value: parties.any((p) => p.id == _selectedPartyId) ? _selectedPartyId : null,
-      decoration: const InputDecoration(
-        labelText: 'Party (Supplier / Customer) *',
-        prefixIcon: Icon(Icons.business, size: 18),
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      ),
+      labelText: 'Party (Supplier / Customer) *',
+      hintText: 'Select Party',
+      title: 'Select Party (Supplier / Customer)',
+      headerIcon: Icons.business,
+      prefixIcon: const Icon(Icons.business, size: 18),
       items: parties
           .where((p) => p.isActive || p.id == _selectedPartyId)
-          .map((p) => DropdownMenuItem(
-                value: p.id,
-                child: Text(p.partyCode.isNotEmpty ? '${p.name} (${p.partyCode})' : p.name, overflow: TextOverflow.ellipsis),
-              ))
-          .toList(),
+          .map((p) {
+            final tags = <String>[
+              if (p.phoneNumber.isNotEmpty) 'Phone: ${p.phoneNumber}',
+              if (p.gstin.isNotEmpty) 'GSTIN: ${p.gstin}',
+            ];
+            return AppPopupOption<String>(
+              value: p.id,
+              label: p.name,
+              subtitle: p.address.isNotEmpty ? p.address : null,
+              tags: tags.isNotEmpty ? tags : null,
+              icon: Icons.person_outline,
+            );
+          }).toList(),
       onChanged: (val) => setState(() => _selectedPartyId = val),
       validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
     );
 
-    final typeField = DropdownButtonFormField<String>(
-      isExpanded: true,
+    final typeField = AppPopupSelectField<String>(
+      key: ValueKey('cn_type_$_selectedPurchaseTypeId'),
       value: purchaseTypes.any((t) => t.id == _selectedPurchaseTypeId) ? _selectedPurchaseTypeId : null,
-      decoration: const InputDecoration(
-        labelText: 'Credit Note Type',
-        prefixIcon: Icon(Icons.category, size: 18),
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      ),
+      labelText: 'Credit Note Type',
+      hintText: 'Select Type',
+      title: 'Select Credit Note Type',
+      headerIcon: Icons.category,
+      prefixIcon: const Icon(Icons.category, size: 18),
       items: purchaseTypes
           .where((t) => t.isActive || t.id == _selectedPurchaseTypeId)
-          .map((t) => DropdownMenuItem(
+          .map((t) => AppPopupOption<String>(
                 value: t.id,
-                child: Text(t.name, overflow: TextOverflow.ellipsis),
+                label: t.name,
+                icon: Icons.category_outlined,
               ))
           .toList(),
       onChanged: (val) => setState(() => _selectedPurchaseTypeId = val),
     );
 
-    final companyGodownField = DropdownButtonFormField<String>(
-      isExpanded: true,
+    final companyGodownField = AppPopupSelectField<String>(
+      key: ValueKey('cn_cg_$_selectedCompanyGodownId'),
       value: companyGodowns.any((g) => g.id == _selectedCompanyGodownId) ? _selectedCompanyGodownId : null,
-      decoration: const InputDecoration(
-        labelText: 'Company Godown *',
-        prefixIcon: Icon(Icons.warehouse, size: 18),
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      ),
+      labelText: 'Company Godown *',
+      hintText: 'Select Company Godown',
+      title: 'Select Company Godown',
+      headerIcon: Icons.warehouse,
+      prefixIcon: const Icon(Icons.warehouse, size: 18),
       items: companyGodowns
-          .map((g) => DropdownMenuItem(
-                value: g.id,
-                child: Text(g.name, overflow: TextOverflow.ellipsis),
-              ))
-          .toList(),
+          .map((g) {
+            final tags = <String>[
+              g.type.label,
+              if (g.district.isNotEmpty) '${g.district}, ${g.state}',
+            ];
+            return AppPopupOption<String>(
+              value: g.id,
+              label: g.name,
+              tags: tags,
+              icon: Icons.warehouse_outlined,
+            );
+          }).toList(),
       onChanged: (val) => setState(() => _selectedCompanyGodownId = val),
       validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
     );
@@ -896,22 +910,28 @@ class _CreditNoteEntryDialogState extends State<CreditNoteEntryDialog> {
         DataCell(
           SizedBox(
             width: 180,
-            child: DropdownButtonFormField<String>(
-              isExpanded: true,
+            child: AppPopupSelectField<String>(
+              key: ValueKey('cn_row_item_${idx}_${row.itemId}'),
               value: items.any((it) => it.id == row.itemId) ? row.itemId : null,
-              decoration: const InputDecoration(
-                hintText: 'Select Item',
-                border: OutlineInputBorder(),
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              ),
+              hintText: 'Select Item',
+              title: 'Select Item',
+              headerIcon: Icons.inventory_2_outlined,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               items: items
                   .where((it) => it.isActive || it.id == row.itemId)
-                  .map((it) => DropdownMenuItem(
-                        value: it.id,
-                        child: Text(it.name, overflow: TextOverflow.ellipsis),
-                      ))
-                  .toList(),
+                  .map((it) {
+                    final tags = <String>[
+                      'Stock: ${it.currentStock.toStringAsFixed(it.currentStock.truncateToDouble() == it.currentStock ? 0 : 2)} ${it.defaultUom?.symbol ?? ""}',
+                      if (it.itemGroup?.name != null && it.itemGroup!.name.isNotEmpty) 'Group: ${it.itemGroup!.name}',
+                    ];
+                    return AppPopupOption<String>(
+                      value: it.id,
+                      label: it.name,
+                      tags: tags,
+                      icon: Icons.inventory_2_outlined,
+                    );
+                  }).toList(),
               onChanged: (val) => _onItemChanged(idx, val),
             ),
           ),
@@ -920,22 +940,28 @@ class _CreditNoteEntryDialogState extends State<CreditNoteEntryDialog> {
         DataCell(
           SizedBox(
             width: 180,
-            child: DropdownButtonFormField<String>(
-              isExpanded: true,
+            child: AppPopupSelectField<String>(
+              key: ValueKey('cn_row_godown_${idx}_${row.godownId}'),
               value: godowns.any((g) => g.id == row.godownId) ? row.godownId : null,
-              decoration: const InputDecoration(
-                hintText: 'Select Godown',
-                border: OutlineInputBorder(),
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              ),
+              hintText: 'Select Godown',
+              title: 'Select Delivered Godown',
+              headerIcon: Icons.warehouse_outlined,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               items: godowns
                   .where((g) => g.isActive || g.id == row.godownId)
-                  .map((g) => DropdownMenuItem(
-                        value: g.id,
-                        child: Text(g.name, overflow: TextOverflow.ellipsis),
-                      ))
-                  .toList(),
+                  .map((g) {
+                    final tags = <String>[
+                      g.type.label,
+                      if (g.district.isNotEmpty) '${g.district}, ${g.state}',
+                    ];
+                    return AppPopupOption<String>(
+                      value: g.id,
+                      label: g.name,
+                      tags: tags,
+                      icon: Icons.warehouse_outlined,
+                    );
+                  }).toList(),
               onChanged: (val) => setState(() => row.godownId = val),
             ),
           ),
@@ -974,20 +1000,20 @@ class _CreditNoteEntryDialogState extends State<CreditNoteEntryDialog> {
         DataCell(
           SizedBox(
             width: 100,
-            child: DropdownButtonFormField<String>(
-              isExpanded: true,
+            child: AppPopupSelectField<String>(
+              key: ValueKey('cn_row_uom_${idx}_${row.uomId}'),
               value: uoms.any((u) => u.id == row.uomId) ? row.uomId : null,
-              decoration: const InputDecoration(
-                hintText: 'Select UOM',
-                border: OutlineInputBorder(),
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              ),
+              hintText: 'Select UOM',
+              title: 'Select Unit of Measure',
+              headerIcon: Icons.straighten_rounded,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               items: uoms
                   .where((u) => u.isActive || u.id == row.uomId)
-                  .map((u) => DropdownMenuItem(
+                  .map((u) => AppPopupOption<String>(
                         value: u.id,
-                        child: Text(u.symbol, overflow: TextOverflow.ellipsis),
+                        label: u.symbol.isNotEmpty ? u.symbol : u.name,
+                        subtitle: u.name != u.symbol ? u.name : null,
                       ))
                   .toList(),
               onChanged: (val) => setState(() => row.uomId = val),
@@ -1069,19 +1095,20 @@ class _CreditNoteEntryDialogState extends State<CreditNoteEntryDialog> {
         DataCell(
           SizedBox(
             width: 100,
-            child: DropdownButtonFormField<String>(
-              isExpanded: true,
+            child: AppPopupSelectField<String>(
+              key: ValueKey('cn_row_per_${idx}_${row.perId}'),
               value: perUnits.any((p) => p.id == row.perId) ? row.perId : null,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              ),
+              hintText: 'Per',
+              title: 'Select Pricing Unit (Per)',
+              headerIcon: Icons.sell_outlined,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               items: perUnits
                   .where((p) => p.isActive || p.id == row.perId)
-                  .map((p) => DropdownMenuItem(
+                  .map((p) => AppPopupOption<String>(
                         value: p.id,
-                        child: Text(p.symbol.isNotEmpty ? p.symbol : p.name, overflow: TextOverflow.ellipsis),
+                        label: p.symbol.isNotEmpty ? p.symbol : p.name,
+                        subtitle: p.name != p.symbol ? p.name : null,
                       ))
                   .toList(),
               onChanged: (val) => setState(() => row.perId = val),

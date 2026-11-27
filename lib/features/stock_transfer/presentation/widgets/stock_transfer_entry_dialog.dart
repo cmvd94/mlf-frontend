@@ -3,6 +3,7 @@ import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
+import 'package:mlf_frontend/core/widgets/app_popup_select_field.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/godown_entity.dart';
 import 'package:mlf_frontend/features/admin/presentation/controllers/godown_controller.dart';
 import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
@@ -903,22 +904,26 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
           const SizedBox(height: 4),
 
           // Stock selector
-          DropdownButtonFormField<AvailableStockEntity>(
+          AppPopupSelectField<AvailableStockEntity>(
+            key: ValueKey('st_source_stock_${index}_${row.selectedStock?.godownStockId}'),
             value: row.selectedStock,
-            isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Select Stock (Godown • Item • DC & Lot)',
-              isDense: true,
-              border: OutlineInputBorder(),
-            ),
+            labelText: 'Select Stock (Godown • Item • DC & Lot)',
+            hintText: 'Select Stock',
+            title: 'Select Source Stock',
+            headerIcon: Icons.inventory_2_outlined,
+            isDense: true,
             items: availableList.map((s) {
-              return DropdownMenuItem<AvailableStockEntity>(
+              final tags = <String>[
+                'Godown: ${s.godownName}',
+                'Stock: ${s.currentStock} ${s.uomSymbol}',
+                if (s.lotNo.isNotEmpty) 'Lot: ${s.lotNo}',
+                if (s.dcNo.isNotEmpty) 'DC: ${s.dcNo}',
+              ];
+              return AppPopupOption<AvailableStockEntity>(
                 value: s,
-                child: Text(
-                  s.displayName,
-                  style: const TextStyle(fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                label: s.itemName,
+                tags: tags,
+                icon: Icons.inventory_2_outlined,
               );
             }).toList(),
             onChanged: (selected) {
@@ -1240,24 +1245,26 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
           const SizedBox(height: 4),
 
           // Item selection (can be same item or newly formed item)
-          DropdownButtonFormField<String>(
+          AppPopupSelectField<String>(
+            key: ValueKey('st_dest_item_${index}_${row.itemId}'),
             value: allItems.any((it) => it.id == row.itemId)
                 ? row.itemId
                 : (allItems.isNotEmpty ? allItems.first.id : null),
-            isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Name of Item (Same or New Formed Item)',
-              isDense: true,
-              border: OutlineInputBorder(),
-            ),
+            labelText: 'Name of Item (Same or New Formed Item)',
+            hintText: 'Select Item',
+            title: 'Select Destination Item',
+            headerIcon: Icons.inventory_2_outlined,
+            isDense: true,
             items: allItems.map((it) {
-              return DropdownMenuItem<String>(
+              final tags = <String>[
+                'Stock: ${it.currentStock.toStringAsFixed(it.currentStock.truncateToDouble() == it.currentStock ? 0 : 2)} ${it.defaultUom?.symbol ?? ""}',
+                if (it.itemGroup?.name != null && it.itemGroup!.name.isNotEmpty) 'Group: ${it.itemGroup!.name}',
+              ];
+              return AppPopupOption<String>(
                 value: it.id,
-                child: Text(
-                  '${it.name} (${it.itemCode})',
-                  style: const TextStyle(fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                label: it.name,
+                tags: tags,
+                icon: Icons.inventory_2_outlined,
               );
             }).toList(),
             onChanged: (val) {
@@ -1279,25 +1286,23 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
 
           // Destination Godown & New Batch / Lot No.
           if (isMobile) ...[
-            DropdownButtonFormField<String>(
+            AppPopupSelectField<String>(
+              key: ValueKey('st_mob_dest_godown_${index}_${row.godownId}'),
               value: allGodowns.any((g) => g.id == row.godownId)
                   ? row.godownId
                   : (allGodowns.isNotEmpty ? allGodowns.first.id : null),
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Destination Godown',
-                isDense: true,
-                border: OutlineInputBorder(),
-              ),
+              labelText: 'Destination Godown',
+              hintText: 'Select Destination Godown',
+              title: 'Select Destination Godown',
+              headerIcon: Icons.warehouse_outlined,
+              isDense: true,
               items: allGodowns.map((g) {
                 final typeLabel = g.type == GodownType.companyGodown ? 'Company' : 'Jobwork';
-                return DropdownMenuItem<String>(
+                return AppPopupOption<String>(
                   value: g.id,
-                  child: Text(
-                    '${g.name} ($typeLabel)',
-                    style: const TextStyle(fontSize: 12),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  label: g.name,
+                  subtitle: typeLabel,
+                  icon: Icons.warehouse_outlined,
                 );
               }).toList(),
               onChanged: (val) => setState(() => row.godownId = val),
@@ -1419,25 +1424,23 @@ class _StockTransferEntryDialogState extends State<StockTransferEntryDialog> {
               children: [
                 Expanded(
                   flex: 4,
-                  child: DropdownButtonFormField<String>(
+                  child: AppPopupSelectField<String>(
+                    key: ValueKey('st_desk_dest_godown_${index}_${row.godownId}'),
                     value: allGodowns.any((g) => g.id == row.godownId)
                         ? row.godownId
                         : (allGodowns.isNotEmpty ? allGodowns.first.id : null),
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Destination Godown',
-                      isDense: true,
-                      border: OutlineInputBorder(),
-                    ),
+                    labelText: 'Destination Godown',
+                    hintText: 'Select Destination Godown',
+                    title: 'Select Destination Godown',
+                    headerIcon: Icons.warehouse_outlined,
+                    isDense: true,
                     items: allGodowns.map((g) {
                       final typeLabel = g.type == GodownType.companyGodown ? 'Company' : 'Jobwork';
-                      return DropdownMenuItem<String>(
+                      return AppPopupOption<String>(
                         value: g.id,
-                        child: Text(
-                          '${g.name} ($typeLabel)',
-                          style: const TextStyle(fontSize: 12),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        label: g.name,
+                        subtitle: typeLabel,
+                        icon: Icons.warehouse_outlined,
                       );
                     }).toList(),
                     onChanged: (val) => setState(() => row.godownId = val),

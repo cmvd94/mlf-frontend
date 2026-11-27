@@ -30,7 +30,7 @@ class DeleteConfirmDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Are you sure you want to delete admin user "${user.name}" (${user.employeeId})?',
+            'Are you sure you want to delete admin user "${user.name}"?',
             style: const TextStyle(fontSize: 14),
           ),
           const SizedBox(height: 8),

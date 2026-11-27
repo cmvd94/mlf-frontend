@@ -124,15 +124,7 @@ class CreditNoteDetailDialog extends StatelessWidget {
                       rows: creditNote.items.map((item) {
                         return DataRow(cells: [
                           DataCell(
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(item.itemName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                                if (item.itemCode.isNotEmpty)
-                                  Text(item.itemCode, style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
-                              ],
-                            ),
+                            Text(item.itemName, style: const TextStyle(fontWeight: FontWeight.w600)),
                           ),
                           DataCell(Text(item.godownName.isNotEmpty ? item.godownName : '-')),
                           DataCell(Text(item.dcNo.isNotEmpty ? item.dcNo : '-')),

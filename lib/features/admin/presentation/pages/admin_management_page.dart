@@ -452,11 +452,6 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                             style: const TextStyle(
                                 fontWeight: FontWeight.w600, fontSize: 14),
                           ),
-                          Text(
-                            user.employeeId,
-                            style: const TextStyle(
-                                fontSize: 12, color: AppColors.textSecondary),
-                          ),
                         ],
                       ),
                     ),
@@ -630,9 +625,7 @@ class _AdminManagementPageState extends State<AdminManagementPage> {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text('ID: ${user.employeeId}',
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary)),
+
                 Text('Phone: ${user.phoneNumber}',
                     style: const TextStyle(fontSize: 13)),
                 Text('Email: ${user.email}',

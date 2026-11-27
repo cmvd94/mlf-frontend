@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mlf_frontend/core/constants/app_colors.dart';
 import 'package:mlf_frontend/core/constants/app_constants.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
+import 'package:mlf_frontend/core/widgets/app_popup_select_field.dart';
 import 'package:mlf_frontend/features/admin/domain/entities/godown_entity.dart';
 import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
 import '../../domain/entities/purchase_entity.dart';
@@ -384,20 +385,20 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
         );
 
     // Helper builder for Purchase Type
-    Widget buildPurchaseTypeField() => DropdownButtonFormField<String>(
-          isExpanded: true,
+    Widget buildPurchaseTypeField() => AppPopupSelectField<String>(
+          key: ValueKey('pt_$_selectedPurchaseTypeId'),
           value: purchaseTypes.any((t) => t.id == _selectedPurchaseTypeId)
               ? _selectedPurchaseTypeId
               : null,
-          decoration: const InputDecoration(
-            labelText: 'Purchase Type *',
-            border: OutlineInputBorder(),
-          ),
-          hint: const Text('Select Type', overflow: TextOverflow.ellipsis),
+          labelText: 'Purchase Type *',
+          hintText: 'Select Type',
+          title: 'Select Purchase Type',
+          headerIcon: Icons.category_outlined,
           items: purchaseTypes.map((t) {
-            return DropdownMenuItem<String>(
+            return AppPopupOption<String>(
               value: t.id,
-              child: Text(t.name, overflow: TextOverflow.ellipsis),
+              label: t.name,
+              icon: Icons.category_outlined,
             );
           }).toList(),
           onChanged: (val) => setState(() => _selectedPurchaseTypeId = val),
@@ -405,24 +406,26 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
         );
 
     // Helper builder for Company Godown
-    Widget buildCompanyGodownField() => DropdownButtonFormField<String>(
-          isExpanded: true,
+    Widget buildCompanyGodownField() => AppPopupSelectField<String>(
+          key: ValueKey('cg_$_selectedCompanyGodownId'),
           value: companyGodowns.any((g) => g.id == _selectedCompanyGodownId)
               ? _selectedCompanyGodownId
               : null,
-          decoration: const InputDecoration(
-            labelText: 'Company Godown *',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.business_outlined, size: 20),
-          ),
-          hint: const Text('Select Company Godown', overflow: TextOverflow.ellipsis),
+          labelText: 'Company Godown *',
+          hintText: 'Select Company Godown',
+          title: 'Select Company Godown',
+          headerIcon: Icons.business_outlined,
+          prefixIcon: const Icon(Icons.business_outlined, size: 20),
           items: companyGodowns.map((g) {
-            return DropdownMenuItem<String>(
+            final tags = <String>[
+              g.type.label,
+              if (g.district.isNotEmpty) '${g.district}, ${g.state}',
+            ];
+            return AppPopupOption<String>(
               value: g.id,
-              child: Text(
-                '${g.name} (${g.godownId})',
-                overflow: TextOverflow.ellipsis,
-              ),
+              label: g.name,
+              tags: tags,
+              icon: Icons.business_outlined,
             );
           }).toList(),
           onChanged: (val) => setState(() {
@@ -435,22 +438,25 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
         );
 
     // Helper builder for Party / Supplier
-    Widget buildPartyField() => DropdownButtonFormField<String>(
-          isExpanded: true,
+    Widget buildPartyField() => AppPopupSelectField<String>(
+          key: ValueKey('p_$_selectedPartyId'),
           value: parties.any((p) => p.id == _selectedPartyId) ? _selectedPartyId : null,
-          decoration: const InputDecoration(
-            labelText: 'Party / Supplier Name *',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.person_pin, size: 20),
-          ),
-          hint: const Text('Select Party / Supplier', overflow: TextOverflow.ellipsis),
+          labelText: 'Party / Supplier Name *',
+          hintText: 'Select Party / Supplier',
+          title: 'Select Party / Supplier',
+          headerIcon: Icons.person_pin,
+          prefixIcon: const Icon(Icons.person_pin, size: 20),
           items: parties.map((p) {
-            return DropdownMenuItem<String>(
+            final tags = <String>[
+              if (p.phoneNumber.isNotEmpty) 'Phone: ${p.phoneNumber}',
+              if (p.gstin.isNotEmpty) 'GSTIN: ${p.gstin}',
+            ];
+            return AppPopupOption<String>(
               value: p.id,
-              child: Text(
-                '${p.name} ${p.partyCode.isNotEmpty ? "(${p.partyCode})" : ""}',
-                overflow: TextOverflow.ellipsis,
-              ),
+              label: p.name,
+              subtitle: p.address.isNotEmpty ? p.address : null,
+              tags: tags.isNotEmpty ? tags : null,
+              icon: Icons.person_outline,
             );
           }).toList(),
           onChanged: (val) => setState(() => _selectedPartyId = val),
@@ -743,23 +749,25 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                                     // 1. Item Dropdown
                                                     Expanded(
                                                       flex: 3,
-                                                      child: DropdownButtonFormField<String>(
-                                                        isExpanded: true,
+                                                      child: AppPopupSelectField<String>(
+                                                        key: ValueKey('p_item_${index}_${row.itemId}'),
                                                         value: items.any((i) => i.id == row.itemId) ? row.itemId : null,
-                                                        decoration: const InputDecoration(
-                                                          isDense: true,
-                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                          border: OutlineInputBorder(),
-                                                          hintText: 'Select Item',
-                                                        ),
+                                                        isDense: true,
+                                                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                        hintText: 'Select Item',
+                                                        title: 'Select Item',
+                                                        headerIcon: Icons.inventory_2_outlined,
                                                         items: items.map((it) {
-                                                          return DropdownMenuItem<String>(
+                                                          final tags = <String>[
+                                                            'Stock: ${it.currentStock.toStringAsFixed(it.currentStock.truncateToDouble() == it.currentStock ? 0 : 2)} ${it.defaultUom?.symbol ?? ""}',
+                                                            if (it.itemGroup?.name != null && it.itemGroup!.name.isNotEmpty) 'Group: ${it.itemGroup!.name}',
+                                                            if (it.hsnCode.isNotEmpty) 'HSN: ${it.hsnCode}',
+                                                          ];
+                                                          return AppPopupOption<String>(
                                                             value: it.id,
-                                                            child: Text(
-                                                              '${it.name} ${it.itemCode.isNotEmpty ? "(${it.itemCode})" : ""}',
-                                                              overflow: TextOverflow.ellipsis,
-                                                              style: const TextStyle(fontSize: 13),
-                                                            ),
+                                                            label: it.name,
+                                                            tags: tags,
+                                                            icon: Icons.inventory_2_outlined,
                                                           );
                                                         }).toList(),
                                                         onChanged: (val) => _onItemChanged(index, val),
@@ -770,23 +778,24 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                                     // 2. Assigned Delivered Godown Dropdown for this item
                                                     Expanded(
                                                       flex: 3,
-                                                      child: DropdownButtonFormField<String>(
-                                                        isExpanded: true,
+                                                      child: AppPopupSelectField<String>(
+                                                        key: ValueKey('p_godown_${index}_${row.godownId}'),
                                                         value: godowns.any((g) => g.id == row.godownId) ? row.godownId : null,
-                                                        decoration: const InputDecoration(
-                                                          isDense: true,
-                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                          border: OutlineInputBorder(),
-                                                          hintText: 'Delivered Godown',
-                                                        ),
+                                                        isDense: true,
+                                                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                        hintText: 'Delivered Godown',
+                                                        title: 'Select Delivered Godown',
+                                                        headerIcon: Icons.warehouse_outlined,
                                                         items: godowns.map((g) {
-                                                          return DropdownMenuItem<String>(
+                                                          final tags = <String>[
+                                                            g.type.label,
+                                                            if (g.district.isNotEmpty) '${g.district}, ${g.state}',
+                                                          ];
+                                                          return AppPopupOption<String>(
                                                             value: g.id,
-                                                            child: Text(
-                                                              '${g.name} (${g.godownId})',
-                                                              overflow: TextOverflow.ellipsis,
-                                                              style: const TextStyle(fontSize: 13),
-                                                            ),
+                                                            label: g.name,
+                                                            tags: tags,
+                                                            icon: Icons.warehouse_outlined,
                                                           );
                                                         }).toList(),
                                                         onChanged: (val) => setState(() => row.godownId = val),
@@ -831,23 +840,19 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                                     // 4. UOM Dropdown
                                                     Expanded(
                                                       flex: 2,
-                                                      child: DropdownButtonFormField<String>(
-                                                        isExpanded: true,
+                                                      child: AppPopupSelectField<String>(
+                                                        key: ValueKey('p_uom_${index}_${row.uomId}'),
                                                         value: uoms.any((u) => u.id == row.uomId) ? row.uomId : null,
-                                                        decoration: const InputDecoration(
-                                                          isDense: true,
-                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                          border: OutlineInputBorder(),
-                                                          hintText: 'UOM',
-                                                        ),
+                                                        isDense: true,
+                                                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                        hintText: 'UOM',
+                                                        title: 'Select Unit of Measure',
+                                                        headerIcon: Icons.straighten_rounded,
                                                         items: uoms.map((u) {
-                                                          return DropdownMenuItem<String>(
+                                                          return AppPopupOption<String>(
                                                             value: u.id,
-                                                            child: Text(
-                                                              u.symbol,
-                                                              overflow: TextOverflow.ellipsis,
-                                                              style: const TextStyle(fontSize: 13),
-                                                            ),
+                                                            label: u.symbol.isNotEmpty ? u.symbol : u.name,
+                                                            subtitle: u.name != u.symbol ? u.name : null,
                                                           );
                                                         }).toList(),
                                                         onChanged: (val) => setState(() => row.uomId = val),
@@ -946,23 +951,19 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                                     // 8. Per Unit Dropdown
                                                     Expanded(
                                                       flex: 2,
-                                                      child: DropdownButtonFormField<String>(
-                                                        isExpanded: true,
+                                                      child: AppPopupSelectField<String>(
+                                                        key: ValueKey('p_per_${index}_${row.perId}'),
                                                         value: perUnits.any((p) => p.id == row.perId) ? row.perId : null,
-                                                        decoration: const InputDecoration(
-                                                          isDense: true,
-                                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                          border: OutlineInputBorder(),
-                                                          hintText: 'Per',
-                                                        ),
+                                                        isDense: true,
+                                                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                        hintText: 'Per',
+                                                        title: 'Select Pricing Unit (Per)',
+                                                        headerIcon: Icons.sell_outlined,
                                                         items: perUnits.map((p) {
-                                                          return DropdownMenuItem<String>(
+                                                          return AppPopupOption<String>(
                                                             value: p.id,
-                                                            child: Text(
-                                                              p.symbol,
-                                                              overflow: TextOverflow.ellipsis,
-                                                              style: const TextStyle(fontSize: 13),
-                                                            ),
+                                                            label: p.symbol.isNotEmpty ? p.symbol : p.name,
+                                                            subtitle: p.name != p.symbol ? p.name : null,
                                                           );
                                                         }).toList(),
                                                         onChanged: (val) => setState(() => row.perId = val),
@@ -988,7 +989,7 @@ class _PurchaseEntryDialogState extends State<PurchaseEntryDialog> {
                                                   Padding(
                                                     padding: const EdgeInsets.only(left: 34, top: 4),
                                                     child: Text(
-                                                      'Master Stock: ${itemInfo.currentStock.toStringAsFixed(2)} ${itemInfo.defaultUom?.symbol ?? ""} | Code: ${itemInfo.itemCode}',
+                                                      'Master Stock: ${itemInfo.currentStock.toStringAsFixed(2)} ${itemInfo.defaultUom?.symbol ?? ""}',
                                                       style: TextStyle(fontSize: 11, color: Colors.blue.shade800),
                                                     ),
                                                   ),

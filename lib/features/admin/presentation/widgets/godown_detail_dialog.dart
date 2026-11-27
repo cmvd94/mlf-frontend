@@ -79,7 +79,7 @@ class GodownDetailDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '${admin.name} (${admin.employeeId})',
+                    admin.name,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -145,15 +145,7 @@ class GodownDetailDialog extends StatelessWidget {
                             color: AppColors.textPrimary,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'ID: ${godown.godownId}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                            fontFamily: 'monospace',
-                          ),
-                        ),
+
                       ],
                     ),
                   ),

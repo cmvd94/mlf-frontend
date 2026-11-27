@@ -311,7 +311,7 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
         DropdownMenuItem(
           value: _selectedManagerId,
           child: Text(
-            current != null ? '${current.name} (${current.employeeId})' : 'Assigned Manager',
+            current != null ? current.name : 'Assigned Manager',
           ),
         ),
       );
@@ -320,7 +320,7 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
       managerItems.add(
         DropdownMenuItem(
           value: m.id,
-          child: Text('${m.name} (${m.employeeId})'),
+          child: Text(m.name),
         ),
       );
     }
@@ -338,7 +338,7 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
         DropdownMenuItem(
           value: _selectedBillingUserId,
           child: Text(
-            current != null ? '${current.name} (${current.employeeId})' : 'Assigned Billing User',
+            current != null ? current.name : 'Assigned Billing User',
           ),
         ),
       );
@@ -347,7 +347,7 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
       billingItems.add(
         DropdownMenuItem(
           value: b.id,
-          child: Text('${b.name} (${b.employeeId})'),
+          child: Text(b.name),
         ),
       );
     }
@@ -1050,7 +1050,7 @@ class _GodownFormDialogState extends State<GodownFormDialog> {
               children: available.map((admin) {
                 final isSelected = selectedIds.contains(admin.id);
                 return FilterChip(
-                  label: Text('${admin.name} (${admin.employeeId})'),
+                  label: Text(admin.name),
                   selected: isSelected,
                   selectedColor: color.withOpacity(0.18),
                   checkmarkColor: color,

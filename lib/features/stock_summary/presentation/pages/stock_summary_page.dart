@@ -386,7 +386,7 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                           ...godowns.map(
                             (g) => DropdownMenuItem<String?>(
                               value: g.id,
-                              child: Text('${g.name} (${g.godownId})', style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
+                              child: Text(g.name, style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
                             ),
                           ),
                         ],
@@ -499,7 +499,7 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                       ...godowns.map(
                         (g) => DropdownMenuItem<String?>(
                           value: g.id,
-                          child: Text('${g.name} (${g.godownId})', style: const TextStyle(fontSize: 13)),
+                          child: Text(g.name, style: const TextStyle(fontSize: 13)),
                         ),
                       ),
                     ],

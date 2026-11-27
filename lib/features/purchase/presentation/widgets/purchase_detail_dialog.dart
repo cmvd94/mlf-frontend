@@ -250,20 +250,12 @@ class PurchaseDetailDialog extends StatelessWidget {
                                 cells: [
                                   DataCell(Text('${idx + 1}', style: const TextStyle(fontSize: 12))),
                                   DataCell(
-                                    Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(it.itemName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                                        if (it.itemCode.isNotEmpty)
-                                          Text(it.itemCode, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
-                                      ],
-                                    ),
+                                    Text(it.itemName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                                   ),
                                   DataCell(
                                     Text(
                                       it.godownName.isNotEmpty
-                                          ? '${it.godownName} (${it.godownCode})'
+                                          ? it.godownName
                                           : (purchase.godownName.isNotEmpty ? purchase.godownName : '-'),
                                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                                     ),

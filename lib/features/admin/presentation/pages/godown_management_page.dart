@@ -89,7 +89,7 @@ class _GodownManagementPageState extends State<GodownManagementPage> {
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Godown'),
         content: Text(
-          'Are you sure you want to delete "${godown.name}" (${godown.godownId})?\n\nThis will remove access for all assigned staff and archive the godown.',
+          'Are you sure you want to delete "${godown.name}"?\n\nThis will remove access for all assigned staff and archive the godown.',
         ),
         actions: [
           OutlinedButton(

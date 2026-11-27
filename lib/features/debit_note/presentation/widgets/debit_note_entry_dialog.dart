@@ -4,6 +4,7 @@ import 'package:mlf_frontend/core/constants/app_constants.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
+import 'package:mlf_frontend/core/widgets/app_popup_select_field.dart';
 import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
 import 'package:mlf_frontend/features/stock_transfer/domain/entities/available_stock_entity.dart';
 import '../../domain/entities/debit_note_entity.dart';
@@ -410,47 +411,51 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
       ),
     );
 
-    final partyField = DropdownButtonFormField<String>(
-      isExpanded: true,
+    final partyField = AppPopupSelectField<String>(
+      key: ValueKey('dn_party_$_selectedPartyId'),
       value: _inventoryController.parties.any((p) => p.id == _selectedPartyId)
           ? _selectedPartyId
           : null,
-      decoration: const InputDecoration(
-        labelText: 'Party (Customer) *',
-        prefixIcon: Icon(Icons.business, size: 18),
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      ),
+      labelText: 'Party (Customer) *',
+      hintText: 'Select Party',
+      title: 'Select Party (Customer)',
+      headerIcon: Icons.business,
+      prefixIcon: const Icon(Icons.business, size: 18),
       items: _inventoryController.parties
           .where((p) => p.isActive || p.id == _selectedPartyId)
-          .map((p) => DropdownMenuItem(
-                value: p.id,
-                child: Text(
-                  p.partyCode.isNotEmpty ? '${p.name} (${p.partyCode})' : p.name,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ))
-          .toList(),
+          .map((p) {
+            final tags = <String>[
+              if (p.phoneNumber.isNotEmpty) 'Phone: ${p.phoneNumber}',
+              if (p.gstin.isNotEmpty) 'GSTIN: ${p.gstin}',
+            ];
+            return AppPopupOption<String>(
+              value: p.id,
+              label: p.name,
+              subtitle: p.address.isNotEmpty ? p.address : null,
+              tags: tags.isNotEmpty ? tags : null,
+              icon: Icons.person_outline,
+            );
+          }).toList(),
       onChanged: (val) => setState(() => _selectedPartyId = val),
       validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
     );
 
-    final typeField = DropdownButtonFormField<String>(
-      isExpanded: true,
+    final typeField = AppPopupSelectField<String>(
+      key: ValueKey('dn_type_$_selectedTypeId'),
       value: _inventoryController.salesTypes.any((st) => st.id == _selectedTypeId)
           ? _selectedTypeId
           : null,
-      decoration: const InputDecoration(
-        labelText: 'Debit Note Type',
-        prefixIcon: Icon(Icons.category, size: 18),
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      ),
+      labelText: 'Debit Note Type',
+      hintText: 'Select Type',
+      title: 'Select Debit Note Type',
+      headerIcon: Icons.category,
+      prefixIcon: const Icon(Icons.category, size: 18),
       items: _inventoryController.salesTypes
           .where((st) => st.isActive || st.id == _selectedTypeId)
-          .map((st) => DropdownMenuItem(
+          .map((st) => AppPopupOption<String>(
                 value: st.id,
-                child: Text(st.name, overflow: TextOverflow.ellipsis),
+                label: st.name,
+                icon: Icons.category_outlined,
               ))
           .toList(),
       onChanged: (val) => setState(() => _selectedTypeId = val),
@@ -973,22 +978,28 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
         DataCell(
           SizedBox(
             width: 180,
-            child: DropdownButtonFormField<String>(
-              isExpanded: true,
+            child: AppPopupSelectField<String>(
+              key: ValueKey('dn_row_item_${idx}_${row.itemId}'),
               value: _inventoryController.items.any((it) => it.id == row.itemId) ? row.itemId : null,
-              decoration: const InputDecoration(
-                hintText: 'Select Item',
-                border: OutlineInputBorder(),
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              ),
+              hintText: 'Select Item',
+              title: 'Select Item',
+              headerIcon: Icons.inventory_2_outlined,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               items: _inventoryController.items
                   .where((it) => it.isActive || it.id == row.itemId)
-                  .map((it) => DropdownMenuItem(
-                        value: it.id,
-                        child: Text(it.name, overflow: TextOverflow.ellipsis),
-                      ))
-                  .toList(),
+                  .map((it) {
+                    final tags = <String>[
+                      'Stock: ${it.currentStock.toStringAsFixed(it.currentStock.truncateToDouble() == it.currentStock ? 0 : 2)} ${it.defaultUom?.symbol ?? ""}',
+                      if (it.itemGroup?.name != null && it.itemGroup!.name.isNotEmpty) 'Group: ${it.itemGroup!.name}',
+                    ];
+                    return AppPopupOption<String>(
+                      value: it.id,
+                      label: it.name,
+                      tags: tags,
+                      icon: Icons.inventory_2_outlined,
+                    );
+                  }).toList(),
               onChanged: (val) => _onItemChanged(row, val),
             ),
           ),
@@ -997,23 +1008,27 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
         DataCell(
           SizedBox(
             width: 220,
-            child: DropdownButtonFormField<String>(
-              isExpanded: true,
+            child: AppPopupSelectField<String>(
+              key: ValueKey('dn_row_stock_${idx}_${row.godownStockId}'),
               value: availableStocksForItem.any((s) => s.godownStockId == row.godownStockId)
                   ? row.godownStockId
                   : null,
-              decoration: const InputDecoration(
-                hintText: 'Select Batch',
-                border: OutlineInputBorder(),
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              ),
+              hintText: 'Select Batch',
+              title: 'Select Godown Batch',
+              headerIcon: Icons.warehouse_outlined,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               items: availableStocksForItem.map((s) {
-                final batchLabel = s.lotNo.isNotEmpty ? 'Lot: ${s.lotNo}' : (s.dcNo.isNotEmpty ? 'DC: ${s.dcNo}' : 'Batch');
-                final text = '$batchLabel | ${s.godownName} (${s.currentStock} ${s.uomSymbol})';
-                return DropdownMenuItem(
+                final batchLabel = s.lotNo.isNotEmpty ? 'Lot: ${s.lotNo}' : (s.dcNo.isNotEmpty ? 'DC: ${s.dcNo}' : '');
+                final tags = <String>[
+                  'Stock: ${s.currentStock} ${s.uomSymbol}',
+                  if (batchLabel.isNotEmpty) batchLabel,
+                ];
+                return AppPopupOption<String>(
                   value: s.godownStockId,
-                  child: Text(text, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
+                  label: s.godownName,
+                  tags: tags,
+                  icon: Icons.warehouse_outlined,
                 );
               }).toList(),
               onChanged: (val) => _onStockBatchSelected(row, val),
@@ -1039,20 +1054,20 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
         DataCell(
           SizedBox(
             width: 100,
-            child: DropdownButtonFormField<String>(
-              isExpanded: true,
+            child: AppPopupSelectField<String>(
+              key: ValueKey('dn_row_uom_${idx}_${row.uomId}'),
               value: _inventoryController.uoms.any((u) => u.id == row.uomId) ? row.uomId : null,
-              decoration: const InputDecoration(
-                hintText: 'Select UOM',
-                border: OutlineInputBorder(),
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              ),
+              hintText: 'Select UOM',
+              title: 'Select Unit of Measure',
+              headerIcon: Icons.straighten_rounded,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               items: _inventoryController.uoms
                   .where((u) => u.isActive || u.id == row.uomId)
-                  .map((u) => DropdownMenuItem(
+                  .map((u) => AppPopupOption<String>(
                         value: u.id,
-                        child: Text(u.symbol, overflow: TextOverflow.ellipsis),
+                        label: u.symbol.isNotEmpty ? u.symbol : u.name,
+                        subtitle: u.name != u.symbol ? u.name : null,
                       ))
                   .toList(),
               onChanged: (val) => setState(() => row.uomId = val),
@@ -1134,19 +1149,20 @@ class _DebitNoteEntryDialogState extends State<DebitNoteEntryDialog> {
         DataCell(
           SizedBox(
             width: 100,
-            child: DropdownButtonFormField<String>(
-              isExpanded: true,
+            child: AppPopupSelectField<String>(
+              key: ValueKey('dn_row_per_${idx}_${row.perId}'),
               value: _inventoryController.perUnits.any((p) => p.id == row.perId) ? row.perId : null,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              ),
+              hintText: 'Per',
+              title: 'Select Pricing Unit (Per)',
+              headerIcon: Icons.sell_outlined,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               items: _inventoryController.perUnits
                   .where((p) => p.isActive || p.id == row.perId)
-                  .map((p) => DropdownMenuItem(
+                  .map((p) => AppPopupOption<String>(
                         value: p.id,
-                        child: Text(p.symbol.isNotEmpty ? p.symbol : p.name, overflow: TextOverflow.ellipsis),
+                        label: p.symbol.isNotEmpty ? p.symbol : p.name,
+                        subtitle: p.name != p.symbol ? p.name : null,
                       ))
                   .toList(),
               onChanged: (val) => setState(() => row.perId = val),

@@ -110,7 +110,7 @@ class AdminDetailDialog extends StatelessWidget {
                 ],
               ),
               const Divider(height: 28),
-              _buildInfoRow('Employee ID', user.employeeId),
+
               _buildInfoRow('Phone Number', user.phoneNumber),
               _buildInfoRow('Email Address', user.email),
               _buildInfoRow('Account Role', user.role.label),

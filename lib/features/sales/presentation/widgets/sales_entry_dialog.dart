@@ -4,6 +4,7 @@ import 'package:mlf_frontend/core/constants/app_constants.dart';
 import 'package:mlf_frontend/core/di/service_locator.dart';
 import 'package:mlf_frontend/core/logger/app_logger.dart';
 import 'package:mlf_frontend/core/utils/app_notification.dart';
+import 'package:mlf_frontend/core/widgets/app_popup_select_field.dart';
 import 'package:mlf_frontend/features/inventory/presentation/controllers/inventory_controller.dart';
 import 'package:mlf_frontend/features/stock_transfer/domain/entities/available_stock_entity.dart';
 import '../../domain/entities/sale_entity.dart';
@@ -656,20 +657,20 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                     const SizedBox(width: 10),
                                     // 2. Sales Type Dropdown
                                     Expanded(
-                                      child: DropdownButtonFormField<String>(
-                                        isExpanded: true,
+                                      child: AppPopupSelectField<String>(
+                                        key: ValueKey('mob_salestype_$_selectedSalesTypeId'),
                                         value: salesTypes.any((t) => t.id == _selectedSalesTypeId)
                                             ? _selectedSalesTypeId
                                             : null,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Sales Type *',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        hint: const Text('Select Type', overflow: TextOverflow.ellipsis),
+                                        labelText: 'Sales Type *',
+                                        hintText: 'Select Type',
+                                        title: 'Select Sales Type',
+                                        headerIcon: Icons.category_outlined,
                                         items: salesTypes.map((t) {
-                                          return DropdownMenuItem<String>(
+                                          return AppPopupOption<String>(
                                             value: t.id,
-                                            child: Text(t.name, overflow: TextOverflow.ellipsis),
+                                            label: t.name,
+                                            icon: Icons.category_outlined,
                                           );
                                         }).toList(),
                                         onChanged: (val) => setState(() => _selectedSalesTypeId = val),
@@ -680,22 +681,20 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                 ),
                                 const SizedBox(height: 12),
                                 // 3. Party / Customer Name Dropdown
-                                DropdownButtonFormField<String>(
-                                  isExpanded: true,
+                                AppPopupSelectField<String>(
+                                  key: ValueKey('mob_party_$_selectedPartyId'),
                                   value: parties.any((p) => p.id == _selectedPartyId) ? _selectedPartyId : null,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Party / Customer Name *',
-                                    border: OutlineInputBorder(),
-                                    prefixIcon: Icon(Icons.person_pin, size: 20),
-                                  ),
-                                  hint: const Text('Select Party / Customer', overflow: TextOverflow.ellipsis),
+                                  labelText: 'Party / Customer Name *',
+                                  hintText: 'Select Party / Customer',
+                                  title: 'Select Customer / Party',
+                                  headerIcon: Icons.person_pin,
+                                  prefixIcon: const Icon(Icons.person_pin, size: 20),
                                   items: parties.map((p) {
-                                    return DropdownMenuItem<String>(
+                                    return AppPopupOption<String>(
                                       value: p.id,
-                                      child: Text(
-                                        '${p.name} ${p.partyCode.isNotEmpty ? "(${p.partyCode})" : ""}',
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                      label: p.name,
+                                      subtitle: p.address.isNotEmpty ? p.address : null,
+                                      icon: Icons.person_outline,
                                     );
                                   }).toList(),
                                   onChanged: (val) => setState(() => _selectedPartyId = val),
@@ -759,20 +758,20 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                     // 2. Sales Type Dropdown
                                     Expanded(
                                       flex: 2,
-                                      child: DropdownButtonFormField<String>(
-                                        isExpanded: true,
+                                      child: AppPopupSelectField<String>(
+                                        key: ValueKey('desk_salestype_$_selectedSalesTypeId'),
                                         value: salesTypes.any((t) => t.id == _selectedSalesTypeId)
                                             ? _selectedSalesTypeId
                                             : null,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Sales Type *',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        hint: const Text('Select Type', overflow: TextOverflow.ellipsis),
+                                        labelText: 'Sales Type *',
+                                        hintText: 'Select Type',
+                                        title: 'Select Sales Type',
+                                        headerIcon: Icons.category_outlined,
                                         items: salesTypes.map((t) {
-                                          return DropdownMenuItem<String>(
+                                          return AppPopupOption<String>(
                                             value: t.id,
-                                            child: Text(t.name, overflow: TextOverflow.ellipsis),
+                                            label: t.name,
+                                            icon: Icons.category_outlined,
                                           );
                                         }).toList(),
                                         onChanged: (val) => setState(() => _selectedSalesTypeId = val),
@@ -783,22 +782,20 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                     // 3. Party / Customer Name Dropdown
                                     Expanded(
                                       flex: 3,
-                                      child: DropdownButtonFormField<String>(
-                                        isExpanded: true,
+                                      child: AppPopupSelectField<String>(
+                                        key: ValueKey('desk_party_$_selectedPartyId'),
                                         value: parties.any((p) => p.id == _selectedPartyId) ? _selectedPartyId : null,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Party / Customer Name *',
-                                          border: OutlineInputBorder(),
-                                          prefixIcon: Icon(Icons.person_pin, size: 20),
-                                        ),
-                                        hint: const Text('Select Party / Customer', overflow: TextOverflow.ellipsis),
+                                        labelText: 'Party / Customer Name *',
+                                        hintText: 'Select Party / Customer',
+                                        title: 'Select Customer / Party',
+                                        headerIcon: Icons.person_pin,
+                                        prefixIcon: const Icon(Icons.person_pin, size: 20),
                                         items: parties.map((p) {
-                                          return DropdownMenuItem<String>(
+                                          return AppPopupOption<String>(
                                             value: p.id,
-                                            child: Text(
-                                              '${p.name} ${p.partyCode.isNotEmpty ? "(${p.partyCode})" : ""}',
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
+                                            label: p.name,
+                                            subtitle: p.address.isNotEmpty ? p.address : null,
+                                            icon: Icons.person_outline,
                                           );
                                         }).toList(),
                                         onChanged: (val) => setState(() => _selectedPartyId = val),
@@ -1003,23 +1000,25 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                                 // 1. Item Dropdown
                                                 Expanded(
                                                   flex: 3,
-                                                  child: DropdownButtonFormField<String>(
-                                                    isExpanded: true,
+                                                  child: AppPopupSelectField<String>(
+                                                    key: ValueKey('item_${index}_${row.itemId}'),
                                                     value: items.any((i) => i.id == row.itemId) ? row.itemId : null,
-                                                    decoration: const InputDecoration(
-                                                      isDense: true,
-                                                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                      border: OutlineInputBorder(),
-                                                      hintText: 'Select Item',
-                                                    ),
+                                                    isDense: true,
+                                                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                    hintText: 'Select Item',
+                                                    title: 'Select Item',
+                                                    headerIcon: Icons.inventory_2_outlined,
                                                     items: items.map((it) {
-                                                      return DropdownMenuItem<String>(
+                                                      final tags = <String>[
+                                                        'Stock: ${it.currentStock.toStringAsFixed(it.currentStock.truncateToDouble() == it.currentStock ? 0 : 2)} ${it.defaultUom?.symbol ?? ""}',
+                                                        if (it.itemGroup?.name != null && it.itemGroup!.name.isNotEmpty) 'Group: ${it.itemGroup!.name}',
+                                                        if (it.hsnCode.isNotEmpty) 'HSN: ${it.hsnCode}',
+                                                      ];
+                                                      return AppPopupOption<String>(
                                                         value: it.id,
-                                                        child: Text(
-                                                          '${it.name} ${it.itemCode.isNotEmpty ? "(${it.itemCode})" : ""}',
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: const TextStyle(fontSize: 13),
-                                                        ),
+                                                        label: it.name,
+                                                        tags: tags,
+                                                        icon: Icons.inventory_2_outlined,
                                                       );
                                                     }).toList(),
                                                     onChanged: (val) => _onItemChanged(row, val),
@@ -1031,28 +1030,30 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                                 // 2. Godown Name Dropdown (shows respective available stock, quantity & lot number)
                                                 Expanded(
                                                   flex: 3,
-                                                  child: DropdownButtonFormField<String>(
-                                                    isExpanded: true,
+                                                  child: AppPopupSelectField<String>(
+                                                    key: ValueKey('godown_${index}_${row.godownStockId}'),
                                                     value: stocksForItem.any((s) => s.godownStockId == row.godownStockId)
                                                         ? row.godownStockId
                                                         : null,
-                                                    decoration: InputDecoration(
-                                                      isDense: true,
-                                                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                      border: const OutlineInputBorder(),
-                                                      hintText: row.itemId == null
-                                                          ? 'Select Item First'
-                                                          : (stocksForItem.isEmpty ? 'No Stock Available' : 'Select Godown Batch'),
-                                                    ),
+                                                    isDense: true,
+                                                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                    hintText: row.itemId == null
+                                                        ? 'Select Item First'
+                                                        : (stocksForItem.isEmpty ? 'No Stock Available' : 'Select Godown Batch'),
+                                                    title: 'Select Godown Batch',
+                                                    headerIcon: Icons.warehouse_outlined,
+                                                    enabled: stocksForItem.isNotEmpty,
                                                     items: stocksForItem.map((stock) {
-                                                      final lotText = stock.lotNo.isNotEmpty ? ' | Lot: ${stock.lotNo}' : '';
-                                                      return DropdownMenuItem<String>(
+                                                      final tags = <String>[
+                                                        'Stock: ${stock.currentStock} ${stock.uomSymbol}',
+                                                        if (stock.lotNo.isNotEmpty) 'Lot: ${stock.lotNo}',
+                                                        if (stock.dcNo.isNotEmpty) 'DC: ${stock.dcNo}',
+                                                      ];
+                                                      return AppPopupOption<String>(
                                                         value: stock.godownStockId,
-                                                        child: Text(
-                                                          '${stock.godownName} (${stock.currentStock} ${stock.uomSymbol}$lotText)',
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: const TextStyle(fontSize: 12),
-                                                        ),
+                                                        label: stock.godownName,
+                                                        tags: tags,
+                                                        icon: Icons.warehouse_outlined,
                                                       );
                                                     }).toList(),
                                                     onChanged: stocksForItem.isEmpty
@@ -1087,23 +1088,19 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                                 // 4. UOM Dropdown
                                                 Expanded(
                                                   flex: 2,
-                                                  child: DropdownButtonFormField<String>(
-                                                    isExpanded: true,
+                                                  child: AppPopupSelectField<String>(
+                                                    key: ValueKey('uom_${index}_${row.uomId}'),
                                                     value: uoms.any((u) => u.id == row.uomId) ? row.uomId : null,
-                                                    decoration: const InputDecoration(
-                                                      isDense: true,
-                                                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                      border: OutlineInputBorder(),
-                                                      hintText: 'UOM',
-                                                    ),
+                                                    isDense: true,
+                                                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                    hintText: 'UOM',
+                                                    title: 'Select Unit of Measure',
+                                                    headerIcon: Icons.straighten_rounded,
                                                     items: uoms.map((u) {
-                                                      return DropdownMenuItem<String>(
+                                                      return AppPopupOption<String>(
                                                         value: u.id,
-                                                        child: Text(
-                                                          u.symbol,
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: const TextStyle(fontSize: 13),
-                                                        ),
+                                                        label: u.symbol.isNotEmpty ? u.symbol : u.name,
+                                                        subtitle: u.name != u.symbol ? u.name : null,
                                                       );
                                                     }).toList(),
                                                     onChanged: (val) => setState(() => row.uomId = val),
@@ -1215,23 +1212,19 @@ class _SalesEntryDialogState extends State<SalesEntryDialog> {
                                                 // 9. Per Unit Dropdown
                                                 Expanded(
                                                   flex: 2,
-                                                  child: DropdownButtonFormField<String>(
-                                                    isExpanded: true,
+                                                  child: AppPopupSelectField<String>(
+                                                    key: ValueKey('per_${index}_${row.perId}'),
                                                     value: perUnits.any((p) => p.id == row.perId) ? row.perId : null,
-                                                    decoration: const InputDecoration(
-                                                      isDense: true,
-                                                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                      border: OutlineInputBorder(),
-                                                      hintText: 'Per',
-                                                    ),
+                                                    isDense: true,
+                                                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                    hintText: 'Per',
+                                                    title: 'Select Pricing Unit (Per)',
+                                                    headerIcon: Icons.sell_outlined,
                                                     items: perUnits.map((p) {
-                                                      return DropdownMenuItem<String>(
+                                                      return AppPopupOption<String>(
                                                         value: p.id,
-                                                        child: Text(
-                                                          p.symbol.isNotEmpty ? p.symbol : p.name,
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: const TextStyle(fontSize: 13),
-                                                        ),
+                                                        label: p.symbol.isNotEmpty ? p.symbol : p.name,
+                                                        subtitle: p.name != p.symbol ? p.name : null,
                                                       );
                                                     }).toList(),
                                                     onChanged: (val) => setState(() => row.perId = val),
